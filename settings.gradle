@@ -1,0 +1,13 @@
+rootProject.name = 'boston'
+
+include('boston-api')
+project(':boston-api').name = 'boston-api'
+
+include('boston-service')
+project(':boston-service').name = 'boston-service'
+
+include('boston-client')
+project(':boston-client').name = 'boston-client'
+
+include('boston-ui')
+project(':boston-ui').name = 'boston-ui'

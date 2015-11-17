@@ -1,0 +1,52 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-1103'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+  }
+}
+
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalArgumentException('''A Haiku:
+                                      |  This needs Java 8,
+                                      |  You are using something else,
+                                      |  Upgrade. Try again.'''.stripMargin())
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+
+  apply plugin: 'idea'
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'kotlin'
+
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+
+  ext {
+    kotlinVersion = '1.0.0-beta-1103'
+    junitVersion = '4.12'
+  }
+
+  dependencies {
+    compile(
+        "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
+        "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    )
+
+    testCompile(
+        "junit:junit:${junitVersion}"
+    )
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.8'
+}
