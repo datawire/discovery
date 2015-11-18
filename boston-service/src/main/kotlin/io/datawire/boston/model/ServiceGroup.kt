@@ -9,7 +9,6 @@ import java.net.URI
  */
 
 
-data class ServiceGroup(
-    val name: String,
-    val addresses: Set<URI>
-)
+data class ServiceGroup(val name: String, val addresses: Set<ServiceEndpoint>) {
+
+}

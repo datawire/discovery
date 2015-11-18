@@ -6,12 +6,15 @@ ext {
   vertxVersion = '3.1.0'
 }
 
+repositories {
+  mavenCentral()
+}
+
 dependencies {
   compile(
       "io.vertx:vertx-core:${vertxVersion}",
       "io.vertx:vertx-web:${vertxVersion}",
-      "org.slf4j:sl4j-api:${slf4jVersion}",
-      "ch.qos.logbacl:logback-classic:${logbackVersion}",
+      "com.fasterxml.jackson.module:jackson-module-kotlin:2.6.3-3",
       project(":boston-api")
   )
 }
@@ -24,5 +27,20 @@ shadowJar {
   }
   mergeServiceFiles {
     include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+  }
+}
+
+class QuarkCompileOptions implements Serializable {
+  String encoding = "UTF-8"
+}
+
+class QuarkCompile extends SourceTask {
+
+  private Object destinationDir
+  private Object quarkFiles
+  private QuarkCompileOptions options
+
+  @TaskAction void doCompile() {
+
   }
 }

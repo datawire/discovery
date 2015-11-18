@@ -20,13 +20,15 @@ Boston is simple to run and interact with:
 
 `java -jar boston-0.0.1.jar`
 
-
-
 # Theory of Operation #
 
 Boston is expected to run as a middleware component in a distributed system and uses web sockets to send and receive notifications about services that are joining and leaving the distributed system. When services connect to Boston they send a registration message containing information about the service such as its name and network address. Boston then broadcasts that message to all interested connected parties.
 
 # Contributing #
+
+## Developer Instructions ##
+
+Build: `./gradlew build`
 
 TBD.
 
