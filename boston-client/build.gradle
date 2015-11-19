@@ -1,3 +1,26 @@
-task quarkCompile() {
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
+def quarkFile = "hub.q"
+
+ext {
+  quarkVersion = '0.1.1-SNAPSHOT'
+}
+
+repositories {
+  mavenLocal()
+//  maven {
+//    url "https://oss.sonatype.org/content/repositories/snapshots"
+//  }
+}
+
+dependencies {
+  compile group: 'io.datawire.quark', name: 'quark-core', version: '0.1.1-SNAPSHOT', changing: true
+}
+
+task compileQuark(type: Exec) {
+  executable "bash"
+  args "-c", """quark --python --java --output ${project.buildDir}/tmp compile src/main/quark/${quarkFile} &&
+rm -rf src/main/java &&
+mv ${project.buildDir}/tmp/java/src/main/java ${project.projectDir}/src/main""".toString()
 }
