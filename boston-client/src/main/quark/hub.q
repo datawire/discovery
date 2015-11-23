@@ -131,19 +131,33 @@ package hub {
       }
     }
 
-    class HubClient {
+    class HubClient extends WSHandler {
 
         Runtime runtime;
         WebSocket socket;
+        String hubAddress;
 
-        HubClient(Runtime runtime) {
+        HubClient(Runtime runtime, String hubAddress) {
           self.runtime = runtime;
+          self.hubAddress = hubAddress;
         }
 
         Envelope buildEnvelope() {
             Envelope envelope = new Envelope();
             envelope.agent = "watson/2.0; quark 0.0.1"; // would be nice to be able to access quark version info for putting in user agents etc.
             return envelope;
+        }
+
+        void connect() {
+          self.runtime.open(self.hubAddress, self);
+        }
+
+        void disconnect() {
+          sendMessage(Disconnect());
+        }
+
+        void onWSConnected(WebSocket socket) {
+            self.socket = socket;
         }
 
         void send(Envelope envelope) {
@@ -164,9 +178,10 @@ package hub {
         OnMessage callback;
 
         Sherlock(Runtime runtime, String hubAddress, OnMessage callback) {
-          super(runtime);
+          super(runtime, hubAddress);
           self.callback = callback;
-          self.runtime.open(hubAddress, self);
+          //self.runtime.open(hubAddress, self);
+          //self.connect();
         }
 
         void onWSConnected(WebSocket socket) {
@@ -196,11 +211,12 @@ package hub {
         HealthCheck     healthCheck;
 
         Watson(Runtime runtime, String hubAddress, String serviceName, ServiceEndpoint serviceEndpoint) {
-            super(runtime);
+            super(runtime, hubAddress);
             self.serviceName = serviceName;
             self.serviceEndpoint = serviceEndpoint;
             self.registration = Registration(serviceName, serviceEndpoint, 1000);
-            self.runtime.open(hubAddress, self);
+            //self.connect()
+            //self.runtime.open(self.hubAddress, self);
         }
 
         void registerHealthCheck(HealthCheck healthCheck) {
@@ -226,6 +242,14 @@ package hub {
         }
 
         void onExecute(Runtime runtime) {
+            if (healthCheck.check() != true) {
+              // Alive
+              if (self.socket == null) {
+                self.connect();
+                self.heartbeat();
+              }
+            }
+
             super.sendMessage(Heartbeat());
             self.runtime.schedule(self, 5.0);
         }
@@ -335,6 +359,23 @@ package hub {
 
         String toString() {
             return "Subscription()";
+        }
+
+        JSONObject toJson() {
+            JSONObject json = new JSONObject();
+            json["type"] = self.type;
+            return json;
+        }
+    }
+
+    class Disconnect extends Message {
+
+        Disconnect() {
+            super("disco");
+        }
+
+        String toString() {
+            return "Disconnect()";
         }
 
         JSONObject toJson() {

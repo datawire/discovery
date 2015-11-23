@@ -54,6 +54,10 @@ data class Client(private val clients: MutableMap<String, Client>,
 
   private fun handleMessage(message: Message) {
     when (message) {
+      is Disconnect -> {
+        socket.close()
+        services[serviceName!!]?.remove(serviceEndpoint!!)
+      }
       is ServiceRegistration -> {
         // todo(plombardi): FIX!!! -> thread safety issues out the wazoo here!
         if (message.name !in services) {

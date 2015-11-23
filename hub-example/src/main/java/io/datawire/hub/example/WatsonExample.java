@@ -20,6 +20,7 @@ public class  WatsonExample {
 
     Watson watson = new Watson(runtime, "ws://" + hubAddress, serviceName, endpoint);
     watson.registerHealthCheck(new BogusHealthCheck());
+    watson.connect();
   }
 
   public static class BogusHealthCheck implements HealthCheck {
