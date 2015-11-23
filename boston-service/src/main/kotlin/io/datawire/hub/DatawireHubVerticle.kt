@@ -2,7 +2,6 @@ package io.datawire.hub
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.AbstractVerticle
-import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
 import com.fasterxml.jackson.module.kotlin.*
 import io.datawire.hub.model.*
@@ -46,38 +45,6 @@ ws remote-addr : ${socket.remoteAddress()}
 --------------------------------------------------------------------------------
 """)
       Client(clients, services, socket)
-
-
-//
-//      if (socket.path().startsWith("/subscribe")) {
-//        println("---> Subscribe (client: $clientId})")
-//        //subscribers.add(event)
-//      }
-//
-//      socket.closeHandler { close ->
-//        println("---> Disconnected (client: $clientId)")
-//      }
-//
-//      socket.handler { data ->
-//        //val msg = data.toString()
-//        val msg = mapper.readValue<Message>(data.toString())
-//        when(msg) {
-//          is ServiceRegistration -> {
-//            print("""
-//  sender = ${msg.sender}
-//endpoint = ${msg.endpoint}
-//
-//""")
-//          }
-//        }
-
-
-
-//        println("---> Received (msg: $msg)")
-//        for (sub in subscribers) {
-//          sub.writeFinalTextFrame("---> msg from($clientId): $msg")
-//        }
-//      }
     }
 
     server.listen(8080)
