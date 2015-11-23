@@ -16,7 +16,7 @@ enum class ProtocolType {
   IPv6;
 
   companion object {
-    @JsonCreator fun fromValue(type: String): ProtocolType {
+    @JsonCreator @JvmStatic fun fromValue(type: String): ProtocolType {
       when {
         type.toLowerCase() == "ipv4" -> return IPv4
         type.toLowerCase() == "ipv6" -> return IPv6

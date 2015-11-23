@@ -8,6 +8,6 @@ data class NetworkAddress @JsonCreator constructor(
     @JsonProperty("host")
     val address: String,
 
-    @JsonProperty("protocol")
-    val protocol: ProtocolType
+    @JsonProperty("type")
+    val type: ProtocolType
 )

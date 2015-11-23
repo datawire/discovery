@@ -133,7 +133,12 @@ package hub {
 
     class HubClient {
 
+        Runtime runtime;
         WebSocket socket;
+
+        HubClient(Runtime runtime) {
+          self.runtime = runtime;
+        }
 
         Envelope buildEnvelope() {
             Envelope envelope = new Envelope();
@@ -156,13 +161,10 @@ package hub {
 
     class Sherlock extends HubClient, WSHandler {
 
-        Runtime runtime;
-        //WebSocket socket;
         OnMessage callback;
 
         Sherlock(Runtime runtime, String hubAddress, OnMessage callback) {
-          super();
-          self.runtime = runtime;
+          super(runtime);
           self.callback = callback;
           self.runtime.open(hubAddress, self);
         }
@@ -184,44 +186,17 @@ package hub {
 
     class Watson extends HubClient, ServicePublisher, Task, WSHandler {
 
-        Runtime         runtime;
-        //WebSocket       socket;
-
         String          serviceName;
         ServiceEndpoint serviceEndpoint;
         Registration    registration;
 
-        Watson(Runtime runtime, String url, String serviceName, ServiceEndpoint serviceEndpoint) {
-            super();
-            self.runtime = runtime;
+        Watson(Runtime runtime, String hubAddress, String serviceName, ServiceEndpoint serviceEndpoint) {
+            super(runtime);
             self.serviceName = serviceName;
             self.serviceEndpoint = serviceEndpoint;
             self.registration = Registration(serviceName, serviceEndpoint, 1000);
+            self.runtime.open(hubAddress, self);
         }
-
-        void connect() {
-
-        }
-
-        /*
-        Envelope buildEnvelope() {
-            Envelope envelope = new Envelope();
-            envelope.agent = "watson/2.0; quark 0.0.1"; // would be nice to be able to access quark version info for putting in user agents etc.
-            return envelope;
-        }
-
-        void send(Envelope envelope) {
-            socket.send(envelope.toJson());
-        }
-
-        void sendMessage(Message message) {
-            send(buildEnvelope().addMessage(message));
-        }
-
-        void sendMessages(List<Message> messages) {
-            send(buildEnvelope().addMessages(messages));
-        }
-        */
 
         void register() {
             super.sendMessage(registration);
