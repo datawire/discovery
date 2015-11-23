@@ -19,6 +19,71 @@ package hub {
         void heartbeat();
     }
 
+    @doc("Represents the port associated with a service endpoint and the protocol it handles")
+    class ServicePort {
+
+      String name;
+      int port;
+
+      ServicePort(String name, int port) {
+        self.name = name;
+        self.port = port;
+      }
+
+      String toString() {
+        return name + "-" + port.toString();
+      }
+
+      JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json["name"] = name;
+        json["port"] = port;
+        json["secure"] = false;
+        return json;
+      }
+    }
+
+    @doc("Represents the IP or DNS name associated with a service endpoint")
+    class NetworkAddress {
+
+      String host;
+      String type;
+
+      NetworkAddress(String host, String type) {
+        self.host = host;
+        self.type = type;
+      }
+
+      JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json["host"] = host;
+        json["type"] = type;
+        return json;
+      }
+    }
+
+    class ServiceEndpoint {
+
+      NetworkAddress address;
+      ServicePort port;
+
+      ServiceEndpoint(NetworkAddress address, ServicePort port) {
+        self.address = address;
+        self.port = port;
+      }
+
+      String toString() {
+        return "";
+      }
+
+      JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json["address"] = address.toJson();
+        json["port"] = port.toJson();
+        return json;
+      }
+    }
+
     @doc("Maps a named service to a set of known endpoints.")
     class ServiceRecord {
 
@@ -66,26 +131,68 @@ package hub {
       }
     }
 
-    class Sherlock extends WSHandler {
-        void connect() {
+    class HubClient {
 
+        WebSocket socket;
+
+        Envelope buildEnvelope() {
+            Envelope envelope = new Envelope();
+            envelope.agent = "watson/2.0; quark 0.0.1"; // would be nice to be able to access quark version info for putting in user agents etc.
+            return envelope;
+        }
+
+        void send(Envelope envelope) {
+            socket.send(envelope.toJson().toString());
+        }
+
+        void sendMessage(Message message) {
+            send(buildEnvelope().addMessage(message));
+        }
+
+        void sendMessages(List<Message> messages) {
+            send(buildEnvelope().addMessages(messages));
+        }
+    }
+
+    class Sherlock extends HubClient, WSHandler {
+
+        Runtime runtime;
+        //WebSocket socket;
+        OnMessage callback;
+
+        Sherlock(Runtime runtime, String hubAddress, OnMessage callback) {
+          super();
+          self.runtime = runtime;
+          self.callback = callback;
+          self.runtime.open(hubAddress, self);
+        }
+
+        void onWSConnected(WebSocket socket) {
+          self.socket = socket;
+          super.sendMessage(new Subscription());
         }
 
         void onWSMessage(WebSocket socket, String data) {
             JSONObject envelope = data.parseJSON();
+            self.callback.run(envelope);
         }
     }
 
-    class Watson extends ServicePublisher, Task, WSHandler {
+    interface OnMessage {
+      void run(JSONObject json);
+    }
+
+    class Watson extends HubClient, ServicePublisher, Task, WSHandler {
 
         Runtime         runtime;
-        WebSocket       socket;
+        //WebSocket       socket;
 
         String          serviceName;
-        String          serviceEndpoint;
+        ServiceEndpoint serviceEndpoint;
         Registration    registration;
 
-        Watson(Runtime runtime, String url, String serviceName, String serviceEndpoint) {
+        Watson(Runtime runtime, String url, String serviceName, ServiceEndpoint serviceEndpoint) {
+            super();
             self.runtime = runtime;
             self.serviceName = serviceName;
             self.serviceEndpoint = serviceEndpoint;
@@ -96,10 +203,10 @@ package hub {
 
         }
 
+        /*
         Envelope buildEnvelope() {
             Envelope envelope = new Envelope();
             envelope.agent = "watson/2.0; quark 0.0.1"; // would be nice to be able to access quark version info for putting in user agents etc.
-            envelope.id = "I wish I was an UUID";
             return envelope;
         }
 
@@ -114,26 +221,27 @@ package hub {
         void sendMessages(List<Message> messages) {
             send(buildEnvelope().addMessages(messages));
         }
+        */
 
         void register() {
-            sendMessage(registration);
+            super.sendMessage(registration);
         }
 
         void heartbeat() {
-            sendMessage(Heartbeat());
+            super.sendMessage(Heartbeat());
         }
 
         String toString() {
-            return "Watson(service=" + serviceName + ", endpoint=" + serviceEndpoint + ")";
+            return "Watson(service=" + serviceName + ", endpoint=" + serviceEndpoint.toString() + ")";
         }
 
         void onWSConnected(WebSocket socket) {
             self.socket = socket;
-            sendMessage(registration);
+            super.sendMessage(registration);
         }
 
         void onExecute(Runtime runtime) {
-            sendMessage(Heartbeat());
+            super.sendMessage(Heartbeat());
             self.runtime.schedule(self, 5.0);
         }
     }
@@ -210,11 +318,11 @@ package hub {
 
     class Registration extends Message {
 
-        String      serviceName;
-        String      serviceEndpoint;
-        int         ttl = 1000;
+        String          serviceName;
+        ServiceEndpoint serviceEndpoint;
+        int             ttl = 1000;
 
-        Registration(String serviceName, String serviceEndpoint, int ttl) {
+        Registration(String serviceName, ServiceEndpoint serviceEndpoint, int ttl) {
             super("register");
             self.serviceName = serviceName;
             self.serviceEndpoint = serviceEndpoint;
@@ -222,14 +330,14 @@ package hub {
         }
 
         String toString() {
-            return "Register(serviceName: " + serviceName + ", serviceEndpoint: " + serviceEndpoint + ", ttl: " + ttl.toString() + ")";
+            return "Register(serviceName: " + serviceName + ", serviceEndpoint: " + serviceEndpoint.toString() + ", ttl: " + ttl.toString() + ")";
         }
 
         JSONObject toJson() {
             JSONObject json = new JSONObject();
             json["type"] = self.type;
             json["name"] = serviceName;
-            json["endpoint"] = serviceEndpoint;
+            json["endpoint"] = serviceEndpoint.toJson();
             return json;
         }
     }

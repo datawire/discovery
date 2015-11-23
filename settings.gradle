@@ -1,7 +1,7 @@
 rootProject.name = 'boston'
 
-include('boston-api')
-project(':boston-api').name = 'boston-api'
+include('hub-example')
+project(':hub-example').name = 'hub-example'
 
 include('boston-service')
 project(':boston-service').name = 'boston-service'

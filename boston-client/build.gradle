@@ -16,6 +16,7 @@ repositories {
 
 dependencies {
   compile group: 'io.datawire.quark', name: 'quark-core', version: '0.1.1-SNAPSHOT', changing: true
+  compile group: 'io.datawire.quark', name: 'quark-netty', version: '0.1.1-SNAPSHOT', changing: true
 }
 
 task compileQuark(type: Exec) {

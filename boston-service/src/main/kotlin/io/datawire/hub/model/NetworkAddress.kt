@@ -1,4 +1,4 @@
-package io.datawire.boston.model
+package io.datawire.hub.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty

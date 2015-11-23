@@ -1,11 +1,11 @@
-package io.datawire.boston
+package io.datawire.hub
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
 import com.fasterxml.jackson.module.kotlin.*
-import io.datawire.boston.model.*
+import io.datawire.hub.model.*
 
 /**
  * Boston is a service registration and discovery server. The BostonVerticle is designed to be loaded as a Vert.x
@@ -15,9 +15,9 @@ import io.datawire.boston.model.*
  */
 
 
-class BostonVerticle: AbstractVerticle() {
+class DatawireHubVerticle : AbstractVerticle() {
 
-  private val log = LoggerFactory.getLogger(BostonVerticle::class.java)
+  private val log = LoggerFactory.getLogger(DatawireHubVerticle::class.java)
   private val mapper = ObjectMapper().registerKotlinModule()
 
   private val clients  = hashMapOf<String, Client>()

@@ -15,7 +15,6 @@ dependencies {
       "io.vertx:vertx-core:${vertxVersion}",
       "io.vertx:vertx-web:${vertxVersion}",
       "com.fasterxml.jackson.module:jackson-module-kotlin:2.6.3-3",
-      project(":boston-api")
   )
 }
 
@@ -23,7 +22,7 @@ shadowJar {
   classifier = 'fat'
   manifest {
     attributes 'Main-Class': 'io.vertx.core.Launcher'
-    attributes 'Main-Verticle': 'io.datawire.boston.BostonVerticle'
+    attributes 'Main-Verticle': 'io.datawire.hub.BostonVerticle'
   }
   mergeServiceFiles {
     include 'META-INF/services/io.vertx.core.spi.VerticleFactory'

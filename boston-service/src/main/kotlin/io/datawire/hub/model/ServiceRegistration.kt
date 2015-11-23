@@ -1,4 +1,4 @@
-package io.datawire.boston.model
+package io.datawire.hub.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -11,11 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 
 class ServiceRegistration @JsonCreator constructor(
-    override val sender: String,
-
     @JsonProperty("name")
     val name: String,
 
     @JsonProperty("endpoint")
-    val endpoint: ServiceEndpoint
+    val endpoint: ServiceEndpoint,
+
+    @JsonProperty("ttl")
+    val ttl: Long
 ): Message

@@ -1,6 +1,6 @@
-package io.datawire.boston
+package io.datawire.hub
 
-import io.datawire.boston.model.ServiceEndpoint
+import io.datawire.hub.model.ServiceEndpoint
 import io.vertx.core.AsyncResult
 import io.vertx.core.shareddata.AsyncMap
 import io.vertx.core.shareddata.Lock

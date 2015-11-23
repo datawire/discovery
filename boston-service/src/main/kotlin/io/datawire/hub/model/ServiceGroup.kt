@@ -1,4 +1,4 @@
-package io.datawire.boston.model
+package io.datawire.hub.model
 
 import java.net.URI
 
