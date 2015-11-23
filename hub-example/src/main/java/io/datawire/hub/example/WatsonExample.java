@@ -1,11 +1,10 @@
 package io.datawire.hub.example;
 
 
-import hub.NetworkAddress;
-import hub.ServiceEndpoint;
-import hub.ServicePort;
-import hub.Watson;
+import hub.*;
 import io.datawire.quark.runtime.Runtime;
+
+import java.util.Random;
 
 public class  WatsonExample {
 
@@ -20,5 +19,13 @@ public class  WatsonExample {
     );
 
     Watson watson = new Watson(runtime, "ws://" + hubAddress, serviceName, endpoint);
+    watson.registerHealthCheck(new BogusHealthCheck());
+  }
+
+  public static class BogusHealthCheck implements HealthCheck {
+    @Override public Boolean check() {
+      final Random random = new Random();
+      return random.nextBoolean();
+    }
   }
 }

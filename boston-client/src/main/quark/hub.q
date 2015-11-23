@@ -184,11 +184,16 @@ package hub {
       void run(JSONObject json);
     }
 
+    interface HealthCheck {
+      bool check();
+    }
+
     class Watson extends HubClient, ServicePublisher, Task, WSHandler {
 
         String          serviceName;
         ServiceEndpoint serviceEndpoint;
         Registration    registration;
+        HealthCheck     healthCheck;
 
         Watson(Runtime runtime, String hubAddress, String serviceName, ServiceEndpoint serviceEndpoint) {
             super(runtime);
@@ -196,6 +201,11 @@ package hub {
             self.serviceEndpoint = serviceEndpoint;
             self.registration = Registration(serviceName, serviceEndpoint, 1000);
             self.runtime.open(hubAddress, self);
+        }
+
+        void registerHealthCheck(HealthCheck healthCheck) {
+            print("registered health check");
+            self.healthCheck = healthCheck;
         }
 
         void register() {
