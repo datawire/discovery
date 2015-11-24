@@ -1,11 +1,16 @@
 apply plugin: 'java'
 
+ext {
+  sparkVersion = '2.3'
+}
+
 repositories {
   mavenLocal()
 }
 
 dependencies {
   compile(
+      "com.sparkjava:spark-core:${sparkVersion}",
       project(':boston-client')
   )
 }
