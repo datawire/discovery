@@ -4,6 +4,9 @@ package io.datawire.hub.example;
 import hub.*;
 import io.datawire.quark.runtime.Runtime;
 
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.Random;
 
 public class  WatsonExample {
@@ -15,7 +18,7 @@ public class  WatsonExample {
     String serviceName = "foobar-service";
     ServiceEndpoint endpoint = new ServiceEndpoint(
         new NetworkAddress("127.0.0.1", "ipv4"),
-        new ServicePort("http", 8080)
+        new ServicePort("http", 4567)
     );
 
     Watson watson = new Watson(runtime, "ws://" + hubAddress, serviceName, endpoint);
@@ -26,8 +29,13 @@ public class  WatsonExample {
 
   public static class BogusHealthCheck implements HealthCheck {
     @Override public Boolean check() {
-      final Random random = new Random();
-      return random.nextBoolean();
+      try {
+        final URL helloService = URI.create("http://127.0.0.1:4567").toURL();
+        final HttpURLConnection conn = (HttpURLConnection) helloService.openConnection();
+        return conn.getResponseCode() / 100 == 2;
+      } catch (Exception any) {
+        return false;
+      }
     }
   }
 }

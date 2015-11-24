@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     property = "type"
 )
 @JsonSubTypes(
+    JsonSubTypes.Type(value = Disconnect::class, name="disco"),
     JsonSubTypes.Type(value = ServiceRegistration::class, name="register"),
     JsonSubTypes.Type(value = ServiceHeartbeat::class, name="heartbeat"),
     JsonSubTypes.Type(value = Subscribe::class, name="subscribe")

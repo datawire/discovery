@@ -49,6 +49,7 @@ data class Client(private val clients: MutableMap<String, Client>,
       if (serviceEndpoint != null) {
         services[serviceName!!]?.removeRaw(serviceEndpoint)
       }
+      publishToSubscribed()
     }
   }
 

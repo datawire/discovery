@@ -60,6 +60,10 @@ package hub {
         json["type"] = type;
         return json;
       }
+
+      String toString() {
+        return host;
+      }
     }
 
     class ServiceEndpoint {
@@ -73,7 +77,7 @@ package hub {
       }
 
       String toString() {
-        return "";
+        return port.name + "://" + address.host + ":" + port.port.toString();
       }
 
       JSONObject toJson() {
@@ -144,12 +148,14 @@ package hub {
 
         Envelope buildEnvelope() {
             Envelope envelope = new Envelope();
-            envelope.agent = "watson/2.0; quark 0.0.1"; // would be nice to be able to access quark version info for putting in user agents etc.
+            envelope.agent = "watson/2.0; quark 0.1.14"; // would be nice to be able to access quark version info for putting in user agents etc.
             return envelope;
         }
 
         void connect() {
+          self.runtime.acquire();
           self.runtime.open(self.hubAddress, self);
+          self.runtime.release();
         }
 
         void disconnect() {
@@ -161,6 +167,7 @@ package hub {
         }
 
         void onWSClosed(WebSocket socket) {
+            print("socket closed");
             self.socket = null;
         }
 
@@ -184,8 +191,6 @@ package hub {
         Sherlock(Runtime runtime, String hubAddress, OnMessage callback) {
           super(runtime, hubAddress);
           self.callback = callback;
-          //self.runtime.open(hubAddress, self);
-          //self.connect();
         }
 
         void onWSConnected(WebSocket socket) {
@@ -207,7 +212,42 @@ package hub {
       bool check();
     }
 
-    class Watson extends HubClient, ServicePublisher, Task, WSHandler {
+    class Base {
+        Runtime runtime;
+
+        Base(Runtime runtime) {
+            self.runtime = runtime;
+        }
+    }
+
+    class ChildA extends Base, Task {
+
+        ChildA(Runtime runtime) {
+            super(runtime);
+            runtime.schedule(self, 2.0);
+        }
+
+        void onExecute(Runtime runtime) {
+            print("Boop!");
+            runtime.schedule(self, 2.0);
+        }
+    }
+
+    class TestTask extends Task {
+        Runtime runtime;
+
+        TestTask(Runtime runtime) {
+            self.runtime = runtime;
+            self.runtime.schedule(self, 2.0);
+        }
+
+        void onExecute(Runtime runtime) {
+            print("Boop!");
+            runtime.schedule(self, 2.0);
+        }
+    }
+
+    class Watson extends HubClient, ServicePublisher, Task {
 
         String          serviceName;
         ServiceEndpoint serviceEndpoint;
@@ -220,8 +260,6 @@ package hub {
             self.serviceName = serviceName;
             self.serviceEndpoint = serviceEndpoint;
             self.registration = Registration(serviceName, serviceEndpoint, 1000);
-            //self.connect()
-            //self.runtime.open(self.hubAddress, self);
         }
 
         void registerHealthCheck(HealthCheck healthCheck) {
@@ -231,11 +269,11 @@ package hub {
 
         void register() {
             while(self.socket == null) {
-              print(".")
+              //print(".");
             }
 
             super.sendMessage(registration);
-            self.runtime.schedule(self, 5.0);
+            self.runtime.schedule(self, 2.0);
         }
 
         void heartbeat() {
@@ -248,7 +286,7 @@ package hub {
 
         void onWSConnected(WebSocket socket) {
             self.socket = socket;
-            super.sendMessage(registration);
+            register();
         }
 
         void onExecute(Runtime runtime) {
@@ -258,6 +296,8 @@ package hub {
                 print("DEAD -> LIVE " + serviceEndpoint.toString());
                 self.connect();
                 self.heartbeat();
+              } else {
+                print("LIVE " + serviceEndpoint.toString());
               }
             } else {
               if (self.socket != null) {
@@ -271,7 +311,7 @@ package hub {
               }
             }
 
-            self.runtime.schedule(self, 5.0);
+            self.runtime.schedule(self, 2.0);
         }
     }
 
