@@ -160,6 +160,10 @@ package hub {
             self.socket = socket;
         }
 
+        void onWSClosed(WebSocket socket) {
+            self.socket = null;
+        }
+
         void send(Envelope envelope) {
             socket.send(envelope.toJson().toString());
         }
@@ -209,6 +213,7 @@ package hub {
         ServiceEndpoint serviceEndpoint;
         Registration    registration;
         HealthCheck     healthCheck;
+        bool            firstCheck = true;
 
         Watson(Runtime runtime, String hubAddress, String serviceName, ServiceEndpoint serviceEndpoint) {
             super(runtime, hubAddress);
@@ -225,7 +230,12 @@ package hub {
         }
 
         void register() {
+            while(self.socket == null) {
+              print(".")
+            }
+
             super.sendMessage(registration);
+            self.runtime.schedule(self, 5.0);
         }
 
         void heartbeat() {
@@ -242,15 +252,25 @@ package hub {
         }
 
         void onExecute(Runtime runtime) {
-            if (healthCheck.check() != true) {
+            if (healthCheck.check()) {
               // Alive
               if (self.socket == null) {
+                print("DEAD -> LIVE " + serviceEndpoint.toString());
                 self.connect();
                 self.heartbeat();
               }
+            } else {
+              if (self.socket != null) {
+                print("LIVE -> DEAD " + serviceEndpoint.toString());
+                self.disconnect();
+              } else {
+                if (firstCheck) {
+                  print("START -> DEAD" + serviceEndpoint.toString());
+                  firstCheck = false;
+                }
+              }
             }
 
-            super.sendMessage(Heartbeat());
             self.runtime.schedule(self, 5.0);
         }
     }
