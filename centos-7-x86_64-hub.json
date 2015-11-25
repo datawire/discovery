@@ -1,0 +1,53 @@
+{
+  "variables": {
+    "version": null,
+    "repository": "quay.io/datawire/hub",
+    "registry_login_email": "hello@datawire.io",
+    "registry_login_server": null,
+    "registry_login_username": null,
+    "registry_login_password": null
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "centos:7",
+      "pull": true,
+      "export_path": "centos-7-x86_64-hub-{{ user `version` }}.tar"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "scripts/rhel/bootstrap.sh"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "ansible/hub.yml",
+      "role_paths": [
+        "ansible/roles/datawire",
+        "ansible/roles/datawire-hub"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "scripts/rhel/cleanup.sh"
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-import",
+        "repository": "{{ user `repository` }}",
+        "tag": "{{ user `version` }}"
+      },
+      {
+        "type": "docker-push",
+        "login": true,
+        "login_email": "{{ user `registry_login_email` }}",
+        "login_username": "{{ user `registry_login_username` }}",
+        "login_password": "{{ user `registry_login_password` }}",
+        "login_server": "{{ user `registry_login_server` }}"
+      }
+    ]
+  ]
+}
