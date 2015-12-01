@@ -1,13 +1,10 @@
-rootProject.name = 'boston'
+rootProject.name = 'hub'
 
 include('hub-example')
 project(':hub-example').name = 'hub-example'
 
-include('boston-service')
-project(':boston-service').name = 'boston-service'
+include('hub-service')
+project(':hub-service').name = 'hub-service'
 
-include('boston-client')
-project(':boston-client').name = 'boston-client'
-
-include('boston-ui')
-project(':boston-ui').name = 'boston-ui'
+include('hub-client')
+project(':hub-client').name = 'hub-client'

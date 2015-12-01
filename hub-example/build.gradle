@@ -11,6 +11,6 @@ repositories {
 dependencies {
   compile(
       "com.sparkjava:spark-core:${sparkVersion}",
-      project(':boston-client')
+      project(':hub-client')
   )
 }

@@ -54,10 +54,17 @@ data class Client(private val clients: MutableMap<String, Client>,
   }
 
   private fun handleMessage(message: Message) {
+    println(message.javaClass.canonicalName)
+
     when (message) {
       is Disconnect -> {
+        println("disconnecting...")
         socket.close()
+        println("socket closed")
         services[serviceName!!]?.remove(serviceEndpoint!!)
+        println("removing service info")
+        clients.remove(id)
+        println("removing client")
       }
       is ServiceRegistration -> {
         // todo(plombardi): FIX!!! -> thread safety issues out the wazoo here!
@@ -70,8 +77,6 @@ data class Client(private val clients: MutableMap<String, Client>,
 
         services[serviceName!!]?.add(serviceEndpoint!!)
         publishToSubscribed()
-      }
-      is ServiceQuery -> {
       }
       is ServiceHeartbeat -> heartbeat = Instant.now()
       is Subscribe -> {

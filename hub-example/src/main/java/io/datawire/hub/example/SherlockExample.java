@@ -9,7 +9,7 @@ public class SherlockExample {
   public static void main(String... args) {
     io.datawire.quark.runtime.Runtime runtime = new io.datawire.quark.netty.QuarkNettyRuntime();
 
-    String hubAddress = "ws://localhost:8080";
+    String hubAddress = "ws://localhost:1234";
     final Sherlock sherlock = new Sherlock(runtime, hubAddress, new HubMessageProcessor());
     sherlock.connect();
   }

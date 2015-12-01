@@ -21,6 +21,7 @@ class Server(
   private val log = LoggerFactory.getLogger(DatawireHubVerticle::class.java)
 
   override fun run() {
+    log.info("Datawire Hub verticle deployed!")
 
     val clients  = hashMapOf<String, Client>()
     val services = hashMapOf<String, MutableSet<ServiceEndpoint>>()

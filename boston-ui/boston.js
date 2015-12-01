@@ -1,1 +1,0 @@
-// stub testing client until i'm ready to embark to quark.js land.

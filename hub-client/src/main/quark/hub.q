@@ -198,6 +198,11 @@ package hub {
           super.sendMessage(new Subscription());
         }
 
+        void onWSClosed(WebSocket socket) {
+          print("socket closed");
+          self.socket = null;
+        }
+
         void onWSMessage(WebSocket socket, String data) {
             JSONObject envelope = data.parseJSON();
             self.callback.run(envelope);
@@ -287,6 +292,11 @@ package hub {
         void onWSConnected(WebSocket socket) {
             self.socket = socket;
             register();
+        }
+
+        void onWSClosed(WebSocket socket) {
+          print("socket closed");
+          self.socket = null;
         }
 
         void onExecute(Runtime runtime) {
