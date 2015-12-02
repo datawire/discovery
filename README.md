@@ -1,4 +1,6 @@
 # Datawire Hub
+
+[![Build Status](https://travis-ci.org/datawire/hub.svg?branch=master)](https://travis-ci.org/datawire/hub)
  
 The Hub is a service registration and discovery service built by (Datawire.io) named after "The Hub of The Universe": Boston, Massachusetts. The Hub can also be used as general purpose broadcast notification service. Datawire Hub is written in Kotlin and therefore requires a JVM to run.
 
