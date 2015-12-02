@@ -1,3 +1,10 @@
 language: java
 jdk:
   - oraclejdk8
+
+install:
+  - sudo apt-get install python-pip
+  - sudo pip install datawire-quark --use-mirrors
+
+script:
+  - ./gradlew :hub-client:compileQuark build test
