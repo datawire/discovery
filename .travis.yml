@@ -1,16 +1,21 @@
 sudo: false
-
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 
 addons:
   apt:
     packages:
-      - python-pip
+    - python-pip
 
 install:
-  - pip install --user datawire-quark
+- pip install --user datawire-quark
+
+notifications:
+  slack:
+    secure: FQmtdZskJVf3lfXDEy7qoSJHUhwN8E/U+TLGxmftRCysfaAlwHIRT9gYg9sXM1amcrRGb9gcQcjRqflj8h++YALUoqMs6UTKTdfD0oaXBGsmgxj/chWx2IwjjuPvliQswzR7e3x04giCV7oWW7ZtSRVUtJcNxD9rwTTPvfJRUIWXpRfQ+/ZRGSJovNkvMmI0Fe+LUek7qFz3GhfiqxHmIfVf6TePo1My77pb8o2InOORPAl7OOgFN+AFRROAwRsQyyXX2qdwPFh/c2yojJQTPnVF2gNyR5RmVIZqTyLDWqGKvtqoypnTyJR8FE9QCelTKIZBAlVHc6hK8z36bHvna2sR44l9nEZkR8DjvJigTWkm37g/zWHGeI1xGDvP09zAzNb8TWy/9JE81rq5Hr4MjwR51Fc7Bvl9gOXomowMR+6HFohRX9OWtizD/PTxW8ekYVAeN3cDhXuF5VavL3WOtQ9cHw6AVhXgSrQdb4IDp5IjpWhuXQzjezLlxSYxBe1GsQVGgPRRNJIY43ZCzBIp0SVlrjGmqIG/fIAG6sgY8IJ4oLj7JjZIQg1g5pJh2bi3tntDJCoBoRsvXmbF9oR+g+iqTyfHzFg3pBj4BKH3rK8V1qZrh3sfuberg32OYqu9qKhg5gd6eTB96Vzy67qj1mKUctnTWHmCQLcMV8adXL4=
+    on_success: change
+    on_failure: change
 
 script:
-  - ./gradlew :hub-client:compileQuark build test
+- "./gradlew :hub-client:compileQuark build test"
