@@ -29,22 +29,6 @@ subprojects {
 
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
-
-  ext {
-    kotlinVersion = '1.0.0-beta-1103'
-    junitVersion = '4.12'
-  }
-
-  dependencies {
-    compile(
-        "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
-        "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-    )
-
-    testCompile(
-        "junit:junit:${junitVersion}"
-    )
-  }
 }
 
 task wrapper(type: Wrapper) {

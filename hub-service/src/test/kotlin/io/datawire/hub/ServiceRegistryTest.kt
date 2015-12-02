@@ -34,7 +34,7 @@ class ServiceRegistryTest: HubTest() {
 
     vertx.createHttpClient().websocket(verticlePort, "localhost", "/v1/services") { ws ->
       ws.handler { buf ->
-        context.assertTrue(JsonObject(buf.toString("utf-8")).getString("payload") == "Hello, wold!")
+        context.assertTrue(JsonObject(buf.toString("utf-8")).getString("payload") == "Hello, world!")
         async.complete()
       }
 

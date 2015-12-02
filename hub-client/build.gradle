@@ -1,22 +1,21 @@
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+apply plugin: "java"
 
-def quarkFile = "hub.q"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def quarkFile = "hub2.q"
 
 ext {
-  quarkVersion = '0.1.1-SNAPSHOT'
+  quarkVersion = '0.1.15'
 }
 
 repositories {
-  mavenLocal()
-//  maven {
-//    url "https://oss.sonatype.org/content/repositories/snapshots"
-//  }
+  jcenter()
 }
 
 dependencies {
-  compile group: 'io.datawire.quark', name: 'quark-core', version: '0.1.1-SNAPSHOT', changing: true
-  compile group: 'io.datawire.quark', name: 'quark-netty', version: '0.1.1-SNAPSHOT', changing: true
+  compile group: 'io.datawire.quark', name: 'quark-core', version: quarkVersion, changing: true
+  compile group: 'io.datawire.quark', name: 'quark-netty', version: quarkVersion, changing: true
 }
 
 task compileQuark(type: Exec) {
