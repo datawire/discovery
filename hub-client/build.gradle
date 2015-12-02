@@ -20,7 +20,8 @@ dependencies {
 
 task compileQuark(type: Exec) {
   executable "bash"
-  args "-c", """quark --python --java --output ${project.buildDir}/tmp compile src/main/quark/${quarkFile} &&
+  args "-c", """mkdir -p ${project.buildDir} &&
+quark --python --java --output ${project.buildDir}/tmp compile src/main/quark/${quarkFile} &&
 rm -rf src/main/java &&
 mv ${project.buildDir}/tmp/java/src/main/java ${project.projectDir}/src/main""".toString()
 }
