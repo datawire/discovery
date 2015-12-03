@@ -1,7 +1,9 @@
 package io.datawire.hub.cli
 
 import io.datawire.hub.ServiceRegistry
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import net.sourceforge.argparse4j.inf.Namespace
 
 /**
@@ -16,7 +18,7 @@ class Server(
 ): Runnable {
 
   override fun run() {
-    vertx.deployVerticle(ServiceRegistry())
+    vertx.deployVerticle(ServiceRegistry(), DeploymentOptions().setConfig(JsonObject().put("port", 1234)))
     System.`in`.read()
   }
 

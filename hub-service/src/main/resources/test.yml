@@ -1,0 +1,10 @@
+---
+# file: test.yml
+#
+# Hub configuration file used when running tests
+#
+# author: Philip Lombardi <plombardi@datawire.io>
+
+serviceRegistry:
+  bindHost: 0.0.0.0
+  port: 52689

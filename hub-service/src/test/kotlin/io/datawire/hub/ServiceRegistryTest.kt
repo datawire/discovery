@@ -1,54 +1,59 @@
 package io.datawire.hub
 
-import io.vertx.core.DeploymentOptions
-import io.vertx.core.Vertx
+import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.VertxUnitRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.fail
+
+/**
+ * Datawire Hub service registry unit tests
+ *
+ * @author Philip Lombardi <plombardi@datawire.io>
+ */
 
 
 @RunWith(VertxUnitRunner::class)
-class ServiceRegistryTest: HubTest() {
-
-  private lateinit var vertx: Vertx
-  private var verticlePort: Int = 0
-
-  @Before fun setup(context: TestContext) {
-    vertx = Vertx.vertx()
-    verticlePort = getRandomPort()
-
-    val deployOptions = DeploymentOptions().setConfig(
-        JsonObject().put("port", verticlePort)
-    )
-
-    vertx.deployVerticle(ServiceRegistry(), deployOptions, context.asyncAssertSuccess())
-  }
+class ServiceRegistryTest: HubTest("localhost") {
 
   @Test fun webSocketAcceptsConnections(context: TestContext) {
     val async = context.async()
+    webSocket(
+        path = "/v1/services",
+        connectedHandler = { ws ->
+          ws.handler { buf ->
+            context.assertTrue(JsonObject(buf.toString("utf-8")).getString("payload") == "Hello, world!")
+            async.complete()
+          }
 
-    vertx.createHttpClient().websocket(verticlePort, "localhost", "/v1/services") { ws ->
-      ws.handler { buf ->
-        context.assertTrue(JsonObject(buf.toString("utf-8")).getString("payload") == "Hello, world!")
-        async.complete()
-      }
+          ws.write(Buffer.buffer(
+            JsonObject().put("type", "echo").put("id", 1).put("payload", "Hello, world!").toString()
+          ))
+        },
+        failureHandler = {
+          fail("should not be called!")
+        })
+  }
 
-      ws.write(Buffer.buffer(
-          JsonObject().put("type", "echo").put("id", 1).put("payload", "Hello, world!").toString()
-      ))
-    }
+  @Test fun registryRejectsInvalidPath(context: TestContext) {
+    val async = context.async()
+    webSocket(
+        path = "/this/is/not-a-valid-path",
+        connectedHandler = { ws ->
+          ws.handler { buf ->
+            fail("should not be called!")
+          }
+        },
+        failureHandler = { fail ->
+          context.assertTrue(fail is WebSocketHandshakeException)
+          async.complete()
+        })
   }
 
   @Test fun serviceRegistryQueryReturnsRegisteredServices(context: TestContext) {
-
-  }
-
-  @After fun teardown(context: TestContext) {
-    vertx.close(context.asyncAssertSuccess())
+    val async = context.async()
   }
 }
