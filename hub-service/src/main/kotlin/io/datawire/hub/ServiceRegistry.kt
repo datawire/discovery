@@ -3,6 +3,7 @@ package io.datawire.hub
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.datawire.hub.event.RegistryEvent
+import io.datawire.hub.message.RegistryMessage
 import io.datawire.hub.model.ServiceEndpoint
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
@@ -75,20 +76,20 @@ class ServiceRegistry : AbstractVerticle() {
       is RegistryEvent.QueryRegistry -> vertx.eventBus().send(event.clientId, mapper.writeValueAsString(getServices()))
       is RegistryEvent.Subscribe -> {
         (subscribers as MutableSet).add(event.clientId)
-        send(event.clientId, mapper.writeValueAsString(getServices()))
+        syncStateToClient(event.clientId)
       }
     }
   }
 
+
   private fun broadcastServices() {
-    val json = mapper.writeValueAsString(getServices())
+    val json = mapper.writeValueAsString(RegistryMessage.RegistrySync(getServices()))
     broadcast(json)
   }
 
   private fun broadcast(data: String) {
     for (sub in subscribers) {
-      log.debug("Sending message to client (id: $sub)")
-      send(sub, data)
+      syncStateToClient(sub, data)
     }
   }
 
@@ -107,6 +108,16 @@ class ServiceRegistry : AbstractVerticle() {
       (endpoints as MutableSet).add(entry.value)
       acc
     }
+  }
+
+  private fun syncStateToClient(client: String, data: String) {
+    send(client, data)
+  }
+
+  private fun syncStateToClient(client: String) {
+    val services = getServices()
+    val msg = RegistryMessage.RegistrySync(services)
+    send(client, mapper.writeValueAsString(msg))
   }
 
   private fun logSocket(socket: ServerWebSocket) {

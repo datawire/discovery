@@ -18,7 +18,7 @@ class Server(
 ): Runnable {
 
   override fun run() {
-    vertx.deployVerticle(ServiceRegistry(), DeploymentOptions().setConfig(JsonObject().put("port", 1234)))
+    vertx.deployVerticle(ServiceRegistry(), DeploymentOptions().setConfig(JsonObject().put("port", 52689)))
     System.`in`.read()
   }
 
