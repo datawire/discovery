@@ -54,6 +54,7 @@ class ServiceRegistry : AbstractVerticle() {
   }
 
   private fun webSocket(func: (ServerWebSocket) -> Unit) {
+    log.info(config().getInteger("port"))
     vertx.createHttpServer().websocketHandler(func).listen(config().getInteger("port"))
   }
 
@@ -72,7 +73,10 @@ class ServiceRegistry : AbstractVerticle() {
         broadcastServices()
       }
       is RegistryEvent.QueryRegistry -> vertx.eventBus().send(event.clientId, mapper.writeValueAsString(getServices()))
-      is RegistryEvent.Subscribe     -> (subscribers as MutableSet).add(event.clientId)
+      is RegistryEvent.Subscribe -> {
+        (subscribers as MutableSet).add(event.clientId)
+        send(event.clientId, mapper.writeValueAsString(getServices()))
+      }
     }
   }
 
@@ -84,8 +88,13 @@ class ServiceRegistry : AbstractVerticle() {
   private fun broadcast(data: String) {
     for (sub in subscribers) {
       log.debug("Sending message to client (id: $sub)")
-      vertx.eventBus().publish(sub, data)
+      send(sub, data)
     }
+  }
+
+  private fun send(id: String, data: String) {
+    log.debug("Sending message to client (id: $id)")
+    vertx.eventBus().publish(id, data)
   }
 
   private fun getServices(): Map<String, Set<ServiceEndpoint>> {

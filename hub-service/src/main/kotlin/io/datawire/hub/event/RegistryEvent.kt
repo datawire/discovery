@@ -22,50 +22,59 @@ import io.vertx.core.http.ServerWebSocket
     JsonSubTypes.Type(value = RegistryEvent.Echo::class, name="echo")
 )
 
-sealed class RegistryEvent(val id: Int, val clientId: String) {
+sealed class RegistryEvent(val id: Int, val clientId: String, val time: Long) {
   class AddServiceEndpointEvent @JsonCreator constructor(
       @JsonProperty("id") id: Int,
       @JsonProperty("endpoint") val endpoint: ServiceEndpoint,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   class RemoveServiceEndpointEvent @JsonCreator constructor(
       @JsonProperty("id") id: Int,
       @JsonProperty("endpoint") val endpoint: ServiceEndpoint,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   class Subscribe @JsonCreator constructor(
       @JsonProperty("id") id: Int,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   class QueryRegistry @JsonCreator constructor(
       @JsonProperty("id") id: Int,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   class Heartbeat @JsonCreator constructor(
       @JsonProperty("id") id: Int,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   class Echo @JsonCreator constructor(
       @JsonProperty("id") id: Int,
       @JsonProperty("payload") val payload: String,
+      @JsonProperty("time") time: Long,
       @JacksonInject("hub.clientId") clientId: String
-  ): RegistryEvent(id, clientId)
+  ): RegistryEvent(id, clientId, time)
 
   companion object Factory {
 
     private val objectMapper = ObjectMapper().registerKotlinModule()
 
     fun fromJson(socket: ServerWebSocket, data: Buffer): RegistryEvent {
+      val json = data.toString("UTF-8")
+      println(json)
+
       val reader = objectMapper
           .readerFor(RegistryEvent::class.java)
           .with(InjectableValues.Std().addValue("hub.clientId", socket.textHandlerID()))
 
-      return reader.readValue(data.toString("UTF-8"))
+      return reader.readValue(json)
     }
   }
 }
