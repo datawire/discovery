@@ -8,6 +8,8 @@ buildscript {
   }
 }
 
+apply plugin: 'idea'
+
 if (!JavaVersion.current().java8Compatible) {
   throw new IllegalArgumentException('''A Haiku:
                                       |  This needs Java 8,
@@ -19,8 +21,6 @@ allprojects {
   repositories {
     jcenter()
   }
-
-  apply plugin: 'idea'
 }
 
 subprojects {
