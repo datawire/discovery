@@ -1,3 +1,4 @@
+apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 ext {
@@ -35,13 +36,18 @@ dependencies {
   )
 }
 
+mainClassName = 'io.datawire.hub.cli.CliRunner'
+
 shadowJar {
   classifier = 'fat'
   manifest {
-    attributes 'Main-Class': 'io.vertx.core.Launcher'
-    attributes 'Main-Verticle': 'io.datawire.hub.BostonVerticle'
+    attributes 'Main-Class': 'io.datawire.hub.cli.CliRunner'
   }
-  mergeServiceFiles {
-    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
-  }
+}
+
+applicationDistribution.from(parent.projectDir) {
+  include 'LICENSE'
+  include 'NOTICE'
+  include 'README.md'
+  into '.'
 }
