@@ -41,9 +41,9 @@ class LocalServiceRegistry: ServiceRegistry {
     return services.entries.fold(linkedMapOf<ServiceName, Set<ServiceEndpoint>>()) { result, entry ->
       val record = entry.value!!
 
-//      if (result.putIfAbsent(, hashSetOf(record.endpoint)) != null) {
-//        (result[entry.key.name] as MutableSet).add(record.endpoint)
-//      }
+      if (result.putIfAbsent(entry.key.name, hashSetOf(record.endpoint)) != null) {
+        (result[entry.key.name] as MutableSet).add(record.endpoint)
+      }
 
       result
     }
