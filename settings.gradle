@@ -1,7 +1,4 @@
 rootProject.name = 'hub'
 
-include('hub-service')
-project(':hub-service').name = 'hub-service'
-
-include('hub-client')
-project(':hub-client').name = 'hub-client'
+include('hub-server')
+project(':hub-server').name = 'hub-server'
