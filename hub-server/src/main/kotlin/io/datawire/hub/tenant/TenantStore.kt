@@ -7,17 +7,17 @@ import io.datawire.hub.tenant.model.TenantId
 interface TenantStore {
 
   /**
-   * Add a foo.
+   * Add a tenant.
    */
   fun addTenant(tenant: Tenant)
 
   /**
-   * Check if a foo exists in the store already.
+   * Check if a tenant exists in the store already.
    */
   fun contains(tenant: Tenant): Boolean = contains(tenant.id)
 
   /**
-   * Check if a foo exists in the store already.
+   * Check if a tenant exists in the store already.
    */
   fun contains(id: TenantId): Boolean
 

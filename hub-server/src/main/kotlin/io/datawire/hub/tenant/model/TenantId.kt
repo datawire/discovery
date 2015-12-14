@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
- * The key used to refer to a foo within the system.
+ * The key used to refer to a tenant within the system.
  *
- * @param id the value of the foo key.
+ * @param id the value of the tenant key.
  * @author Philip Lombardi <plombardi@datawire.io>
  */
 data class TenantId @JsonCreator constructor(@JsonProperty("id") val id: String) {
