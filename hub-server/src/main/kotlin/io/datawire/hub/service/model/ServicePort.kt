@@ -1,4 +1,4 @@
-package io.datawire.hub.model
+package io.datawire.hub.service.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
