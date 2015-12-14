@@ -1,5 +1,6 @@
 package io.datawire.hub.service
 
+import io.datawire.hub.tenant.TenantStore
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
@@ -11,17 +12,12 @@ import io.vertx.core.logging.LoggerFactory
  */
 
 
-class LocalServiceRegistryVerticle(): AbstractVerticle() {
+class LocalServiceRegistryVerticle(private val tenantStore: TenantStore): AbstractVerticle() {
 
   private val log = LoggerFactory.getLogger(LocalServiceRegistryVerticle::class.java)
 
   override fun start() {
-
-    // todo(plombardi): tenancy bootstrap
-
-    //val tenants = SimpleTenancyManager()
-    //val defaultTenant = UUID.randomUUID()
-    //tenants.addTenant(TenantInfo(defaultTenant, "notasecret"))
+    log.info("starting service registry... (initial tenants: ${tenantStore.count()})")
 
     webSocket { ws ->
 

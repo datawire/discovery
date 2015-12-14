@@ -23,8 +23,5 @@ data class ServiceEndpoint @JsonCreator constructor(
     @JsonGetter
     fun canonical(): String = "${port.name}://${address.address}:${port.port}${path ?: ""}"
 
-    @JsonIgnore
-    val key = ServiceKey(name, toURI())
-
     fun toURI(): URI = URI(port.name, null, address.address, port.port, null, null, null)
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.datawire.hub.event.RegistryEvent
 import io.datawire.hub.message.RegistryMessage
-import io.datawire.hub.model.ServiceEndpoint
+import io.datawire.hub.service.model.ServiceEndpoint
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory

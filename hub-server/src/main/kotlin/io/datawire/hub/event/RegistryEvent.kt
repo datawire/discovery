@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.*
 import com.fasterxml.jackson.databind.InjectableValues
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.datawire.hub.model.ServiceEndpoint
+import io.datawire.hub.service.model.ServiceEndpoint
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 

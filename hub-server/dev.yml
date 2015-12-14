@@ -1,4 +1,32 @@
 ---
-server:
+
+#
+# "serviceRegistry" - REQUIRED
+#
+# Configuration for the Hub services registry.
+#
+serviceRegistry:
+  type: simple
   port: 52689
   bindHost: 127.0.0.1
+
+#
+# "tenantStore" - REQUIRED
+#
+# Configuration for the Hub tenant store.
+#
+tenantStore:
+  type: simple
+  tenants:
+    datawire:
+      id: datawire
+      name: datawire
+      keys:
+        default0: notasecret
+        default1: notasecreteither
+    eriwatad:
+      id: eriwatad
+      name: eriwatad
+      keys:
+        default0: notasecret
+        default1: notasecreteither
