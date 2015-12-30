@@ -1,0 +1,5 @@
+---
+jwt:
+  type: jceks
+  path: ../etc/example.jceks
+  password: notasecret

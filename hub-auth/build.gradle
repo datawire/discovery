@@ -24,6 +24,7 @@ dependencies {
 
       "io.vertx:vertx-core:${vertxVersion}",
       "io.vertx:vertx-web:${vertxVersion}",
+      "io.vertx:vertx-auth-jwt:${vertxVersion}",
 
       "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
 
@@ -43,7 +44,7 @@ mainClassName = 'io.datawire.hub.cli.CliRunner'
 shadowJar {
   classifier = 'fat'
   manifest {
-    attributes 'Main-Class': 'io.datawire.hub.cli.CliRunner'
+    attributes 'Main-Class': 'io.datawire.hub.auth.cli.CliRunner'
   }
 }
 
