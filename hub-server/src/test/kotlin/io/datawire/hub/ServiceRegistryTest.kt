@@ -7,7 +7,6 @@ import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.VertxUnitRunner
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
@@ -20,7 +19,6 @@ import kotlin.test.fail
 @RunWith(VertxUnitRunner::class)
 class ServiceRegistryTest: HubTest("localhost") {
   @Test fun temporaryStub() {
-    assertTrue(true)
   }
 //
 //  @Test fun webSocketAcceptsConnections(context: TestContext) {

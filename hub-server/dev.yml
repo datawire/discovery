@@ -8,6 +8,7 @@ tenant: datawire
 #
 serviceRegistry:
   type: simple
+  open: true
   port: 52689
   bindHost: 127.0.0.1
 

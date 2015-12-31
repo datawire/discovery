@@ -16,7 +16,10 @@ data class SimpleServiceRegistryFactory(
     val bindHost: String,
 
     @JsonProperty
-    val port: Int
+    val port: Int,
+
+    @JsonProperty
+    val open: Boolean
 ): ServiceRegistryFactory {
 
   override fun build(vertx: Vertx, tenant: TenantId, jwt: JwtProviderFactory): VerticleBundle {
@@ -27,6 +30,7 @@ data class SimpleServiceRegistryFactory(
     val config = JsonObject()
     config.put("bindHost", bindHost)
     config.put("port", port)
+    config.put("open", open)
     options.setConfig(config)
 
     return VerticleBundle(verticle, options)

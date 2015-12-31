@@ -32,8 +32,15 @@ class LocalServiceRegistryVerticle(private val jwt: JWTAuth,
     log.info("starting service registry... (tenant: {0}, services: {1})", tenant, services.size)
 
     val router = Router.router(vertx)
-    val jwtHandler = QueryJWTAuthHandler(jwt, tenant, null)
-    router.route("/*").handler(jwtHandler)
+
+    // todo: temporary until internal auth is completed; means the hub doesn't require authentication
+    if (!config().getBoolean("open")) {
+      val jwtHandler = QueryJWTAuthHandler(jwt, tenant, null)
+      router.route("/*").handler(jwtHandler)
+    } else {
+      log.warn("registry is open-access and unsecured")
+    }
+
     router.route("/").handler { rc ->
       val request = rc.request()
       val ws = request.upgrade()
