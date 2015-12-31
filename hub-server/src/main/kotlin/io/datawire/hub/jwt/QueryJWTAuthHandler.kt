@@ -12,11 +12,6 @@ class QueryJWTAuthHandler(authProvider: AuthProvider, private val tenant: Tenant
       context.request().headers().add("Authorization", "Bearer $jwt")
     }
     super.handle(context)
-
-    // todo(plombardi): TENANT CHECK LOGIC
-    //
-    // Need logic that ensures JWT.sub == Assigned Hub Tenant. Should just be a matter of comparing the JWT.sub to the
-    // assigned tenant ID provided in the configuration file.
     context.user()?.let {
       if (it.principal().getString("sub") != tenant.id) {
         context.fail(401)
