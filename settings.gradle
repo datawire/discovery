@@ -3,5 +3,5 @@ rootProject.name = 'hub'
 include('hub-server')
 project(':hub-server').name = 'hub-server'
 
-include('hub-auth')
-project(':hub-auth').name = 'hub-auth'
+include('hub-gateway')
+project(':hub-gateway').name = 'hub-gateway'
