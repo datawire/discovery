@@ -228,11 +228,14 @@ package hub {
 
         @doc("A message indicating a client would like the latest state from the server.")
         class Synchronize extends HubMessage {
-            Synchronize() {
+
+            String data;
+
+            Synchronize(JSONObject json) {
                 super("synchronize");
+                data = json.toString();
             }
-            
-            
+
             void dispatch(HubHandler handler) {
                 handler.onSynchronize(self);
             }             
@@ -481,7 +484,7 @@ package hub {
               hubUrl = connectionInfo["url"];
               jwt = connectionInfo["jwt"];
           } else {
-              message.HubError error = new message.HubError(0, "SOME ERROR");
+              message.HubError error = new message.HubError(response.getCode(), "http-error");
               error.dispatch(self.handler);
           }
       }
@@ -489,7 +492,7 @@ package hub {
       message.HubMessage buildMessageOfType(String type, JSONObject json) {
           if (type == "connected")    { return new message.Connected(); }
           if (type == "disconnected") { return new message.Disconnected(); }
-          if (type == "sync")         { return new message.Synchronize(); }
+          if (type == "sync")         { return new message.Synchronize(json); }
           
           return new message.HubMessage("message");      
       }
@@ -597,7 +600,8 @@ package hub {
               1. Contact the Hub Connector and authenticate. The connector returns a token and Hub
                  URL upon successful authentication.
 
-              2. Use the provided Hub URL and token to establish a WebSocket connection to the Hub.
+              2. Use the provided Hub URL and token to establish a WebSocket connection to the Hub. Hub's validate the
+                 JWT subject "sub" to ensure someone is not communicating with the wrong hub.
             */
 
             if (connection == null || connection.isConnected() == false) {
