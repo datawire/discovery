@@ -2,9 +2,10 @@ package io.datawire.hub.service
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import io.datawire.hub.tenant.TenantStore
+import io.datawire.hub.config.JwtProviderFactory
+import io.datawire.hub.tenant.model.TenantId
 import io.datawire.hub.vertx.VerticleBundle
-import io.vertx.core.Verticle
+import io.vertx.core.Vertx
 
 
 @JsonTypeInfo(
@@ -16,5 +17,5 @@ import io.vertx.core.Verticle
     JsonSubTypes.Type(name="simple", value = SimpleServiceRegistryFactory::class)
 )
 interface ServiceRegistryFactory {
-  fun build(tenantStore: TenantStore): VerticleBundle
+  fun build(vertx: Vertx, tenant: TenantId, jwt: JwtProviderFactory): VerticleBundle
 }

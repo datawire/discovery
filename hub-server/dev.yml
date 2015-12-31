@@ -1,4 +1,5 @@
 ---
+tenant: datawire
 
 #
 # "serviceRegistry" - REQUIRED
@@ -10,23 +11,7 @@ serviceRegistry:
   port: 52689
   bindHost: 127.0.0.1
 
-#
-# "tenantStore" - REQUIRED
-#
-# Configuration for the Hub tenant store.
-#
-tenantStore:
-  type: simple
-  tenants:
-    datawire:
-      id: datawire
-      name: datawire
-      keys:
-        default0: notasecret
-        default1: notasecreteither
-    eriwatad:
-      id: eriwatad
-      name: eriwatad
-      keys:
-        default0: notasecret
-        default1: notasecreteither
+jwt:
+  type: jceks
+  path: ../etc/example-HS256.jceks
+  password: notasecret

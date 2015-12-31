@@ -3,12 +3,9 @@ package io.datawire.hub.cli
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.datawire.hub.ServiceRegistry
 import io.datawire.hub.config.Configuration
-import io.datawire.hub.service.LocalServiceRegistryVerticle
-import io.vertx.core.DeploymentOptions
+import io.datawire.hub.tenant.model.TenantId
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
 import net.sourceforge.argparse4j.inf.Namespace
 import java.io.File
 
@@ -24,8 +21,7 @@ class Server(private val configuration: Configuration): Runnable {
   private val vertx = Vertx.vertx()
 
   override fun run() {
-    val tenantStore = configuration.tenantStore.build()
-    val bundle = configuration.serviceRegistry.build(tenantStore)
+    val bundle = configuration.serviceRegistry.build(vertx, TenantId(configuration.tenant), configuration.jwt)
 
     vertx.deployVerticle(bundle.verticle, bundle.options)
     System.`in`.read()

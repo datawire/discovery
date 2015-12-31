@@ -24,7 +24,7 @@ class LocalServiceRegistry: ServiceRegistry {
 
   override fun addService(key: ServiceKey, endpoint: ServiceEndpoint): Boolean {
     log.debug("add service    -> [$key]")
-    return services.putIfAbsent(key, ServiceRecord(endpoint, Instant.now())) != null
+    return services.putIfAbsent(key, ServiceRecord(endpoint, Instant.now())) == null
   }
 
   override fun removeService(key: ServiceKey): Boolean {
@@ -37,12 +37,12 @@ class LocalServiceRegistry: ServiceRegistry {
     services.computeIfPresent(key, { k, r -> r.copy(lastHeartbeat = Instant.now()) })
   }
 
-  override fun mapNamesToEndpoints(): Map<ServiceName, Set<ServiceEndpoint>> {
-    return services.entries.fold(linkedMapOf<ServiceName, Set<ServiceEndpoint>>()) { result, entry ->
+  override fun mapNamesToEndpoints(): Map<String, Set<ServiceEndpoint>> {
+    return services.entries.fold(linkedMapOf<String, Set<ServiceEndpoint>>()) { result, entry ->
       val record = entry.value!!
 
-      if (result.putIfAbsent(entry.key.name, hashSetOf(record.endpoint)) != null) {
-        (result[entry.key.name] as MutableSet).add(record.endpoint)
+      if (result.putIfAbsent(entry.key.name.name, hashSetOf(record.endpoint)) != null) {
+        (result[entry.key.name.name] as MutableSet).add(record.endpoint)
       }
 
       result

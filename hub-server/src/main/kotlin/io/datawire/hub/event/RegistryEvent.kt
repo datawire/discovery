@@ -68,8 +68,6 @@ sealed class RegistryEvent(val id: Int, val clientId: String, val time: Long) {
 
     fun fromJson(socket: ServerWebSocket, data: Buffer): RegistryEvent {
       val json = data.toString("UTF-8")
-      println(json)
-
       val reader = objectMapper
           .readerFor(RegistryEvent::class.java)
           .with(InjectableValues.Std().addValue("hub.clientId", socket.textHandlerID()))

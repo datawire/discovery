@@ -3,7 +3,7 @@ package io.datawire.hub.message
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import io.datawire.hub.event.RegistryEvent
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.datawire.hub.service.model.ServiceEndpoint
 
 
@@ -13,9 +13,11 @@ import io.datawire.hub.service.model.ServiceEndpoint
     property = "type"
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(value = RegistryEvent.AddServiceEndpointEvent::class, name="sync")
+    JsonSubTypes.Type(value = RegistryMessage.RegistrySync::class, name="sync")
 )
-sealed class RegistryMessage(@JsonProperty("type") val type: String) {
+sealed class RegistryMessage() {
   class RegistrySync constructor(
-      @JsonProperty("services") val services: Map<String, Set<ServiceEndpoint>>): RegistryMessage("sync")
+      @JsonProperty("services")
+      @JsonSerialize(keyAs = String::class)
+      val services: Map<String, Set<ServiceEndpoint>>): RegistryMessage()
 }
