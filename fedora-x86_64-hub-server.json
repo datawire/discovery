@@ -1,0 +1,49 @@
+{
+  "variables": {
+    "build_number": "{{ env `TRAVIS_BUILD_NUMBER` }}",
+    "builder": "{{ env `BUILDER` }}",
+    "commit": "{{ env `TRAVIS_COMMIT` }}",
+    "foundation_ami": null,
+    "hub_version": null
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+
+      "ami_description": "Datawire Cloud Hub (build: {{ user `build_number` }})",
+      "ami_name": "dwc-hub-x86_64-{{ user `build_number` }}-{{ timestamp }}",
+      "instance_type": "t2.small",
+      "region": "us-east-1",
+      "run_tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "Commit": "NOT_IMPLEMENTED",
+        "Environment": "dev",
+        "Name": "packer-hub-b{{ user `build_number` }}",
+        "Role": "dwc:operations:packer"
+      },
+      "source_ami": "{{ user `foundation_ami` }}",
+      "ssh_username": "fedora",
+      "tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "OS": "fedora",
+        "Release": "alpha"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "hub-agent/build/hub-agent-{{ user `hub_version` }}.jar"
+    },
+    {
+      "type": "file",
+      "source": "hub-server/build/hub-server-{{ user `hub_version` }}.jar"
+    },
+    {
+      "type": "shell",
+      "script": "{{ template_dir }}/scripts/fedora/hub.sh"
+    }
+  ]
+}
