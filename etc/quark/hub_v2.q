@@ -347,25 +347,50 @@ package hub {
     class HubConnectionOptions {
         
         bool    secure = true;
+        bool    authenticate = true;
+
         String  connectorHost;
         int     connectorPort = null;
+
+        String  hubHost;
+        int     hubPort = null;
+
         String  tenant = null;
         String  key = null;
         
         HubConnectionOptions(String connectorHost, String tenant, String key) {
-          self.connectorHost = connectorHost;
-          self.tenant = tenant;
-          self.key = key;
+            self.connectorHost = connectorHost;
+            self.tenant = tenant;
+            self.key = key;
         }
         
         @doc("Performs Hub authentication over a secure (HTTPS) connection. By default this is true and this is mostly useful for development scenarios without TLS.")
         HubConnectionOptions setSecureAuthentication(bool value) {
-          self.secure = value;
-          return self;
+            self.secure = value;
+            return self;
+        }
+
+        HubConnectionOptions setAuthenticationRequired(bool value) {
+            self.authenticate = value;
+            return self;
+        }
+
+        HubConnectionOptions setHubHost(String value) {
+            hubHost = value;
+            return self;
+        }
+
+        HubConnectionOptions setHubPort(int value) {
+            hubPort = value;
+            return self;
         }
         
         bool useSecureAuthentication() {
             return secure;
+        }
+
+        bool isAuthenticationRequired() {
+            return authenticate;
         }
         
         @doc("Use a specific port for Hub authentication.")        
@@ -436,16 +461,24 @@ package hub {
       }
 
       void authenticate() {
-          String connectorUrl = options.buildConnectorUrl("/");
-          String query = "?id=" + options.getTenant() + "&key=" + options.getKey();
+          if (options.isAuthenticationRequired()) {
+              String connectorUrl = options.buildConnectorUrl("/");
+              String query = "?id=" + options.getTenant() + "&key=" + options.getKey();
           
-          HTTPRequest request = new HTTPRequest(connectorUrl + query);
-          request.setMethod("POST");
-          self.runtime.request(request, self);
+              HTTPRequest request = new HTTPRequest(connectorUrl + query);
+              request.setMethod("POST");
+              self.runtime.request(request, self);
+          } else {
+              hubUrl = "ws://localhost:52689";
+          }
       }
 
       void connect() {
-          self.runtime.open(hubUrl + "/?token=" + jwt, self);
+          if (options.isAuthenticationRequired()) {
+              self.runtime.open(hubUrl + "/?token=" + jwt, self);
+          } else {
+              self.runtime.open(hubUrl, self);
+          }
       }
 
       void disconnect() {
