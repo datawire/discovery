@@ -17,7 +17,7 @@
       "run_tags": {
         "Build": "{{ user `build_number` }}",
         "Builder": "{{ user `builder` }}",
-        "Commit": "NOT_IMPLEMENTED",
+        "Commit": "{{ user `commit` }}",
         "Environment": "dev",
         "Name": "packer-hub-b{{ user `build_number` }}",
         "Role": "dwc:operations:packer"
@@ -27,6 +27,7 @@
       "tags": {
         "Build": "{{ user `build_number` }}",
         "Builder": "{{ user `builder` }}",
+        "Commit": "{{ user `commit` }}",
         "OS": "fedora",
         "Release": "alpha"
       }
