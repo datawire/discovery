@@ -35,15 +35,17 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "hub-agent/build/hub-agent-{{ user `hub_version` }}.jar"
+      "source": "hub-agent/build/distributions/hub-agent-{{ user `hub_version` }}.zip",
+      "destination": "/tmp/hub-agent-{{ user `hub_version` }}.zip"
     },
     {
       "type": "file",
-      "source": "hub-server/build/hub-server-{{ user `hub_version` }}.jar"
+      "source": "hub-agent/build/distributions/hub-server-{{ user `hub_version` }}.zip",
+      "destination": "/tmp/hub-server-{{ user `hub_version` }}.zip"
     },
     {
       "type": "shell",
-      "script": "{{ template_dir }}/scripts/fedora/hub.sh"
+      "script": "{{ template_dir }}/scripts/fedora/hub-install.sh"
     }
   ]
 }
