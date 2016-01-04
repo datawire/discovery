@@ -1,5 +1,7 @@
 apply plugin: 'application'
 
+mainClassName = 'io.datawire.hub.agent.HubAgent'
+
 ext {
   argparse4jVersion = '0.6.0'
   assertjVersion = '3.2.0'
