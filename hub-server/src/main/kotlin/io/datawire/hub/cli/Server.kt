@@ -21,7 +21,9 @@ class Server(private val configuration: Configuration): Runnable {
   private val vertx = Vertx.vertx()
 
   override fun run() {
-    val bundle = configuration.serviceRegistry.build(vertx, TenantId(configuration.tenant), configuration.jwt)
+    val tenantResolver = configuration.tenantResolver
+    val tenant = tenantResolver.resolve()
+    val bundle = configuration.serviceRegistry.build(vertx, TenantId(tenant), configuration.jwt)
 
     vertx.deployVerticle(bundle.verticle, bundle.options)
     System.`in`.read()

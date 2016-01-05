@@ -1,6 +1,4 @@
 ---
-tenant: datawire
-
 #
 # "serviceRegistry" - REQUIRED
 #
@@ -8,7 +6,6 @@ tenant: datawire
 #
 serviceRegistry:
   type: simple
-  open: true
   port: 52689
   bindHost: 127.0.0.1
 
@@ -16,3 +13,7 @@ jwt:
   type: jceks
   path: ../etc/example-HS256.jceks
   password: notasecret
+
+tenantResolver:
+  type: simple
+  id: datawire
