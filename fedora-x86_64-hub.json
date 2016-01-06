@@ -39,7 +39,7 @@
       "name": "hub-gateway",
 
       "ami_description": "Datawire Cloud Hub Gateway (build: {{ user `build_number` }})",
-      "ami_name": "dwc-hub-gateway-x86_64-b{{ user `build_number` }}-t{{ timestamp }}",
+      "ami_name": "dwc-hub-gateway-x86_64-hvm-b{{ user `build_number` }}-t{{ timestamp }}",
       "instance_type": "t2.small",
       "region": "us-east-1",
       "run_tags": {
@@ -72,7 +72,7 @@
       "type": "file",
       "only": ["hub-server"],
 
-      "source": "hub-agent/build/distributions/hub-server-{{ user `hub_version` }}.zip",
+      "source": "hub-server/build/distributions/hub-server-{{ user `hub_version` }}.zip",
       "destination": "/tmp/hub-server-{{ user `hub_version` }}.zip"
     },
     {
@@ -91,7 +91,7 @@
       "type": "file",
       "only": ["hub-gateway"],
 
-      "source": "hub-agent/build/distributions/hub-gateway-{{ user `hub_version` }}.zip",
+      "source": "hub-gateway/build/distributions/hub-gateway-{{ user `hub_version` }}.zip",
       "destination": "/tmp/hub-gateway-{{ user `hub_version` }}.zip"
     },
     {

@@ -7,7 +7,8 @@
 #
 
 # Parses gradle.properties for the version=<string> line. Leading and trailing space will be removed
-HUB_VERSION=$(shell grep version gradle.properties | awk -F= '{print $$2}' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$$//')
+VERSION=$(shell grep version gradle.properties | awk -F= '{print $$2}' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$$//')
+FOUNDATION_AMI=ami-b0227cda
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Metadata Configuration
@@ -82,16 +83,16 @@ get-latest-foundation-ami:
 
 prepare-variables:
 	@echo "---> Preparing variables file for Packer.io"
-	@echo "{\"hub_version\": \"$(HUB_VERSION)\", \"builder\": \"$(BUILDER)\", \"build_number\": \"$(TRAVIS_BUILD_NUMBER)\", \"commit\": \"$(TRAVIS_COMMIT)\"}" > packer-variables.json
+	@echo "{\"hub_version\": \"$(VERSION)\", \"builder\": \"$(BUILDER)\", \"build_number\": \"$(TRAVIS_BUILD_NUMBER)\", \"commit\": \"$(TRAVIS_COMMIT)\", \"foundation_ami\": \"$(FOUNDATION_AMI)\"}" > $(TEMP_PATH)/packer-variables.json
 
 ami: prepare-variables
-	$(PACKER) validate fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -var-file=$(TEMP_DIR)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) build $(PACKER_OPTS) -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
 
 server-ami: prepare-variables
-	$(PACKER) validate fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -only=hub-server -var-file=$(TEMP_DIR)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) build $(PACKER_OPTS) -only=hub-server -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
 
 gateway-ami: prepare-variables
-	$(PACKER) validate fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -only=hub-gateway -var-file=$(TEMP_DIR)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) build $(PACKER_OPTS) -only=hub-gateway -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
