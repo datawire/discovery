@@ -21,3 +21,4 @@ chmod +x ${install_root}/${package_base_name}/bin/${package_base_name}
 
 echo "--> installing systemd unit file and configuring to start on boot"
 mv ${install_root}/${package_base_name}/${package_base_name}.service  /lib/systemd/system/${package_base_name}.service
+systemctl enable ${package_base_name}
