@@ -111,4 +111,8 @@ public class ConfigurationFactory<T> {
   public T build(Path file) throws ConfigurationException, IOException {
     return build(new FileConfigurationSource(file));
   }
+
+  public static <T> ConfigurationFactory<T> getInstance(Class<T> clazz) {
+    return new ConfigurationFactory<>(clazz, new ObjectMapper());
+  }
 }

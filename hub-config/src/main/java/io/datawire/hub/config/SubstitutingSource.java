@@ -7,7 +7,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-public class SubstitutingSource {
+public class SubstitutingSource implements ConfigurationSource {
 
   private final ConfigurationSource delegate;
   private final StrSubstitutor substitutor;
@@ -15,6 +15,11 @@ public class SubstitutingSource {
   public SubstitutingSource(ConfigurationSource delegate, StrSubstitutor substitutor) {
     this.delegate = delegate;
     this.substitutor = substitutor;
+  }
+
+  @Override
+  public String getLocation() {
+    return delegate.getLocation();
   }
 
   public InputStream open() throws IOException {
