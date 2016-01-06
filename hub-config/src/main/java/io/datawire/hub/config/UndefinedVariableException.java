@@ -6,13 +6,13 @@ public class UndefinedVariableException extends RuntimeException {
   private final String identifier;
   private final String source;
 
-  public UndefinedVariableException(String source, String identifier) {
+  public UndefinedVariableException(String type, String source) {
     super(String.format(
-        "Variable not defined. Unable to substitute expression. (variable: %s, source: %s, expression: %s)",
-        identifier, source, "${" + identifier+ "}"));
+        "Variable not defined. Unable to substitute expression. (type: %s, source: %s, expression: %s)",
+        type, source, "${" + type + " `" + source+ "`}"));
 
-    this.source = source;
-    this.identifier = identifier;
+    this.source = type;
+    this.identifier = source;
   }
 
   public String getVariableIdentifier() {

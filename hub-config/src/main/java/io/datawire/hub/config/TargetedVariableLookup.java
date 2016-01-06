@@ -26,8 +26,8 @@ public class TargetedVariableLookup extends StrLookup<String> {
     this(Collections.unmodifiableMap(System.getenv()), true);
   }
 
-  public TargetedVariableLookup(Map<String, String> capturedEnvironmentVariables,  boolean strict) {
-    this.capturedEnvironmentVariables = capturedEnvironmentVariables;
+  public TargetedVariableLookup(Map<String, String> environmentVariables,  boolean strict) {
+    this.capturedEnvironmentVariables = environmentVariables;
     this.strict = strict;
   }
 
@@ -40,7 +40,7 @@ public class TargetedVariableLookup extends StrLookup<String> {
       String value = null;
       switch (type.toLowerCase()) {
         case FILE_TARGET:
-          value = readContentFromFile(key);
+          value = readContentFromFile(source);
           break;
         case ENVIRONMENT_VARIABLE_TARGET:
           value = capturedEnvironmentVariables.get(source);
