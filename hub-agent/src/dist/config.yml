@@ -1,8 +1,0 @@
----
-listener:
-  bindAddress: 0.0.0.0
-  port: 10117
-
-launcher:
-  hubConfigurationFile: /etc/datawire/hub.yml
-  hubStartCommand: systemctl enable datawire-hub && systemctl start datawire-hub

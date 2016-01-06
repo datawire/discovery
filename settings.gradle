@@ -6,8 +6,5 @@ project(':hub-server').name = 'hub-server'
 include('hub-gateway')
 project(':hub-gateway').name = 'hub-gateway'
 
-include('hub-agent')
-project(':hub-agent').name = 'hub-agent'
-
 include('hub-config')
 project(':hub-config').name = 'hub-config'
