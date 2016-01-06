@@ -1,7 +1,7 @@
 package io.datawire.hub.config;
 
 
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.lang3.text.StrLookup;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TargetedVariableLookup extends StrSubstitutor {
+public class TargetedVariableLookup extends StrLookup<String> {
 
   private final static Pattern VARIABLE_PATTERN = Pattern.compile("^(\\w+)\\s+`(.*)`$");
 
-  private final static String FILE_TARGET="file";
-  private final static String ENVIRONMENT_VARIABLE_TARGET="env";
+  private final static String FILE_TARGET = "file";
+  private final static String ENVIRONMENT_VARIABLE_TARGET = "env";
 
   private final boolean strict;
   private final Map<String, String> capturedEnvironmentVariables;
