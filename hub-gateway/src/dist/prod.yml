@@ -1,0 +1,5 @@
+---
+jwt:
+  type: jceks
+  path: /opt/datawire/hub-gateway/prototype_insecure.jceks
+  password: notasecret

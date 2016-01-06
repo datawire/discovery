@@ -1,0 +1,110 @@
+{
+  "variables": {
+    "build_number": null,
+    "builder": null,
+    "commit": null,
+    "foundation_ami": null,
+    "hub_version": null
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "name": "hub-server",
+
+      "ami_description": "Datawire Cloud Hub (build: {{ user `build_number` }})",
+      "ami_name": "dwc-hub-x86_64-hvm-b{{ user `build_number` }}-t{{ timestamp }}",
+      "instance_type": "t2.small",
+      "region": "us-east-1",
+      "run_tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "Commit": "{{ user `commit` }}",
+        "Environment": "dev",
+        "Name": "packer-hub-b{{ user `build_number` }}",
+        "Role": "dwc:operations:packer"
+      },
+      "source_ami": "{{ user `foundation_ami` }}",
+      "ssh_username": "fedora",
+      "tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "Commit": "{{ user `commit` }}",
+        "OS": "fedora",
+        "Release": "alpha",
+        "Role": "dwc:images:hub-server"
+      }
+    },
+    {
+      "type": "amazon-ebs",
+      "name": "hub-gateway",
+
+      "ami_description": "Datawire Cloud Hub Gateway (build: {{ user `build_number` }})",
+      "ami_name": "dwc-hub-gateway-x86_64-b{{ user `build_number` }}-t{{ timestamp }}",
+      "instance_type": "t2.small",
+      "region": "us-east-1",
+      "run_tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "Commit": "{{ user `commit` }}",
+        "Environment": "dev",
+        "Name": "packer-hub-gateway-b{{ user `build_number` }}",
+        "Role": "dwc:operations:packer"
+      },
+      "source_ami": "{{ user `foundation_ami` }}",
+      "ssh_username": "fedora",
+      "tags": {
+        "Build": "{{ user `build_number` }}",
+        "Builder": "{{ user `builder` }}",
+        "Commit": "{{ user `commit` }}",
+        "OS": "fedora",
+        "Release": "alpha",
+        "Role": "dwc:images:hub-gateway"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "packer/packages.lst",
+      "destination": "/tmp/packages.lst"
+    },
+    {
+      "type": "file",
+      "only": ["hub-server"],
+
+      "source": "hub-agent/build/distributions/hub-server-{{ user `hub_version` }}.zip",
+      "destination": "/tmp/hub-server-{{ user `hub_version` }}.zip"
+    },
+    {
+      "type": "shell",
+      "only": ["hub-server"],
+
+      "script": "{{ template_dir }}/packer/install.sh",
+      "execute_command": "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "environment_vars": [
+        "PACKAGE_BASE_NAME=hub-server",
+        "PACKAGE_VERSION={{ user `hub_version` }}",
+        "INSTALL_ROOT=/opt/datawire"
+      ]
+    },
+    {
+      "type": "file",
+      "only": ["hub-gateway"],
+
+      "source": "hub-agent/build/distributions/hub-gateway-{{ user `hub_version` }}.zip",
+      "destination": "/tmp/hub-gateway-{{ user `hub_version` }}.zip"
+    },
+    {
+      "type": "shell",
+      "only": ["hub-gateway"],
+
+      "script": "{{ template_dir }}/packer/install.sh",
+      "execute_command": "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "environment_vars": [
+        "PACKAGE_BASE_NAME=hub-gateway",
+        "PACKAGE_VERSION={{ user `hub_version` }}",
+        "INSTALL_ROOT=/opt/datawire"
+      ]
+    }
+  ]
+}

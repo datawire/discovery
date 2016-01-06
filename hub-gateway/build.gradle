@@ -1,0 +1,63 @@
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+ext {
+  argparse4jVersion = '0.6.0'
+  assertjVersion = '3.2.0'
+  awsSdkVersion = '1.10.44'
+  jacksonVersion = '2.6.3'
+  jacksonKotlinVersion = "${jacksonVersion}-4"
+  junitVersion = '4.12'
+  kotlinVersion = '1.0.0-beta-4584'
+  logbackVersion = '1.1.3'
+  slf4jVersion = '1.7.13'
+  vertxVersion = '3.1.0'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile(
+      "com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}",
+
+      "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
+      "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
+
+      "io.datawire.quark:quark-netty:+",
+
+      "io.vertx:vertx-core:${vertxVersion}",
+      "io.vertx:vertx-web:${vertxVersion}",
+      "io.vertx:vertx-auth-jwt:${vertxVersion}",
+
+      "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
+
+      "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
+      "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
+
+      files('../etc/quark/hub_v2/java/target/hub-1.0.0.jar')
+  )
+
+  testCompile(
+      "org.assertj:assertj-core:${assertjVersion}",
+      "junit:junit:${junitVersion}",
+      "io.vertx:vertx-unit:${vertxVersion}"
+  )
+}
+
+mainClassName = 'io.datawire.hub.cli.CliRunner'
+
+shadowJar {
+  classifier = 'fat'
+  manifest {
+    attributes 'Main-Class': 'io.datawire.hub.auth.cli.CliRunner'
+  }
+}
+
+applicationDistribution.from(parent.projectDir) {
+  include 'LICENSE'
+  include 'NOTICE'
+  include 'README.md'
+  into '.'
+}

@@ -1,0 +1,5 @@
+---
+jwt:
+  type: jceks
+  path: src/dist/prototype_insecure.jceks
+  password: notasecret
