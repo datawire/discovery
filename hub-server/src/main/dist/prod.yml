@@ -11,7 +11,7 @@ serviceRegistry:
 
 jwt:
   type: jceks
-  path: /opt/datawire/hub-gateway/prototype_insecure.jceks
+  path: /opt/datawire/hub-server/prototype_insecure.jceks
   password: notasecret
 
 tenantResolver:
