@@ -1,5 +1,4 @@
 apply plugin: 'application'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 ext {
   argparse4jVersion = '0.6.0'
@@ -46,18 +45,11 @@ dependencies {
   )
 }
 
-mainClassName = 'io.datawire.hub.cli.CliRunner'
-
-shadowJar {
-  classifier = 'fat'
-  manifest {
-    attributes 'Main-Class': 'io.datawire.hub.auth.cli.CliRunner'
-  }
-}
+mainClassName = 'io.datawire.hub.gateway.cli.CliRunner'
 
 applicationDistribution.from(parent.projectDir) {
   include 'LICENSE'
   include 'NOTICE'
   include 'README.md'
-  into '.'
+  into ''
 }

@@ -4,7 +4,7 @@ After=network.target
 ConditionPathExists=/opt/datawire/hub-gateway
 
 [Service]
-ExecStart=/opt/datawire/hub-gateway/bin/hub-gateway /opt/datawire/hub-gateway/prod.yml
+ExecStart=/opt/datawire/hub-gateway/bin/hub-gateway server /opt/datawire/hub-gateway/prod.yml
 Type=forking
 Restart=on-failure
 
