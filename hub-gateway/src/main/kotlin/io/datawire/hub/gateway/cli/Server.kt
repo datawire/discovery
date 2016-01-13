@@ -6,7 +6,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.datawire.hub.gateway.Configuration
 import io.datawire.hub.gateway.HubAuthenticationVerticle
-import io.datawire.hub.gateway.HubSynchronizerVerticle
 import io.datawire.hub.gateway.tenant.Ec2InstanceTagAddressResolver
 import io.vertx.core.Vertx
 import net.sourceforge.argparse4j.inf.Namespace
