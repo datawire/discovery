@@ -1,18 +1,21 @@
 ---
-# file: dev.yml
+# file: valid_HubGatewayConfiguration.yml
 
 # Configuration for the Hub address resolver
 hubResolver:
   type: simple
   hubs:
     datawire:
-      - 127.0.0.1:52689
+      - 10.0.1.10:52689
+      - 10.0.1.11:52689
+    foo-corp:
+      - 10.0.2.10:52689
 
 # Configuration for the JSON Web Token validator
 jsonWebToken:
 
   # The path to the keystore file
-  keyStore: src/test/resources/test_hs256.jceks
+  keyStorePath: src/test/resources/fixtures/test_hs256.jceks
 
   # The type of keystore
   keyStoreType: jceks
