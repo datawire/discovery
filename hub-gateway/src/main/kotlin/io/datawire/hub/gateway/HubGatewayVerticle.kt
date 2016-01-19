@@ -56,18 +56,18 @@ class HubGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
     router.post("/v1/connect").handler(JWTAuthHandler.create(jwt))
 
     log.info("Registering connector URL")
-    router.post("/v1/connect").produces(jsonContentType).handler { rc ->
+    router.post("/v1/connect").produces("application/json").handler { rc ->
       val user = rc.user()
-      val tenant = user.principal().getString("aud")
+      val tenant = user.principal().getJsonArray("aud")
 
       val response = rc.response()!!
 
-      vertx.eventBus().send<String>("hub-resolver", tenant) {
+      vertx.eventBus().send<String>("hub-resolver", tenant.getString(0)) {
         if (it.succeeded()) {
           val connectOptions = JsonObject(mapOf(
-              "hubUrl" to it.result().body()
+              "url" to "wss://${it.result().body()}/"
           ))
-          response.setStatusCode(200).end(connectOptions.encodePrettily())
+          response.setStatusCode(200).putHeader("content-type", jsonContentType).end(connectOptions.encodePrettily())
         } else {
           response.setStatusCode(500)
         }

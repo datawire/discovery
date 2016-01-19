@@ -4,6 +4,9 @@ import io.datawire.hub.gateway.tenant.HubResolverVerticle
 import io.datawire.hub.gateway.tenant.SimpleHubResolver
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTOptions
 import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.RunTestOnContext
 import io.vertx.ext.unit.junit.VertxUnitRunner
@@ -19,6 +22,7 @@ class HubGatewayVerticleTest {
   public val rule = RunTestOnContext()
 
   lateinit var vertx: Vertx
+  lateinit var jwt: JWTAuth
 
   @Before
   fun setup(context: TestContext) {
@@ -26,7 +30,7 @@ class HubGatewayVerticleTest {
 
     val configuration = HubGatewayTestSupport().loadConfiguration("valid_HubGatewayConfiguration.yml")
 
-    val jwt = configuration.buildJWTAuthProvider(vertx)
+    jwt = configuration.buildJWTAuthProvider(vertx)
     vertx.deployVerticle(HubGatewayVerticle(jwt))
 
     vertx.deployVerticle(HubResolverVerticle(configuration.buildHubResolver()), context.asyncAssertSuccess())
@@ -50,5 +54,33 @@ class HubGatewayVerticleTest {
       context.assertEquals(401, resp.statusCode())
       async.complete()
     }.end()
+  }
+
+  @Test
+  fun sendHttpPostWithJwtContainingKnownTenantReturns200WithHub(context: TestContext) {
+    val async = context.async()
+    val http = vertx.createHttpClient()
+    val request = http.post(8080, "localhost", "/v1/connect") { resp ->
+      context.assertEquals(200, resp.statusCode())
+      context.assertTrue(resp.getHeader("content-type").startsWith("application/json"))
+
+      resp.bodyHandler { body ->
+        val json = body.toJsonObject()
+        context.assertTrue(json.containsKey("url"))
+
+        val url = json.getString("url")
+        val validUrls = setOf("wss://10.0.1.10:52689/", "wss://10.0.1.11:52689/")
+
+        context.assertTrue(validUrls.contains(url))
+        async.complete()
+      }
+    }
+
+    request.putHeader("Authorization", "Bearer ${generateJwt("datawire")}")
+    request.end()
+  }
+
+  fun generateJwt(tenant: String): String {
+    return jwt.generateToken(JsonObject(), JWTOptions().addAudience(tenant))
   }
 }

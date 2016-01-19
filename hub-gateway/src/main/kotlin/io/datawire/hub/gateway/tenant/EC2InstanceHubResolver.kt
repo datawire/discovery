@@ -37,7 +37,7 @@ class EC2InstanceHubResolver(private val ec2: AmazonEC2): HubResolver {
     val instances = ec2.describeInstances(query)
 
     val addresses = instances.reservations[0]?.instances?.map {
-      "wss://hub-${it.instanceId.replace("i-", "")}.datawire.io/" }?.toSet() ?: emptySet()
+      "hub-${it.instanceId.replace("i-", "")}.datawire.io" }?.toSet() ?: emptySet()
 
     log.info("Resolved Hub addresses for tenant (count: {0})", addresses.size)
     return addresses
