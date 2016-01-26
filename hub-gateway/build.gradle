@@ -51,7 +51,7 @@ dependencies {
   )
 }
 
-mainClassName = 'io.datawire.hub.gateway.cli.CliRunner'
+mainClassName = 'io.datawire.hub.gateway.HubGatewayService'
 
 applicationDistribution.from(parent.projectDir) {
   include 'LICENSE'
