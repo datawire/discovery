@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package io.datawire.hub.tenant
+package io.datawire.hub
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.datawire.app.Application
+import io.datawire.app.Initializer
+import io.datawire.hub.command.ServerCommand
 
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(name="simple", value = SimpleTenantResolver::class),
-    JsonSubTypes.Type(name="ec2", value = EC2InstanceTagTenantResolver::class)
-)
-interface TenantResolver {
-  fun resolve(): String
+class HubService: Application<HubConfiguration>("hub-server", HubConfiguration::class.java) {
+  override fun initialize(initializer: Initializer<HubConfiguration>?) {
+    initializer!!.addCommand(ServerCommand(this))
+  }
+
+  companion object {
+    @JvmStatic fun main(args: Array<String>) {
+      HubService().run(*args)
+    }
+  }
 }

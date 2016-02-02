@@ -69,7 +69,7 @@ class HubGatewayVerticleTest {
         context.assertTrue(json.containsKey("url"))
 
         val url = json.getString("url")
-        val validUrls = setOf("wss://10.0.1.10:52689/", "wss://10.0.1.11:52689/")
+        val validUrls = setOf("wss://10.0.1.10:52689/v1/messages", "wss://10.0.1.11:52689/v1/messages")
 
         context.assertTrue(validUrls.contains(url))
         async.complete()

@@ -1,5 +1,8 @@
 rootProject.name = 'hub'
 
+include('hub-common')
+project(':hub-common').name = 'hub-common'
+
 include('hub-server')
 project(':hub-server').name = 'hub-server'
 

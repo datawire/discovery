@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package io.datawire.hub.tenant
+package io.datawire.hub.auth
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.vertx.ext.auth.AuthProvider
+import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
 
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(name="simple", value = SimpleTenantResolver::class),
-    JsonSubTypes.Type(name="ec2", value = EC2InstanceTagTenantResolver::class)
-)
-interface TenantResolver {
-  fun resolve(): String
+class QueryJWTAuthHandler(authProvider: AuthProvider, skip: String?) : JWTAuthHandlerImpl(authProvider, skip) {
+  override fun handle(context: RoutingContext?) {
+    context!!.request()!!.getParam("token")?.let { jwt ->
+      context.request().headers().add("Authorization", "Bearer $jwt")
+    }
+
+    super.handle(context)
+  }
 }

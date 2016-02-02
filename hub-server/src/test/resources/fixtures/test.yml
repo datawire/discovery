@@ -9,10 +9,10 @@ serviceRegistry:
   port: 52689
   bindHost: 127.0.0.1
 
-jwt:
-  type: jceks
-  path: src/main/dist/test_hs256.jceks
-  password: notasecret
+jsonWebToken:
+  keyStorePath: src/test/resources/fixtures/test_hs256.jceks
+  keyStoreType: jceks
+  keyStorePassword: notasecret
 
 tenantResolver:
   type: simple

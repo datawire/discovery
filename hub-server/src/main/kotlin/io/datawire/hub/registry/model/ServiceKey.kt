@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package io.datawire.hub.tenant
-
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+package io.datawire.hub.registry.model
 
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(name="simple", value = SimpleTenantResolver::class),
-    JsonSubTypes.Type(name="ec2", value = EC2InstanceTagTenantResolver::class)
-)
-interface TenantResolver {
-  fun resolve(): String
-}
+data class ServiceKey(val tenant: String, val name: String, val service: Endpoint)

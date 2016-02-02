@@ -18,6 +18,7 @@ package io.datawire.hub.gateway
 
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
@@ -58,14 +59,16 @@ class HubGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
     log.info("Registering connector URL")
     router.post("/v1/connect").produces("application/json").handler { rc ->
       val user = rc.user()
-      val tenant = user.principal().getString("aud")
+
+      val audience = user.principal().getValue("aud")
+      val tenant = if (audience is String) audience else (audience as JsonArray).getString(0)
 
       val response = rc.response()!!
 
       vertx.eventBus().send<String>("hub-resolver", tenant) {
         if (it.succeeded()) {
           val connectOptions = JsonObject(mapOf(
-              "url" to "wss://${it.result().body()}/"
+              "url" to "wss://${it.result().body()}/v1/messages"
           ))
           response.setStatusCode(200).putHeader("content-type", jsonContentType).end(connectOptions.encodePrettily())
         } else {

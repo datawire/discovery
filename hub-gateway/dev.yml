@@ -12,7 +12,7 @@ hubResolver:
 jsonWebToken:
 
   # The path to the keystore file
-  keyStore: src/test/resources/test_hs256.jceks
+  keyStorePath: src/test/resources/fixtures/test_hs256-2.jceks
 
   # The type of keystore
   keyStoreType: jceks

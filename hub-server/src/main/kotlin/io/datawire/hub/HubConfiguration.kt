@@ -14,34 +14,32 @@
  * limitations under the License.
  */
 
-package io.datawire.hub.gateway
-
+package io.datawire.hub
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.datawire.app.ApplicationConfiguration
 import io.datawire.hub.auth.JWTAuthProviderFactory
-import io.datawire.hub.gateway.server.VertxFactory
-import io.datawire.hub.gateway.tenant.HubResolver
-import io.datawire.hub.gateway.tenant.HubResolverFactory
+import io.datawire.hub.registry.ServiceRegistry
+import io.datawire.hub.registry.ServiceRegistryFactory
+import io.datawire.hub.registry.ServiceRegistryVerticle
+import io.datawire.hub.tenant.TenantResolver
+import io.vertx.core.AsyncResult
+import io.vertx.core.Handler
 import io.vertx.core.Vertx
 import io.vertx.ext.auth.jwt.JWTAuth
 
 
-class HubGatewayConfiguration @JsonCreator constructor(
-    @JsonProperty("hubResolver") private val hubResolverFactory: HubResolverFactory,
-    @JsonProperty("jsonWebToken") private val jsonWebTokenFactory: JWTAuthProviderFactory
+class HubConfiguration @JsonCreator constructor(
+    @JsonProperty("jsonWebToken") private val jsonWebTokenFactory: JWTAuthProviderFactory,
+    @JsonProperty("serviceRegistry") private val serviceRegistryFactory: ServiceRegistryFactory,
+    @JsonProperty("tenantResolver") val tenantResolver: TenantResolver
 ): ApplicationConfiguration() {
-
   fun buildJWTAuthProvider(vertx: Vertx): JWTAuth {
     return jsonWebTokenFactory.build(vertx)
   }
 
-  fun buildHubResolver(): HubResolver {
-    return hubResolverFactory.build()
-  }
-
-  fun buildVertx(): Vertx {
-    return VertxFactory().build()
+  fun deployRegistry(vertx: Vertx, jwt: JWTAuth, tenant: String, onCompletion: Handler<AsyncResult<String>>) {
+    return serviceRegistryFactory.deploy(vertx, jwt, tenant, onCompletion)
   }
 }
