@@ -110,8 +110,8 @@ class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
     syncStateToClient(socket)
   }
 
-  private fun synchronize(socket: ServerWebSocket, synchronize: SynchronizeRequest) {
-    log.debug("received synchronization request       -> (client: {0})", synchronize.origin)
+  private fun synchronize(socket: ServerWebSocket, routes: RoutesRequest) {
+    log.debug("received synchronization request       -> (client: {0})", routes.origin)
     syncStateToClient(socket)
   }
 
@@ -133,8 +133,9 @@ class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
       is HeartbeatNotification    -> heartbeat(message)
       is RegisterServiceRequest   -> register(message)
       is SubscribeNotification    -> subscribe(socket, message)
-      is SynchronizeRequest       -> synchronize(socket, message)
+      is RoutesRequest -> synchronize(socket, message)
       else -> {
+        log.error("Unknown message type (type: {0})", message.javaClass)
         socket.close() // close the connection; the client doesn't speak our lingo.
       }
     }
@@ -155,7 +156,7 @@ ws remote-addr : ${socket.remoteAddress()}
 
   private fun broadcastServices() {
     val services = services.mapNamesToEndpoints()
-    val synchronizeResponse = SynchronizeResponse("hub", services)
+    val synchronizeResponse = RoutesResponse("hub", services)
     val json = serializeMessage(synchronizeResponse)
     broadcast(json)
   }
@@ -168,6 +169,7 @@ ws remote-addr : ${socket.remoteAddress()}
 
   private fun send(client: ServerWebSocket, data: String) {
     log.debug("Sending message to client (id: ${client.textHandlerID()})")
+    //log.debug("Sending raw payload... {0}", data)
     client.writeFinalTextFrame(data)
   }
 
@@ -177,7 +179,7 @@ ws remote-addr : ${socket.remoteAddress()}
 
   private fun syncStateToClient(client: ServerWebSocket) {
     val services = services.mapNamesToEndpoints()
-    val synchronizeResponse = SynchronizeResponse("hub", services)
+    val synchronizeResponse = RoutesResponse("hub", services)
     val json = serializeMessage(synchronizeResponse)
     send(client, json)
   }

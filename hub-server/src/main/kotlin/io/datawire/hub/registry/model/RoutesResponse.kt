@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonProperty
 
 
-class SynchronizeResponse(
+class RoutesResponse(
     @JsonProperty
     @JacksonInject("origin")
     origin: String,

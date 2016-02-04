@@ -1,0 +1,11 @@
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+dependencies {
+  compile(
+  //    "io.datawire.quark:quark-netty:0.3.10",
+      "hub:hub:1.0.0"
+  )
+}

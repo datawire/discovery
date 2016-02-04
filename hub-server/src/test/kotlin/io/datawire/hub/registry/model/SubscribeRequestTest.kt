@@ -64,7 +64,7 @@ class SubscribeRequestTest : HubTest {
 
       it.handler { buf ->
         val json = buf.toJsonObject()
-        context.assertEquals(json.getString("type"), "sync")
+        context.assertEquals(json.getString("type"), "routes")
         context.assertEquals(json.getJsonObject("services"), JsonObject())
         async.complete()
       }
@@ -94,7 +94,7 @@ class SubscribeRequestTest : HubTest {
 
       it.handler { buf ->
         val json = buf.toJsonObject()
-        context.assertEquals(json.getString("type"), "sync")
+        context.assertEquals(json.getString("type"), "routes")
         context.assertEquals(JsonObject(mapOf(
             "bar-service" to listOf(
                 JsonObject(mapOf(

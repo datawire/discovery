@@ -18,8 +18,8 @@ import java.util.*
     JsonSubTypes.Type(value = PongResponse::class, name = PONG_TYPE_ALIAS),
     JsonSubTypes.Type(value = RegisterServiceRequest::class, name = REGISTER_SERVICE_ALIAS),
     JsonSubTypes.Type(value = SubscribeNotification::class, name = SUBSCRIBE_ALIAS),
-    JsonSubTypes.Type(value = SynchronizeRequest::class, name = SYNC_ALIAS),
-    JsonSubTypes.Type(value = SynchronizeResponse::class, name = SYNC_ALIAS)
+    JsonSubTypes.Type(value = RoutesRequest::class, name = ROUTES_ALIAS),
+    JsonSubTypes.Type(value = RoutesResponse::class, name = ROUTES_ALIAS)
 )
 abstract class BaseMessage(val id: UUID, val origin: String) {
 

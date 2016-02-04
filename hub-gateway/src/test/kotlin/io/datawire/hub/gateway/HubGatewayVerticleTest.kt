@@ -81,6 +81,8 @@ class HubGatewayVerticleTest {
   }
 
   fun generateJwt(tenant: String): String {
-    return jwt.generateToken(JsonObject(), JWTOptions().addAudience(tenant))
+    val jwt = jwt.generateToken(JsonObject(), JWTOptions().addAudience(tenant))
+    println(jwt)
+    return jwt
   }
 }

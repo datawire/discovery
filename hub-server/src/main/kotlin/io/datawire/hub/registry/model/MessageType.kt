@@ -8,7 +8,7 @@ const val PING_TYPE_ALIAS = "ping"
 const val PONG_TYPE_ALIAS = "pong"
 const val REGISTER_SERVICE_ALIAS = "register"
 const val SUBSCRIBE_ALIAS = "subscribe"
-const val SYNC_ALIAS = "sync"
+const val ROUTES_ALIAS = "routes"
 
 
 enum class MessageType() {
@@ -30,6 +30,6 @@ enum class MessageType() {
   @JsonProperty(SUBSCRIBE_ALIAS)
   SUBSCRIBE,
 
-  @JsonProperty(SYNC_ALIAS)
+  @JsonProperty(ROUTES_ALIAS)
   SYNC;
 }
