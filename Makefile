@@ -50,7 +50,7 @@ TF_DOWNLOAD_URL=https://releases.hashicorp.com/terraform/$(TF_VERSION)/$(TF_ARCH
 #
 
 version:
-	@echo "---> Hub Version '$(HUB_VERSION)'"
+	@echo "---> Discovery Version '$(DISCOVERY_VERSION)'"
 
 prepare:
 	@echo "---> preparing workspace $(WORK_PATH)"
@@ -83,16 +83,16 @@ get-latest-foundation-ami:
 
 prepare-variables:
 	@echo "---> Preparing variables file for Packer.io"
-	@echo "{\"hub_version\": \"$(VERSION)\", \"builder\": \"$(BUILDER)\", \"build_number\": \"$(TRAVIS_BUILD_NUMBER)\", \"commit\": \"$(TRAVIS_COMMIT)\", \"foundation_ami\": \"$(FOUNDATION_AMI)\"}" > $(TEMP_PATH)/packer-variables.json
+	@echo "{\"discovery_version\": \"$(VERSION)\", \"builder\": \"$(BUILDER)\", \"build_number\": \"$(TRAVIS_BUILD_NUMBER)\", \"commit\": \"$(TRAVIS_COMMIT)\", \"foundation_ami\": \"$(FOUNDATION_AMI)\"}" > $(TEMP_PATH)/packer-variables.json
 
 ami: prepare-variables
-	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json
+	$(PACKER) build $(PACKER_OPTS) -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json
 
 server-ami: prepare-variables
-	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -only=hub-server -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json
+	$(PACKER) build $(PACKER_OPTS) -only=discovery-server -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json
 
 gateway-ami: prepare-variables
-	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
-	$(PACKER) build $(PACKER_OPTS) -only=hub-gateway -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-hub.json
+	$(PACKER) validate -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json
+	$(PACKER) build $(PACKER_OPTS) -only=discovery-gateway -var-file=$(TEMP_PATH)/packer-variables.json fedora-x86_64-discovery.json

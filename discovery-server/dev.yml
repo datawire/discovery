@@ -1,0 +1,19 @@
+---
+#
+# "serviceRegistry" - REQUIRED
+#
+# Configuration for the Discovery services registry.
+#
+serviceRegistry:
+  type: simple
+  port: 52689
+  bindHost: 127.0.0.1
+
+jsonWebToken:
+  keyStorePath: src/test/resources/fixtures/test_hs256.jceks
+  keyStoreType: jceks
+  keyStorePassword: notasecret
+
+tenantResolver:
+  type: simple
+  id: datawire

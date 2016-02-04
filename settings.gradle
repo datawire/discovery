@@ -1,13 +1,13 @@
-rootProject.name = 'hub'
+rootProject.name = 'discovery'
 
-//include('hub-client')
-//project(':hub-client').name = 'hub-client'
+//include('discovery-client')
+//project(':discovery-client').name = 'discovery-client'
 
-include('hub-common')
-project(':hub-common').name = 'hub-common'
+include('discovery-common')
+project(':discovery-common').name = 'discovery-common'
 
-include('hub-server')
-project(':hub-server').name = 'hub-server'
+include('discovery-server')
+project(':discovery-server').name = 'discovery-server'
 
-include('hub-gateway')
-project(':hub-gateway').name = 'hub-gateway'
+include('discovery-gateway')
+project(':discovery-gateway').name = 'discovery-gateway'

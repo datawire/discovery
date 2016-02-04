@@ -1,0 +1,10 @@
+repositories {
+  mavenLocal()
+  jcenter()
+}
+
+dependencies {
+  compile(
+      "discovery:discovery:1.0.0"
+  )
+}

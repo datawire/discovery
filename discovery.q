@@ -21,7 +21,7 @@
 @version("1.0.0")
 namespace discovery {
 
-  @doc("Contains Hub domain model interfaces and classes.")
+  @doc("Contains Discovery domain model interfaces and classes.")
   namespace model {
 
     @doc("Indicates the object can be encoded as JSON.")
