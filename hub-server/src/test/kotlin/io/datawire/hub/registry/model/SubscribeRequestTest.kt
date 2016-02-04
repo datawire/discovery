@@ -28,7 +28,7 @@ class SubscribeRequestTest : HubTest {
   private val objectMapper = ObjectMapper().registerKotlinModule()
 
   @get:Rule
-  public val rule = RunTestOnContext()
+  val rule = RunTestOnContext()
 
   lateinit var vertx: Vertx
   lateinit var jwt: JWTAuth
@@ -87,6 +87,8 @@ class SubscribeRequestTest : HubTest {
     http.websocket(52689, "localhost", "/messages?token=${generateJwt("datawire")}") { it ->
       it.writeFinalTextFrame(generateRegisterMessage("bar-service", URI.create("http://10.0.2.20:8080/")))
     }
+
+    Thread.sleep(3000)
 
     http.websocket(52689, "localhost", "/messages?token=${generateJwt("datawire")}") { it ->
 

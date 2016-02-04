@@ -1,7 +1,7 @@
 rootProject.name = 'hub'
 
-include('hub-client')
-project(':hub-client').name = 'hub-client'
+//include('hub-client')
+//project(':hub-client').name = 'hub-client'
 
 include('hub-common')
 project(':hub-common').name = 'hub-common'
