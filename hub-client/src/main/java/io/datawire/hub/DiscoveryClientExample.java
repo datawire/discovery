@@ -1,22 +1,22 @@
 package io.datawire.hub;
 
 
-import hub.model.Endpoint;
-import hub.model.RoutingTable;
-import hub.registry.BasicRegistryClient;
+import discovery.model.Endpoint;
+import discovery.model.RoutingTable;
+import discovery.client.BasicDiscoveryClient;
 import io.datawire.quark.netty.QuarkNettyRuntime;
 
 import java.util.ArrayList;
 import java.util.Map;
 
-public class RegistryClientExample {
+public class DiscoveryClientExample {
 
   public static void main(String... args) throws Exception {
     String jsonWebToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE0NTQ1OTc0NjIsImF1ZCI6WyJkYXRhd2lyZSJdfQ==.Yq4lRyZ-6WzeDCEP1_ZUR4AwrtCViF_avraH2MTnj0k=";
     QuarkNettyRuntime runtime = QuarkNettyRuntime.getRuntime();
     runtime.setAllowSync(true);
 
-    BasicRegistryClient client = new BasicRegistryClient(runtime, "ws://localhost:52689/messages", jsonWebToken, null, null);
+    BasicDiscoveryClient client = new BasicDiscoveryClient(runtime, "ws://localhost:52689/messages", jsonWebToken, null, null);
 
     System.out.println("--> before connect");
     client.connect();

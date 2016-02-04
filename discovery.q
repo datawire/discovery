@@ -15,14 +15,14 @@
  */
 
 /*
- * The official Quark implementation for the Datawire Hub Registry.
+ * The official quark client implementation for the Datawire Discovery server.
  */
 
 @version("1.0.0")
-package hub {
+namespace discovery {
 
   @doc("Contains Hub domain model interfaces and classes.")
-  package model {
+  namespace model {
 
     @doc("Indicates the object can be encoded as JSON.")
     interface ToJSON {
@@ -79,6 +79,7 @@ package hub {
         return scheme + "://" + host + ":" + port.toString();
       }
 
+      @doc("Creates a new Endpoint instance.")
       static Endpoint create(String scheme, String host, int port) {
         return new Endpoint(scheme, host, port, null);
       }
@@ -156,7 +157,8 @@ package hub {
     
     @doc("Default implementation of RoutingTableFactory.")
     class DefaultRoutingTableFactory extends RoutingTableFactory {
-      
+
+      @doc("Creates a new routing table from JSON")
       RoutingTable create(JSONObject json) {
         RoutingTable result = new RoutingTable();
 
@@ -186,10 +188,10 @@ package hub {
     }
   }
 
-  @doc("Contains Hub client events (connect, disconnect, etc.)")
-  package event {
+  @doc("Contains Discovery client events (connect, disconnect, etc.)")
+  namespace event {
 
-    @doc("A base class for Hub client events")
+    @doc("A base class for Discovery client events")
     class BaseEvent {
     
       long occurrenceTime = now();
@@ -199,29 +201,29 @@ package hub {
       }
     }
 
-    @doc("Indicates the client has connected to a Hub server")
+    @doc("Indicates the client has connected to a Discovery server")
     class Connected extends BaseEvent {
       
       Connected() { }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onConnected(self);
       }
     }
 
-    @doc("Indicates the client has disconnected from a Hub server")
+    @doc("Indicates the client has disconnected from a Discovery server")
     class Disconnected extends BaseEvent {
       
       Disconnected() { }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onDisconnected(self);
       }
     }
   }
 
-  @doc("Contains Hub client messages (register, deregister, subscribe, routes etc.)")
-  package message {
+  @doc("Contains Discovery client messages (register, deregister, subscribe, routes etc.)")
+  namespace message {
 
     @doc("The base message type")
     class BaseMessage {
@@ -239,7 +241,7 @@ package hub {
         self.type = type;
       }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onMessage(self);
       }
 
@@ -288,7 +290,7 @@ package hub {
           return json;
       }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
           handler.onMessage(self);
       }
     }
@@ -318,7 +320,7 @@ package hub {
           return json;
       }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
           handler.onMessage(self);
       }
     }
@@ -330,7 +332,7 @@ package hub {
           super("heartbeat");
       }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
           handler.onHeartbeat(self);
       }
     }
@@ -342,7 +344,7 @@ package hub {
         super("routes");
       }
       
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onRoutesRequest(self);
       }
     }
@@ -361,25 +363,25 @@ package hub {
         return routes;
       }
       
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onRoutesResponse(self);
       }
     }
 
-    @doc("A message indicating a client is interested in subscribing to the services registry")
+    @doc("A message indicating a client is interested in subscribing to the services discovery")
     class Subscribe extends BaseMessage {
       
       Subscribe() {
           super("subscribe");
       }
 
-      void dispatch(registry.RegistryHandler handler) {
+      void dispatch(client.DiscoveryHandler handler) {
         handler.onSubscribe(self);
       }
     }
 
     @doc("A message indicating the server or client experienced an error")
-    class HubError extends BaseMessage {
+    class DiscoveryError extends BaseMessage {
 
       @doc("A unique authoritative code for the error")
       int code;
@@ -387,8 +389,8 @@ package hub {
       @doc("A short string that identifies the code. Preference should be given to the code number instead of the name")
       String codeName;
 
-      HubError(int code, String codeName) {
-        super("hub-error");
+      DiscoveryError(int code, String codeName) {
+        super("discovery-error");
         self.code = code;
         self.codeName = codeName;
       }
@@ -415,13 +417,14 @@ package hub {
     }
   }
 
-  package registry {
+  @doc("Contains Datawire Discovery server clients")
+  namespace client {
 
-    @doc("Handler for Datawire Registry messages and events")
-    interface RegistryHandler {
+    @doc("Handler for discovery server messages and events")
+    interface DiscoveryHandler {
 
       @doc("Invoked when a client error is experienced")
-      void onClientError(message.HubError error) {
+      void onClientError(message.DiscoveryError error) {
         self.onMessage(error);
       }
 
@@ -436,7 +439,7 @@ package hub {
       }
 
       @doc("Invoked when an error occurs. The error could be server OR client side. See onServerError() or onClientError() for handling a specific type")
-      void onError(message.HubError error) {
+      void onError(message.DiscoveryError error) {
         if (error.code > 999  && error.code < 2000) { self.onServerError(error); }
         if (error.code > 1999 && error.code < 3000) { self.onClientError(error); }
       }
@@ -446,7 +449,7 @@ package hub {
         // generic do-nothing handler
       }
 
-      @doc("Invoked after a heartbeat notification is sent to the Hub")
+      @doc("Invoked after a heartbeat notification is sent to the Discovery server")
       void onHeartbeat(message.HeartbeatNotification heartbeat) {
         self.onMessage(heartbeat);
       }
@@ -456,40 +459,40 @@ package hub {
         // generic do-nothing handler
       }
 
-      @doc("Invoked when service routes are requested from the Hub")
+      @doc("Invoked when service routes are requested from the Discovery server")
       void onRoutesRequest(message.RoutesRequest routes) {
         self.onMessage(routes);
       }
 
-      @doc("Invoked when service routes are delivered from the Hub")
+      @doc("Invoked when service routes are delivered by the Discovery server")
       void onRoutesResponse(message.RoutesResponse response) {
         self.onMessage(response);
       }
 
-      @doc("Invoked when a Hub server error occurs")
-      void onServerError(message.HubError error) {
+      @doc("Invoked when a Discovery server error occurs")
+      void onServerError(message.DiscoveryError error) {
         self.onMessage(error);
       }
 
-      @doc("Invoked after a client sends a subscribe message to the Hub")
+      @doc("Invoked after a client sends a subscribe message to the Discovery server")
       void onSubscribe(message.Subscribe subscribe) {
         self.onMessage(subscribe);
       }
     }
 
-    @doc("Default handler implementation for Datawire Registry messages")
-    class DefaultRegistryHandler extends RegistryHandler { }
+    @doc("Default handler implementation for Datawire Discovery messages")
+    class DefaultDiscoveryHandler extends DiscoveryHandler { }
 
-    @doc("Defines the basic Hub client contract")
-    interface RegistryClient {
+    @doc("Defines the basic Discovery client contract")
+    interface DiscoveryClient {
 
-      @doc("Connect to the registry server.")
+      @doc("Connect to the discovery server.")
       void connect();
 
-      @doc("Disconnect from the registry server.")
+      @doc("Disconnect from the discovery server.")
       void disconnect();
 
-      @doc("Indicates whether the client is connected to the registry server.")
+      @doc("Indicates whether the client is connected to the discovery server.")
       bool isConnected();
 
       @doc("Returns the entire routing table.")
@@ -507,15 +510,15 @@ package hub {
       @doc("Deregisters a service endpoint.")
       void deregisterEndpoint();
 
-      @doc("Sends a heartbeat to the registry server.")
+      @doc("Sends a heartbeat to the discovery server.")
       void heartbeat();
 
-      @doc("Subscribe to the registry server and receive updates about changes to the routing table.")
+      @doc("Subscribe to the discovery server and receive updates about changes to the routing table.")
       void subscribe();
     }
 
     @doc("Defines the communication semantics between the client and server.")
-    class BasicRegistryClient extends RegistryClient, RegistryHandler, WSHandler {
+    class BasicDiscoveryClient extends DiscoveryClient, DiscoveryHandler, WSHandler {
 
       @doc("Quark runtime")
       Runtime runtime;
@@ -523,10 +526,10 @@ package hub {
       @doc("WebSocket connection")
       WebSocket socket;
 
-      @doc("The URL of the registry server")
-      String registryUrl;
+      @doc("The URL of the discovery server")
+      String discoveryUrl;
 
-      @doc("The token to use for authentication with the registry server")
+      @doc("The token to use for authentication with the discovery server")
       String token;
 
       @doc("The service endpoint routing table")
@@ -538,12 +541,12 @@ package hub {
       @doc("The endpoint associated with a specific Service.")
       model.Endpoint endpoint;
 
-      @doc("Constructs new registry Quark value objects from JSON")
+      @doc("Constructs new discovery Quark value objects from JSON")
       message.MessageFactory messageFactory = new message.DefaultMessageFactory();
 
-      BasicRegistryClient(Runtime runtime, String url, String token, String serviceName, model.Endpoint endpoint) {
+      BasicDiscoveryClient(Runtime runtime, String url, String token, String serviceName, model.Endpoint endpoint) {
         self.runtime = runtime;
-        self.registryUrl = url;
+        self.discoveryUrl = url;
         self.token = token;
         self.routes = new model.RoutingTable();
         self.serviceName = serviceName;
@@ -552,7 +555,7 @@ package hub {
 
       void connect() {
         if (socket == null) {
-          runtime.open(registryUrl + "?token=" + token, self);
+          runtime.open(discoveryUrl + "?token=" + token, self);
         }
       }
 
@@ -616,7 +619,7 @@ package hub {
       }
 
       void onWSClosed(WebSocket socket) {
-        socket = null;
+        self.socket = null;
         event.Disconnected disconnected = new event.Disconnected();
         disconnected.dispatch(self);
       }
@@ -628,12 +631,12 @@ package hub {
       }
     }
 
-    @doc("Provides a client that can communicate with the Datawire Cloud Hub.")
-    class CloudRegistryClient extends BasicRegistryClient, HTTPHandler {
+    @doc("Provides a client that can communicate with the Datawire Cloud Discovery.")
+    class CloudDiscoveryClient extends BasicDiscoveryClient, HTTPHandler {
 
       GatewayOptions gateway = null;
 
-      CloudRegistryClient(Runtime runtime, GatewayOptions gateway, String serviceName, model.Endpoint endpoint) {
+      CloudDiscoveryClient(Runtime runtime, GatewayOptions gateway, String serviceName, model.Endpoint endpoint) {
         super(runtime, null, null, serviceName, endpoint);
         self.gateway = gateway;
       }
@@ -654,16 +657,16 @@ package hub {
       void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
         if (response.getCode() == 200) {
           JSONObject connectionInfo = response.getBody().parseJSON();
-          self.registryUrl = connectionInfo["url"];
-          self.runtime.open(self.registryUrl + "?token=" + gateway.getToken(), self);
+          self.discoveryUrl = connectionInfo["url"];
+          self.runtime.open(self.discoveryUrl + "?token=" + gateway.getToken(), self);
         } else {
-          message.HubError error = new message.HubError(response.getCode(), "http-error");
+          message.DiscoveryError error = new message.DiscoveryError(response.getCode(), "http-error");
           error.dispatch(self);
         }
       }
     }
 
-    @doc("Connection options for the Hub Gateway.")
+    @doc("Connection options for the Discovery Gateway.")
     class GatewayOptions {
 
       @doc("Indicates whether HTTPS should be used or not.")
@@ -672,16 +675,16 @@ package hub {
       @doc("Indicates that the client should authenticate with the Gateway.")
       bool authenticate = true;
 
-      @doc("The DNS name or IP of the Hub Gateway service.")
-      String gatewayHost = "hub-gw.datawire.io";
+      @doc("The DNS name or IP of the Discovery Gateway service.")
+      String gatewayHost = "discovery-gw.datawire.io";
 
-      @doc("The port of the running Hub Gateway service.")
+      @doc("The port of the running Discovery Gateway service.")
       int gatewayPort = 443;
 
-      @doc("The path to the Hub Gateway connector.")
+      @doc("The path to the Discovery Gateway connector.")
       String gatewayConnectorPath = "/v1/connect";
 
-      @doc("The key token to use when connecting to the Hub Gateway")
+      @doc("The key token to use when connecting to the Discovery Gateway")
       String token = "";
 
       GatewayOptions(String token) {
@@ -716,276 +719,4 @@ package hub {
       }
     }
   }
-
-  /*
-  @doc("Contains Hub client interfaces and classes")
-  package client {
-
-    @doc("Default handler implementation for Datawire Hub messages")
-    class DefaultHubHandler extends HubHandler { }
-
-    @doc("Basic Hub client that must be extended to provide features beyond connecting to the Hub")
-    class HubClient extends HTTPHandler, HubHandler, Task, WSHandler {
-
-      @doc("Quark runtime")
-      Runtime runtime;
-
-      @doc("WebSocket connection")
-      WebSocket socket;
-
-      @doc("Hub Gateway configuration")
-      GatewayOptions gateway;
-
-      @doc("Indicates whether the Hub Gateway should be used.")
-      bool useGateway = true;
-
-      @doc("The URL of the Datawire Hub")
-      String hubUrl;
-      
-      message.MessageFactory messageFactory = new message.DefaultMessageFactory();
-
-      HubClient(Runtime runtime, GatewayOptions gateway) {
-        self.runtime = runtime;
-        self.gateway = gateway;
-      }
-
-      void connect() {
-        if (socket == null && gateway.authenticate) {
-          HTTPRequest request = new HTTPRequest(gateway.buildUrl());
-          request.setMethod("POST");
-          request.setHeader("Authorization", "Bearer " + gateway.getToken());
-          runtime.request(request, self);
-        }
-      }
-
-      void disconnect() {
-        if (socket != null) {
-          socket.close();
-        }
-      }
-
-      @doc("The task to run")
-      void onExecute(Runtime runtime) { }
-
-      bool isConnected() {
-        return socket != null;
-      }
-
-      @doc("Schedules the task for execution after the specified period")
-      void schedule(float period) {
-        runtime.schedule(self, period);
-      }
-
-      @doc("Schedules the task for execution immediately")
-      void scheduleNow() {
-        runtime.schedule(self, 0.0);
-      }
-        
-      void send(message.BaseMessage message) {
-        if (message != null && isConnected()) {
-          JSONObject json = message.toJSON();
-          socket.send(json.toString());
-        }
-      }
-
-      void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
-        if (response.getCode() == 200) {
-          JSONObject connectionInfo = response.getBody().parseJSON();
-          hubUrl = connectionInfo["url"];
-          runtime.open(hubUrl + "?token=" + gateway.getToken(), self);
-        } else {
-          message.HubError error = new message.HubError(response.getCode(), "http-error");
-          error.dispatch(self);
-        }
-      }
-
-      void onWSConnected(WebSocket socket) {
-        self.socket = socket;
-        event.Connected connected = new event.Connected();
-        connected.dispatch(self);
-      }
-
-      void onWSClosed(WebSocket socket) {
-        socket = null;
-        event.Disconnected disconnected = new event.Disconnected();
-        disconnected.dispatch(self);
-      }
-
-      void onWSMessage(WebSocket socket, String raw) {
-        JSONObject json = raw.parseJSON();
-        message.BaseMessage message = messageFactory.create(json);
-        message.dispatch(self);
-      }
-    }
-    
-    @doc("Implementation of the Hub client that persists the Route table delivered by the Hub")
-    class PersistentHubClient extends HubClient {
-    
-      @doc("The service endpoint routing table")
-      model.RoutingTable routes;
-
-      @doc("The service name that an Endpoint is associated with.")
-      String serviceName;
-
-      @doc("The endpoint associated with a specific Service.")
-      model.Endpoint endpoint;
-
-      @doc("Constructs a new instance of a Hub client.")
-      PersistentHubClient(Runtime runtime, GatewayOptions gateway) {
-        super(runtime, gateway);
-        self.routes = new model.RoutingTable();
-      }
-
-      @doc("Configures a service endpoint that can be published by this client.")
-      PersistentHubClient configureEndpoint(String serviceName, model.Endpoint endpoint) {
-        self.serviceName = serviceName;
-        self.endpoint = endpoint;
-        return self;
-      }
-
-      @doc("Returns the entire routing table.")
-      model.RoutingTable getRoutingTable() {
-        return routes;
-      }
-      
-      @doc("Returns a list of endpoints.")
-      List<model.Endpoint> getRoutes(String name) {
-        return routes.getEndpoints(name);
-      }
-      
-      bool hasRoute(String name) {
-        return routes.hasRoute(name);
-      }
-
-      void registerEndpoint() {
-        self.send(new message.RegisterServiceRequest(serviceName, endpoint));
-      }
-
-      void deregisterEndpoint() {
-        self.send(new message.DeregisterServiceRequest(serviceName, endpoint));
-      }
-
-      void heartbeat() {
-        self.send(new message.HeartbeatNotification());
-      }
-      
-      void onRoutesResponse(message.RoutesResponse response) {
-        self.routes = response.routes;
-      }
-    }
-
-    @doc("Handler for Datawire Hub messages and events")
-    interface HubHandler {
-    
-      @doc("Invoked when a client error is experienced")
-      void onClientError(message.HubError error) {
-        self.onMessage(error);
-      }
-
-      @doc("Invoked when a client connects")
-      void onConnected(event.Connected connected) {
-        self.onEvent(connected);
-      }
-
-      @doc("Invoked when a client disconnects")
-      void onDisconnected(event.Disconnected disconnected) {
-        self.onEvent(disconnected);
-      }
-
-      @doc("Invoked when an error occurs. The error could be server OR client side. See onServerError() or onClientError() for handling a specific type")
-      void onError(message.HubError error) {
-        if (error.code > 999  && error.code < 2000) { self.onServerError(error); }
-        if (error.code > 1999 && error.code < 3000) { self.onClientError(error); }
-      }
-      
-      @doc("Generic event handler")
-      void onEvent(event.BaseEvent event) {
-        // generic do-nothing handler
-      }
-
-      @doc("Invoked after a heartbeat notification is sent to the Hub")
-      void onHeartbeat(message.HeartbeatNotification heartbeat) {
-        self.onMessage(heartbeat);
-      }
-
-      @doc("Generic message handler")
-      void onMessage(message.BaseMessage message) {
-        // generic do-nothing handler
-      }
-      
-      @doc("Invoked when service routes are requested from the Hub")
-      void onRoutesRequest(message.RoutesRequest routes) {
-        self.onMessage(routes);
-      }
-      
-      @doc("Invoked when service routes are delivered from the Hub")
-      void onRoutesResponse(message.RoutesResponse response) {
-        self.onMessage(response);
-      }
-
-      @doc("Invoked when a Hub server error occurs")
-      void onServerError(message.HubError error) {
-        self.onMessage(error);
-      }
-
-      @doc("Invoked after a client sends a subscribe message to the Hub")
-      void onSubscribe(message.Subscribe subscribe) {
-        self.onMessage(subscribe);
-      }
-    }
-
-    @doc("Connection options for the Hub Gateway")
-    class GatewayOptions {
-      
-      @doc("Indicates whether HTTPS should be used or not")
-      bool secure = true;
-      
-      @doc("Indicates that the client should authenticate with the Gateway")
-      bool authenticate = true;
-
-      @doc("The DNS name or IP of the Hub Gateway service")
-      String gatewayHost = "hub-gw.datawire.io";
-      
-      @doc("The port of the running Hub Gateway service")
-      int gatewayPort = 443;
-      
-      @doc("The path to the Hub Gateway connector")
-      String gatewayConnectorPath = "/v1/connect";
-
-      String token = "";
-
-      GatewayOptions(String token) {
-        self.token = token;
-      }
-
-      String getToken() {
-        return token;
-      }
-      
-      GatewayOptions setToken(String token) {
-        self.token = token;
-        return self;
-      }
-
-      @doc("")
-      String buildUrl() {
-        String scheme = "https";
-        int gatewayPort = self.gatewayPort;
-
-        if (secure) {
-          if (gatewayPort == null || gatewayPort < 1 || gatewayPort > 65535) {
-            gatewayPort = 443;
-          }
-        } else {
-          scheme = "http";
-          if (gatewayPort == null || gatewayPort < 1 || gatewayPort > 65535) {
-            gatewayPort = 80;
-          }
-        }
-
-        return scheme + "://" + gatewayHost + ":" + gatewayPort.toString() + gatewayConnectorPath;
-      }
-    }
-  }
-  */
 }
