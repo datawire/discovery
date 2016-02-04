@@ -23,27 +23,30 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.assertj.core.api.Assertions.*
+import org.junit.After
 
 @RunWith(VertxUnitRunner::class)
 class LocalServiceRegistryVerticleTest : HubTest {
 
   override val fixtures = Fixtures()
 
-  @get:Rule
-  public val rule = RunTestOnContext()
-
   lateinit var vertx: Vertx
   lateinit var jwt: JWTAuth
 
   @Before
   fun setup(context: TestContext) {
-    vertx = rule.vertx()
+    vertx = Vertx.vertx()
 
     val configuration = buildConfiguration(HubConfiguration::class.java, "test.yml")
 
     jwt = configuration.buildJWTAuthProvider(vertx)
     val tenantResolver = configuration.tenantResolver
     configuration.deployRegistry(vertx, jwt, tenantResolver.resolve(), context.asyncAssertSuccess())
+  }
+
+  @After
+  fun teardown(context: TestContext) {
+    vertx.close(context.asyncAssertSuccess())
   }
 
   @Test

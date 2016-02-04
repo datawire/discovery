@@ -1,11 +1,14 @@
 package io.datawire.hub.gateway.tenant
 
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.RunTestOnContext
+import io.vertx.ext.unit.junit.Timeout
 import io.vertx.ext.unit.junit.VertxUnitRunner
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -15,14 +18,14 @@ import org.junit.runner.RunWith
 class HubResolverVerticleTest {
 
   @get:Rule
-  public val rule = RunTestOnContext()
+  val timeout = Timeout.seconds(5)
 
   lateinit var vertx: Vertx
   lateinit var eventBus: EventBus
 
   @Before
   fun setup(context: TestContext) {
-    vertx = rule.vertx()
+    vertx = Vertx.vertx()
     eventBus = vertx.eventBus()
 
     val resolver = SimpleHubResolver(mapOf(
@@ -31,6 +34,11 @@ class HubResolverVerticleTest {
     ))
 
     vertx.deployVerticle(HubResolverVerticle(resolver), context.asyncAssertSuccess())
+  }
+
+  @After
+  fun teardown(context: TestContext) {
+    vertx.close(context.asyncAssertSuccess())
   }
 
   @Test

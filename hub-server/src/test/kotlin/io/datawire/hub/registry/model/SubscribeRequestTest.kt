@@ -14,6 +14,7 @@ import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.RunTestOnContext
 import io.vertx.ext.unit.junit.VertxUnitRunner
 import org.assertj.core.api.Assertions
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -27,21 +28,23 @@ class SubscribeRequestTest : HubTest {
 
   private val objectMapper = ObjectMapper().registerKotlinModule()
 
-  @get:Rule
-  val rule = RunTestOnContext()
-
   lateinit var vertx: Vertx
   lateinit var jwt: JWTAuth
 
   @Before
   fun setup(context: TestContext) {
-    vertx = rule.vertx()
+    vertx = Vertx.vertx()
 
     val configuration = buildConfiguration(HubConfiguration::class.java, "test.yml")
 
     jwt = configuration.buildJWTAuthProvider(vertx)
     val tenantResolver = configuration.tenantResolver
     configuration.deployRegistry(vertx, jwt, tenantResolver.resolve(), context.asyncAssertSuccess())
+  }
+
+  @After
+  fun teardown(context: TestContext) {
+    vertx.close(context.asyncAssertSuccess())
   }
 
   @Test

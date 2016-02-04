@@ -23,7 +23,7 @@ import io.vertx.core.logging.LoggerFactory
 
 class HubResolverVerticle(private val resolver: HubResolver): AbstractVerticle() {
 
-  private val log = LoggerFactory.getLogger(EC2InstanceHubResolver::class.java)
+  private val log = LoggerFactory.getLogger(HubResolverVerticle::class.java)
 
   override fun start() {
     log.info("Starting Hub Address Resolver")

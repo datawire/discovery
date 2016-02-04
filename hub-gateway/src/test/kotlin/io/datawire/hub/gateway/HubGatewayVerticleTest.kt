@@ -9,7 +9,9 @@ import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTOptions
 import io.vertx.ext.unit.TestContext
 import io.vertx.ext.unit.junit.RunTestOnContext
+import io.vertx.ext.unit.junit.Timeout
 import io.vertx.ext.unit.junit.VertxUnitRunner
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -19,21 +21,27 @@ import org.junit.runner.RunWith
 class HubGatewayVerticleTest {
 
   @get:Rule
-  public val rule = RunTestOnContext()
+  val timeout = Timeout.seconds(5)
 
   lateinit var vertx: Vertx
   lateinit var jwt: JWTAuth
 
   @Before
   fun setup(context: TestContext) {
-    vertx = rule.vertx()
+    //vertx = rule.vertx()
+    vertx = Vertx.vertx()
 
     val configuration = HubGatewayTestSupport().loadConfiguration("valid_HubGatewayConfiguration.yml")
 
     jwt = configuration.buildJWTAuthProvider(vertx)
-    vertx.deployVerticle(HubGatewayVerticle(jwt))
+    vertx.deployVerticle(HubGatewayVerticle(jwt), context.asyncAssertSuccess())
 
     vertx.deployVerticle(HubResolverVerticle(configuration.buildHubResolver()), context.asyncAssertSuccess())
+  }
+
+  @After
+  fun teardown(context: TestContext) {
+    vertx.close(context.asyncAssertSuccess())
   }
 
   @Test
@@ -51,8 +59,10 @@ class HubGatewayVerticleTest {
     val async = context.async()
     val http = vertx.createHttpClient()
     http.post(8080, "localhost", "/v1/connect") { resp ->
-      context.assertEquals(401, resp.statusCode())
-      async.complete()
+      resp.bodyHandler {
+        context.assertEquals(401, resp.statusCode())
+        async.complete()
+      }
     }.end()
   }
 

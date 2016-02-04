@@ -26,15 +26,12 @@ class PingRequestTest : HubTest {
 
   private val objectMapper = ObjectMapper().registerKotlinModule()
 
-  @get:Rule
-  public val rule = RunTestOnContext()
-
   lateinit var vertx: Vertx
   lateinit var jwt: JWTAuth
 
   @Before
   fun setup(context: TestContext) {
-    vertx = rule.vertx()
+    vertx = Vertx.vertx()
 
     val configuration = buildConfiguration(HubConfiguration::class.java, "test.yml")
 
