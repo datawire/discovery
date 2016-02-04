@@ -1,0 +1,24 @@
+---
+# file: valid_DiscoveryGatewayConfiguration.yml
+
+# Configuration for the Discovery address resolver
+discoveryResolver:
+  type: simple
+  servers:
+    datawire:
+      - 10.0.1.10:52689
+      - 10.0.1.11:52689
+    foo-corp:
+      - 10.0.2.10:52689
+
+# Configuration for the JSON Web Token validator
+jsonWebToken:
+
+  # The path to the keystore file
+  keyStorePath: src/test/resources/fixtures/test_hs256.jceks
+
+  # The type of keystore
+  keyStoreType: jceks
+
+  # The password protecting the keystore
+  keyStorePassword: notasecret

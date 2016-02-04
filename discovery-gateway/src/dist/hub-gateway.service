@@ -1,0 +1,12 @@
+[Unit]
+Description=Datawire Discovery Gateway
+After=network.target
+ConditionPathExists=/opt/datawire/discovery-gateway
+
+[Service]
+ExecStart=/opt/datawire/discovery-gateway/bin/discovery-gateway server /opt/datawire/discovery-gateway/prod.yml
+Type=forking
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

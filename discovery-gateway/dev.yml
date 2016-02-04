@@ -1,0 +1,21 @@
+---
+# file: dev.yml
+
+# Configuration for the Discovery address resolver
+discoveryResolver:
+  type: simple
+  servers:
+    datawire:
+      - 127.0.0.1:52689
+
+# Configuration for the JSON Web Token validator
+jsonWebToken:
+
+  # The path to the keystore file
+  keyStorePath: src/test/resources/fixtures/test_hs256-2.jceks
+
+  # The type of keystore
+  keyStoreType: jceks
+
+  # The password protecting the keystore
+  keyStorePassword: notasecret
