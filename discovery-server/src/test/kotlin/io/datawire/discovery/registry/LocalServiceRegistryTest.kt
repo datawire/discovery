@@ -79,7 +79,7 @@ class LocalServiceRegistryTest {
 
   @Test
   fun mapNamesToServices_NoServices_ReturnEmptyMap() {
-    val mappedServices = registry.mapNamesToEndpoints()
+    val mappedServices = registry.mapNamesToEndpoints("datawire")
     assertThat(mappedServices).isEmpty()
   }
 
@@ -95,7 +95,7 @@ class LocalServiceRegistryTest {
     registry.addService(ServiceKey("datawire", "bar", endpoint2), endpoint2)
     registry.addService(ServiceKey("datawire", "bot", endpoint3), endpoint3)
 
-    val mappedServices = registry.mapNamesToEndpoints()
+    val mappedServices = registry.mapNamesToEndpoints("tenant")
     assertThat(mappedServices.keys).containsOnly("foo", "bar", "bot")
     assertThat(mappedServices["foo"]).containsOnly(endpoint0, endpoint1)
     assertThat(mappedServices["bar"]).containsOnly(endpoint2)

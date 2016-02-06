@@ -1,5 +1,6 @@
 package io.datawire.discovery.registry.model
 
+import java.io.Serializable
 import java.time.Instant
 
 /**
@@ -9,4 +10,4 @@ import java.time.Instant
  * @param lastHeartbeat the time of the last heartbeat received from the endpoint.
  * @author Philip Lombardi <plombardi@datawire.io>
  */
-data class ServiceRecord(val endpoint: Endpoint, val lastHeartbeat: Instant)
+data class ServiceRecord(val endpoint: Endpoint, val lastHeartbeat: Instant): Serializable

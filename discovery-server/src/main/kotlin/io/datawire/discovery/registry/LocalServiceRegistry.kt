@@ -37,11 +37,11 @@ class LocalServiceRegistry: ServiceRegistry {
 
   override fun updateLastContactTime(key: ServiceKey) {
     if (services.computeIfPresent(key, { k, r -> r.copy(lastHeartbeat = Instant.now()) }) != null) {
-      log.debug("heartbeat      -> [$key]")
+      log.debug("heartbeat    -> [$key]")
     }
   }
 
-  override fun mapNamesToEndpoints(): Map<String, Set<Endpoint>> {
+  override fun mapNamesToEndpoints(tenant: String): Map<String, Set<Endpoint>> {
     return services.entries.fold(linkedMapOf<String, Set<Endpoint>>()) { result, entry ->
       val record = entry.value!!
 

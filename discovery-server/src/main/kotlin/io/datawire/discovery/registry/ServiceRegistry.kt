@@ -16,5 +16,5 @@ interface ServiceRegistry {
   fun getService(key: ServiceKey) = get(key)
   fun addService(key: ServiceKey, endpoint: Endpoint): Boolean
   fun removeService(key: ServiceKey): Boolean
-  fun mapNamesToEndpoints(): Map<String, Set<Endpoint>>
+  fun mapNamesToEndpoints(tenant: String): Map<String, Set<Endpoint>>
 }

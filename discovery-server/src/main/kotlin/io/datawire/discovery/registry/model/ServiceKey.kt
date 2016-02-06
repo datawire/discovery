@@ -16,5 +16,7 @@
 
 package io.datawire.discovery.registry.model
 
+import java.io.Serializable
 
-data class ServiceKey(val tenant: String, val name: String, val service: Endpoint)
+
+data class ServiceKey(val tenant: String, val name: String, val service: Endpoint): Serializable

@@ -27,14 +27,6 @@ data class SimpleServiceRegistryFactory(
     val jwtHandler = QueryJWTAuthHandler(jwt, "/health").setAudience(listOf(tenant))
 
     val verticle = ServiceRegistryVerticle(jwtHandler, jsonMapper, LocalServiceRegistry(), tenant)
-
-//    val options = DeploymentOptions()
-//    val config = JsonObject()
-//    config.put("bindHost", bindHost)
-//    config.put("port", port)
-//    config.put("open", open)
-//    options.setConfig(config)
-
     return verticle
   }
 

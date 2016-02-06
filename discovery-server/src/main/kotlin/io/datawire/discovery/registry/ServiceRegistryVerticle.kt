@@ -155,7 +155,7 @@ ws remote-addr : ${socket.remoteAddress()}
   }
 
   private fun broadcastServices() {
-    val services = services.mapNamesToEndpoints()
+    val services = services.mapNamesToEndpoints(tenant)
     val synchronizeResponse = RoutesResponse("discovery", services)
     val json = serializeMessage(synchronizeResponse)
     broadcast(json)
@@ -178,7 +178,7 @@ ws remote-addr : ${socket.remoteAddress()}
   }
 
   private fun syncStateToClient(client: ServerWebSocket) {
-    val services = services.mapNamesToEndpoints()
+    val services = services.mapNamesToEndpoints(tenant)
     val synchronizeResponse = RoutesResponse("discovery", services)
     val json = serializeMessage(synchronizeResponse)
     send(client, json)

@@ -19,11 +19,13 @@ package io.datawire.discovery
 import io.datawire.app.Application
 import io.datawire.app.Initializer
 import io.datawire.discovery.command.ServerCommand
+import io.datawire.discovery.command.SharedServerCommand
 
 
 class DiscoveryService: Application<DiscoveryConfiguration>("discovery-server", DiscoveryConfiguration::class.java) {
   override fun initialize(initializer: Initializer<DiscoveryConfiguration>?) {
     initializer!!.addCommand(ServerCommand(this))
+    initializer!!.addCommand(SharedServerCommand(this))
   }
 
   companion object {
