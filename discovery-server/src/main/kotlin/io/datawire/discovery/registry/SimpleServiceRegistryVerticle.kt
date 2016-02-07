@@ -1,18 +1,11 @@
 package io.datawire.discovery.registry
 
 import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.databind.InjectableValues
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.datawire.discovery.registry.model.*
 import io.datawire.discovery.tenant.TenantResolver
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
-import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.JWTAuthHandler
-import java.nio.charset.Charset
 import java.util.concurrent.ConcurrentHashMap
 
 

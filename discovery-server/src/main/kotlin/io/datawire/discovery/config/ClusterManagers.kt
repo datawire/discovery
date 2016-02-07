@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.hazelcast.config.Config
 import com.hazelcast.config.FileSystemXmlConfig
-import io.vertx.core.spi.cluster.ClusterManager
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager
 
 

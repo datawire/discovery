@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.datawire.discovery.test.DiscoveryTest
 import io.datawire.util.test.Fixtures
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-
-import org.assertj.core.api.Assertions.*
 
 
 class EndpointTest : DiscoveryTest {

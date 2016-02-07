@@ -21,15 +21,15 @@ import io.datawire.app.Context
 import io.datawire.app.command.ContextCommand
 import io.datawire.discovery.DiscoveryServiceConfiguration
 import io.datawire.discovery.config.ClusterManagers
+import io.datawire.discovery.config.ClusterManagers.Hazelcast
+import io.datawire.discovery.config.ClusterManagers.Standalone
+import io.datawire.discovery.monitoring.MetricsVerticle
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.core.logging.LoggerFactory
-import net.sourceforge.argparse4j.inf.Namespace
-
-import io.datawire.discovery.config.ClusterManagers.*
-import io.datawire.discovery.monitoring.MetricsVerticle
-import io.vertx.core.DeploymentOptions
 import io.vertx.ext.dropwizard.DropwizardMetricsOptions
+import net.sourceforge.argparse4j.inf.Namespace
 
 
 class ServerCommand(application: Application<DiscoveryServiceConfiguration>):

@@ -1,7 +1,8 @@
 package io.datawire.discovery.registry.model
 
-import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.annotation.JsonGetter
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.io.Serializable
 import java.net.URI
 

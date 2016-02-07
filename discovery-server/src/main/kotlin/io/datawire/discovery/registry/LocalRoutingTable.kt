@@ -1,11 +1,12 @@
 package io.datawire.discovery.registry
 
-import io.datawire.discovery.registry.model.*
+import io.datawire.discovery.registry.model.Endpoint
+import io.datawire.discovery.registry.model.ServiceKey
+import io.datawire.discovery.registry.model.ServiceRecord
 import io.vertx.core.logging.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import kotlin.properties.Delegates
 
 
 class LocalRoutingTable : RoutingTable {

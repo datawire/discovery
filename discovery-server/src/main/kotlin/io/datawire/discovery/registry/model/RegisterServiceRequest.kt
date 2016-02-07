@@ -18,7 +18,6 @@ package io.datawire.discovery.registry.model
 
 import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.util.*
 
 
 class RegisterServiceRequest(

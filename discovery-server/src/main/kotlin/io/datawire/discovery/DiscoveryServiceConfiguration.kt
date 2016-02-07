@@ -25,7 +25,6 @@ import io.datawire.discovery.config.DiscoveryConfiguration
 import io.datawire.discovery.config.SharedHazelcastDiscoveryConfiguration
 import io.datawire.discovery.registry.DiscoveryVerticle
 import io.datawire.discovery.registry.RoutingTable
-import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
 

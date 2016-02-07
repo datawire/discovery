@@ -2,10 +2,9 @@ package io.datawire.discovery.registry
 
 import io.datawire.discovery.registry.model.Endpoint
 import io.datawire.discovery.registry.model.ServiceKey
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
-
-import org.assertj.core.api.Assertions.*
 import java.util.concurrent.TimeUnit
 
 class LocalServiceRegistryTest {
