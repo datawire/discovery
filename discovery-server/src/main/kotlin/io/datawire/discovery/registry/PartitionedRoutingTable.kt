@@ -14,6 +14,8 @@ class PartitionedRoutingTable(val hazelcast: HazelcastInstance): RoutingTable {
 
   private val log = LoggerFactory.getLogger(PartitionedRoutingTable::class.java)
 
+  override val mode = RoutingTableMode.PARTITIONED
+
   init {
     log.info("initializing partitioned routing table")
   }

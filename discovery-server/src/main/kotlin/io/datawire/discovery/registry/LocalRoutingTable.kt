@@ -14,6 +14,8 @@ class LocalRoutingTable : RoutingTable {
 
   private val services: ConcurrentMap<ServiceKey, ServiceRecord> = ConcurrentHashMap()
 
+  override val mode = RoutingTableMode.NONE
+
   val size: Int
     get() = services.size
 

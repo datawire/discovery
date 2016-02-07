@@ -1,7 +1,9 @@
 package io.datawire.discovery.registry
 
 import com.hazelcast.core.EntryEvent
+import com.hazelcast.core.EntryListener
 import com.hazelcast.core.HazelcastInstance
+import com.hazelcast.core.MapEvent
 import com.hazelcast.map.listener.EntryAddedListener
 import com.hazelcast.map.listener.EntryEvictedListener
 import com.hazelcast.map.listener.EntryRemovedListener
@@ -32,7 +34,7 @@ class SharedDiscoveryVerticle(
       val audience = rc.user().principal().getValue("aud")
 
       val tenantId = if (audience is String) audience else (audience as JsonArray).getString(0)
-      configureRoutingTable(tenantId)
+      configureRoutingTable(tenantId, registry.mode)
 
       val clientId = socket.textHandlerID()
 
@@ -95,23 +97,34 @@ class SharedDiscoveryVerticle(
    * created if a table exists already. Additionally an event handler will be registered on the table to react to table
    * modifications.
    */
-  private fun configureRoutingTable(tenant: String) {
+  private fun configureRoutingTable(tenant: String, mode: RoutingTableMode) {
     routingTableListeners.computeIfAbsent(tenant) { k ->
       log.info("adding routing table event listener (tenant: {0})", tenant)
-      val table      = hazelcast.getMap<ServiceKey, ServiceRecord>("routing-table:$tenant")
-      val listenerId = table.addEntryListener(RoutingTableChangeListener(this), false)
+      val listenerId = when (mode) {
+        RoutingTableMode.REPLICATED  -> {
+          val table = hazelcast.getReplicatedMap<ServiceKey, ServiceRecord>("routing-table:$tenant")
+          table.addEntryListener(ReplicatedRoutingTableChangeListener(this))
+        }
+        RoutingTableMode.PARTITIONED -> {
+          val table = hazelcast.getMap<ServiceKey, ServiceRecord>("routing-table:$tenant")
+          table.addEntryListener(PartitionedRoutingTableChangeListener(this), false)
+        }
+        RoutingTableMode.NONE -> {
+          ""
+        }
+      }
 
       log.debug("added routing table event listener (listener: {0})", listenerId)
       listenerId
     }
   }
 
-  class RoutingTableChangeListener(private val discovery: DiscoveryVerticle) :
+  open class PartitionedRoutingTableChangeListener(private val discovery: DiscoveryVerticle) :
       EntryAddedListener<ServiceKey, ServiceRecord>,
       EntryRemovedListener<ServiceKey, ServiceRecord>,
       EntryEvictedListener<ServiceKey, ServiceRecord> {
 
-    private val log = LoggerFactory.getLogger(RoutingTableChangeListener::class.java)
+    private val log = LoggerFactory.getLogger(PartitionedRoutingTableChangeListener::class.java)
 
     override fun entryAdded(event: EntryEvent<ServiceKey, ServiceRecord>?) {
       log.debug("route added (key: {0}}", event!!.key)
@@ -127,5 +140,14 @@ class SharedDiscoveryVerticle(
       log.debug("route evicted (key: {0}}", event!!.key)
       discovery.publishRoutingTable(event.key.tenant)
     }
+  }
+
+  class ReplicatedRoutingTableChangeListener(discovery: DiscoveryVerticle) :
+      PartitionedRoutingTableChangeListener(discovery),
+      EntryListener<ServiceKey, ServiceRecord> {
+
+    override fun mapCleared(p0: MapEvent?) { }
+    override fun entryUpdated(p0: EntryEvent<ServiceKey, ServiceRecord>?) { }
+    override fun mapEvicted(p0: MapEvent?) { }
   }
 }

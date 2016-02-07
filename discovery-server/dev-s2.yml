@@ -5,7 +5,7 @@ clusterManager:
 
 discovery:
   type: shared-hazelcast
-  mode: partitioned
+  mode: replicated
   bindAddress: 127.0.0.1
   port: 8081
   tenants:

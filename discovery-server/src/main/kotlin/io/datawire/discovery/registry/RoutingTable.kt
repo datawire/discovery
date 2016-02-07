@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 interface RoutingTable {
 
+  val mode: RoutingTableMode
+
   fun contains(key: ServiceKey): Boolean
 
   fun updateLastContactTime(key: ServiceKey)

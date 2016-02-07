@@ -1,6 +1,5 @@
 package io.datawire.discovery.monitoring
 
-import com.amazonaws.util.json.JSONObject
 import io.vertx.core.AbstractVerticle
 import io.vertx.ext.dropwizard.MetricsService
 import io.vertx.ext.web.Router

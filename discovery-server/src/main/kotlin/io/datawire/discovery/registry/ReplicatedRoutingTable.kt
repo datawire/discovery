@@ -14,12 +14,14 @@ class ReplicatedRoutingTable(val hazelcast: HazelcastInstance): RoutingTable {
 
   private val log = LoggerFactory.getLogger(ReplicatedRoutingTable::class.java)
 
+  override val mode = RoutingTableMode.REPLICATED
+
   init {
     log.info("initializing replicated routing table")
   }
 
   private fun getRoutingTable(tenant: String): ReplicatedMap<ServiceKey, ServiceRecord> {
-    return hazelcast.getReplicatedMap<ServiceKey, ServiceRecord>("services.$tenant")
+    return hazelcast.getReplicatedMap<ServiceKey, ServiceRecord>("routing-table:$tenant")
   }
 
   override fun contains(key: ServiceKey): Boolean {
