@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit
 
 class LocalServiceRegistryTest {
 
-  lateinit var registry: LocalServiceRegistry
+  lateinit var registry: LocalRoutingTable
 
   @Before
   fun setup() {
-    registry = LocalServiceRegistry()
+    registry = LocalRoutingTable()
   }
 
   @Test

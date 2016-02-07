@@ -27,7 +27,7 @@ import io.vertx.core.logging.LoggerFactory
 import net.sourceforge.argparse4j.inf.Namespace
 
 import io.datawire.discovery.config.ClusterManagers.*
-import io.datawire.discovery.registry.DistributedServiceRegistry
+import io.datawire.discovery.registry.PartitionedRoutingTable
 import io.vertx.core.DeploymentOptions
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager
 
@@ -55,8 +55,7 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
     Vertx.clusteredVertx(VertxOptions().setClusterManager(clusterManager)) {
       if (it.succeeded()) {
         val vertx = it.result()
-        val registry = DistributedServiceRegistry(clusterManager.hazelcastInstance)
-        val (verticle, verticleConfig) = config.buildDiscoveryVerticle(registry)
+        val (verticle, verticleConfig) = config.buildSharedDiscoveryVerticle(clusterManager.hazelcastInstance)
         vertx.deployVerticle(verticle, DeploymentOptions().setConfig(verticleConfig))
       }
     }

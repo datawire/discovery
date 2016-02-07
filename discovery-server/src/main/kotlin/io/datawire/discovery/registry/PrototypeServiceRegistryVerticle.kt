@@ -4,16 +4,19 @@ import io.datawire.discovery.registry.model.*
 import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.json.JsonArray
 import io.vertx.core.logging.LoggerFactory
+import java.util.*
 
 
-class SharedServiceRegistryVerticle(
+class PrototypeServiceRegistryVerticle(
     tenants: TenantResolver,
-    services: ServiceRegistry
+    services: RoutingTable
 ): DiscoveryVerticle(tenants, services) {
 
-  private val log = LoggerFactory.getLogger(SharedServiceRegistryVerticle::class.java)
+  private val log = LoggerFactory.getLogger(PrototypeServiceRegistryVerticle::class.java)
 
-  override fun startDiscovery() {
+  override fun start(verticleId: String) {
+    val id = UUID.randomUUID()
+
     router.route("/messages").handler { rc ->
       val request = rc.request()
       val socket = request.upgrade()
@@ -23,6 +26,8 @@ class SharedServiceRegistryVerticle(
       val origin = socket.textHandlerID()
 
       val serviceNotifications = "services.$tenant"
+      val serviceNotificationsLocal = "services.discovery-${id.toString()}.$tenant"
+
       val notificationConsumer = vertx.eventBus().consumer<String>(serviceNotifications)
 
       var serviceKey: ServiceKey? = null

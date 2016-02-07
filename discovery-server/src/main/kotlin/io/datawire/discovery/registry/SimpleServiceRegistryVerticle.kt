@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class SimpleServiceRegistryVerticle(
     tenants: TenantResolver,
-    services: ServiceRegistry
+    services: RoutingTable
 ): DiscoveryVerticle(tenants, services) {
 
   private val log = LoggerFactory.getLogger(SimpleServiceRegistryVerticle::class.java)
@@ -26,7 +26,7 @@ class SimpleServiceRegistryVerticle(
   private val publishers = ConcurrentHashMap<String, ServiceKey>()
   private val subscribers = ConcurrentHashMap<String, ServerWebSocket>()
 
-  override fun startDiscovery() {
+  override fun start(verticleId: String) {
     log.info("starting service registry...")
 
     router.route("/messages").handler { rc ->

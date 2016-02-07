@@ -6,9 +6,11 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.datawire.discovery.auth.QueryJWTAuthHandler
 import io.datawire.discovery.registry.model.BaseMessage
 import io.datawire.discovery.registry.model.MessageContext
+import io.datawire.discovery.registry.model.RoutesResponse
 import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.http.ServerWebSocket
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.JWTAuthHandler
@@ -17,7 +19,7 @@ import java.nio.charset.Charset
 
 abstract class DiscoveryVerticle(
     protected val tenants: TenantResolver,
-    protected val registry: ServiceRegistry
+    protected val registry: RoutingTable
 ): AbstractVerticle() {
 
   protected lateinit var jwt: JWTAuthHandler
@@ -26,7 +28,7 @@ abstract class DiscoveryVerticle(
 
   override fun start() {
     setup()
-    startDiscovery()
+    start(deploymentID())
   }
 
   fun setup() {
@@ -37,7 +39,18 @@ abstract class DiscoveryVerticle(
     router.route("/messages/*").handler(jwt)
   }
 
-  abstract fun startDiscovery()
+  abstract fun start(verticleId: String)
+
+  fun publishRoutingTable(tenant: String) {
+    val routingTable = registry.mapNamesToEndpoints(tenant)
+    vertx.eventBus().publish(
+        "routing-table:$tenant:notifications", serializeMessage(RoutesResponse("${deploymentID()}", routingTable)))
+  }
+
+  fun sendRoutingTable(tenant: String, socket: ServerWebSocket) {
+    val routingTable = registry.mapNamesToEndpoints(tenant)
+    socket.writeFinalTextFrame(serializeMessage(RoutesResponse(deploymentID(), routingTable)))
+  }
 
   protected fun processMessage(tenant: String, client: String, buffer: Buffer): Pair<MessageContext, BaseMessage> {
     val message = deserializeMessage(client, buffer)

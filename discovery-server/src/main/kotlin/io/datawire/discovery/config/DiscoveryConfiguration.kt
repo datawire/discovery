@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.hazelcast.core.HazelcastInstance
 import io.datawire.discovery.auth.JWTAuthProviderFactory
-import io.datawire.discovery.cluster.HazelcastConfiguration
 import io.datawire.discovery.registry.*
 import io.datawire.discovery.tenant.TenantResolver
-import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
 
@@ -27,7 +26,7 @@ abstract class DiscoveryConfiguration(
     val tenants: TenantResolver,
     val jsonWebTokenFactory: JWTAuthProviderFactory
 ) {
-  abstract fun buildDiscoveryVerticle(registry: ServiceRegistry): Pair<DiscoveryVerticle, JsonObject>
+  abstract fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject>
 
   protected fun buildVerticleConfig(): JsonObject {
     return JsonObject()
@@ -44,8 +43,8 @@ class StandaloneDiscoveryConfiguration @JsonCreator constructor(
     @JsonProperty("jsonWebToken") jsonWebToken: JWTAuthProviderFactory
 ): DiscoveryConfiguration(bindAddress, port, tenants, jsonWebToken) {
 
-  override fun buildDiscoveryVerticle(registry: ServiceRegistry): Pair<DiscoveryVerticle, JsonObject> {
-    return Pair(SharedServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
+  override fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
+    return Pair(PrototypeServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
   }
 }
 
@@ -53,10 +52,23 @@ class SharedHazelcastDiscoveryConfiguration @JsonCreator constructor(
     @JsonProperty("bindAddress") bindAddress: String,
     @JsonProperty("port") port: Int,
     @JsonProperty("tenants") tenants: TenantResolver,
-    @JsonProperty("jsonWebToken") jsonWebToken: JWTAuthProviderFactory
+    @JsonProperty("jsonWebToken") jsonWebToken: JWTAuthProviderFactory,
+    @JsonProperty("mode") val mode: String
 ): DiscoveryConfiguration(bindAddress, port, tenants, jsonWebToken) {
 
-  override fun buildDiscoveryVerticle(registry: ServiceRegistry): Pair<DiscoveryVerticle, JsonObject> {
-    return Pair(SharedServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
+  override fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
+    return Pair(PrototypeServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
+  }
+
+  fun buildDiscoveryVerticle(hazelcast: HazelcastInstance): Pair<DiscoveryVerticle, JsonObject> {
+    val registry = when(mode) {
+      "replicated"  -> ReplicatedRoutingTable(hazelcast)
+      "partitioned" -> PartitionedRoutingTable(hazelcast)
+      else -> {
+        throw IllegalArgumentException("Unknown registry mode (mode: $mode)")
+      }
+    }
+
+    return Pair(SharedDiscoveryVerticle(tenants, registry, hazelcast), buildVerticleConfig())
   }
 }

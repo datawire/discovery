@@ -3,11 +3,10 @@ package io.datawire.discovery.registry
 import io.datawire.discovery.registry.model.Endpoint
 import io.datawire.discovery.registry.model.ServiceKey
 import io.datawire.discovery.registry.model.ServiceRecord
+import java.util.concurrent.ConcurrentHashMap
 
 
-interface ServiceRegistry {
-
-  val size: Int
+interface RoutingTable {
 
   fun contains(key: ServiceKey): Boolean
 

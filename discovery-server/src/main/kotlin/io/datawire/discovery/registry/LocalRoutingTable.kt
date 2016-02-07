@@ -8,13 +8,13 @@ import java.util.concurrent.ConcurrentMap
 import kotlin.properties.Delegates
 
 
-class LocalServiceRegistry: ServiceRegistry {
+class LocalRoutingTable : RoutingTable {
 
-  private val log = LoggerFactory.getLogger(LocalServiceRegistry::class.java)
+  private val log = LoggerFactory.getLogger(LocalRoutingTable::class.java)
 
   private val services: ConcurrentMap<ServiceKey, ServiceRecord> = ConcurrentHashMap()
 
-  override val size: Int
+  val size: Int
     get() = services.size
 
   override fun contains(key: ServiceKey): Boolean {

@@ -18,11 +18,13 @@ package io.datawire.discovery
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.hazelcast.core.HazelcastInstance
 import io.datawire.app.ApplicationConfiguration
 import io.datawire.discovery.config.ClusterManagers
 import io.datawire.discovery.config.DiscoveryConfiguration
+import io.datawire.discovery.config.SharedHazelcastDiscoveryConfiguration
 import io.datawire.discovery.registry.DiscoveryVerticle
-import io.datawire.discovery.registry.ServiceRegistry
+import io.datawire.discovery.registry.RoutingTable
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 
@@ -33,7 +35,11 @@ class DiscoveryServiceConfiguration @JsonCreator constructor(
 ): ApplicationConfiguration() {
 
 
-  fun buildDiscoveryVerticle(registry: ServiceRegistry): Pair<DiscoveryVerticle, JsonObject> {
+  fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
     return discovery.buildDiscoveryVerticle(registry)
+  }
+
+  fun buildSharedDiscoveryVerticle(hazelcast: HazelcastInstance): Pair<DiscoveryVerticle, JsonObject> {
+    return (discovery as SharedHazelcastDiscoveryConfiguration).buildDiscoveryVerticle(hazelcast)
   }
 }
