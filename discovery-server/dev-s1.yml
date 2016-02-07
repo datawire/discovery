@@ -1,0 +1,16 @@
+---
+clusterManager:
+  type: hazelcast
+  configPath: src/main/resources/hazelcast.xml
+
+discovery:
+  type: shared-hazelcast
+  bindAddress: 127.0.0.1
+  port: 8080
+  tenants:
+    type: single
+    id: datawire
+  jsonWebToken:
+    keyStorePath: src/test/resources/fixtures/test_hs256.jceks
+    keyStoreType: jceks
+    keyStorePassword: notasecret

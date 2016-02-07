@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.InjectableValues
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.datawire.discovery.registry.model.*
+import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
@@ -15,28 +16,18 @@ import java.nio.charset.Charset
 import java.util.concurrent.ConcurrentHashMap
 
 
-class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
-                              private val objectMapper: ObjectMapper,
-                              private val services: ServiceRegistry,
-                              private val tenant: String
-): AbstractVerticle() {
+class SimpleServiceRegistryVerticle(
+    tenants: TenantResolver,
+    services: ServiceRegistry
+): DiscoveryVerticle(tenants, services) {
 
-  private val log = LoggerFactory.getLogger(ServiceRegistryVerticle::class.java)
+  private val log = LoggerFactory.getLogger(SimpleServiceRegistryVerticle::class.java)
 
   private val publishers = ConcurrentHashMap<String, ServiceKey>()
   private val subscribers = ConcurrentHashMap<String, ServerWebSocket>()
 
-  override fun start() {
-    log.info("starting service registry... (services: {0})", services.size)
-
-    val router = Router.router(vertx)
-    router.get("/health").handler { rc ->
-      val response = rc.response()
-      response.setStatusCode(200)
-      response.end()
-    }
-
-    router.route("/messages/*").handler(jwtHandler.setAudience(listOf(tenant)))
+  override fun startDiscovery() {
+    log.info("starting service registry...")
 
     router.route("/messages").handler { rc ->
       val request = rc.request()
@@ -58,22 +49,10 @@ class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
     server.requestHandler { router.accept(it) }.listen(config().getInteger("port"))
   }
 
-  private fun deserializeMessage(origin: String, buffer: Buffer, charset: Charset = Charsets.UTF_8): BaseMessage {
-    val injections = InjectableValues.Std().addValue("origin", origin)
-    val reader = objectMapper.readerFor(BaseMessage::class.java).with(injections)
-    return reader.readValue(buffer.toString(charset.name()))
-  }
-
-  private fun serializeMessage(message: BaseMessage, charset: Charset = Charsets.UTF_8): String {
-    val writer = objectMapper.writer()
-    val json = writer.writeValueAsString(message)
-    return Buffer.buffer(json).toString(charset.name())
-  }
-
   private fun deregister(deregistration: DeregisterServiceRequest) {
     publishers[deregistration.origin]?.let {
       log.debug("received remove endpoint request     -> (client: {0}, service: {1})", deregistration.origin, it)
-      if (services.removeService(it)) {
+      if (registry.removeService(it)) {
         broadcastServices()
       }
     }
@@ -83,16 +62,16 @@ class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
     log.debug("client disconnected                    -> (client: {0})", origin)
     subscribers.remove(origin)
     publishers[origin]?.let { serviceKey ->
-      services.removeService(serviceKey)
+      registry.removeService(serviceKey)
       log.debug("removed disconnected client service  -> (client: {0}, service: {1})", origin, serviceKey)
       broadcastServices()
     }
   }
 
   private fun register(registration: RegisterServiceRequest) {
-    val key = ServiceKey(tenant, registration.name, registration.endpoint)
+    val key = ServiceKey("", registration.name, registration.endpoint)
     publishers.put(registration.origin, key)
-    if (services.addService(key, registration.endpoint)) {
+    if (registry.addService(key, registration.endpoint)) {
       broadcastServices()
     }
   }
@@ -100,7 +79,7 @@ class ServiceRegistryVerticle(private val jwtHandler: JWTAuthHandler,
   private fun heartbeat(heartbeat: HeartbeatNotification) {
     publishers[heartbeat.origin]?.let {
       log.debug("received heartbeat                   -> (client: {0}, service: {1})", heartbeat.origin, it)
-      services.updateLastContactTime(it)
+      registry.updateLastContactTime(it)
     }
   }
 
@@ -155,7 +134,7 @@ ws remote-addr : ${socket.remoteAddress()}
   }
 
   private fun broadcastServices() {
-    val services = services.mapNamesToEndpoints(tenant)
+    val services = registry.mapNamesToEndpoints("")
     val synchronizeResponse = RoutesResponse("discovery", services)
     val json = serializeMessage(synchronizeResponse)
     broadcast(json)
@@ -178,7 +157,7 @@ ws remote-addr : ${socket.remoteAddress()}
   }
 
   private fun syncStateToClient(client: ServerWebSocket) {
-    val services = services.mapNamesToEndpoints(tenant)
+    val services = registry.mapNamesToEndpoints("")
     val synchronizeResponse = RoutesResponse("discovery", services)
     val json = serializeMessage(synchronizeResponse)
     send(client, json)

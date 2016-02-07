@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class SimpleTenantResolver(
+data class SingleTenantResolver(
     @JsonProperty("id") val id: String
 ): TenantResolver {
 

@@ -19,28 +19,50 @@ package io.datawire.discovery.command
 import io.datawire.app.Application
 import io.datawire.app.Context
 import io.datawire.app.command.ContextCommand
-import io.datawire.discovery.DiscoveryConfiguration
-import io.vertx.core.Handler
+import io.datawire.discovery.DiscoveryServiceConfiguration
+import io.datawire.discovery.config.ClusterManagers
 import io.vertx.core.Vertx
+import io.vertx.core.VertxOptions
 import io.vertx.core.logging.LoggerFactory
 import net.sourceforge.argparse4j.inf.Namespace
 
+import io.datawire.discovery.config.ClusterManagers.*
+import io.datawire.discovery.registry.DistributedServiceRegistry
+import io.vertx.core.DeploymentOptions
+import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager
 
-class ServerCommand(application: Application<DiscoveryConfiguration>):
-    ContextCommand<DiscoveryConfiguration>("server", "Run the Discovery server", application) {
+
+class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
+    ContextCommand<DiscoveryServiceConfiguration>("server", "Run the Discovery server", application) {
 
   private val log = LoggerFactory.getLogger(ServerCommand::class.java)
 
-  override fun run(configuration: DiscoveryConfiguration?, context: Context?, namespace: Namespace?) {
-    log.info("Bootstrapping Discovery Gateway")
+  override fun run(configuration: DiscoveryServiceConfiguration?, context: Context?, namespace: Namespace?) {
+    configuration!!
 
-    val tenant = configuration!!.tenantResolver.resolve()
+    log.info("Bootstrapping Discovery")
 
-    val vertx = Vertx.vertx()
-
-    val jwt = configuration.buildJWTAuthProvider(vertx)
-    configuration.deployRegistry(vertx, jwt, tenant, Handler {  })
+    when(configuration.clusterManager) {
+      is Hazelcast  -> deployHazelcastClustered(configuration)
+      is Standalone -> deployStandalone(configuration)
+    }
 
     System.`in`.read()
+  }
+
+  fun deployHazelcastClustered(config: DiscoveryServiceConfiguration) {
+    val clusterManager = (config.clusterManager as ClusterManagers.Hazelcast).buildClusterManager()
+    Vertx.clusteredVertx(VertxOptions().setClusterManager(clusterManager)) {
+      if (it.succeeded()) {
+        val vertx = it.result()
+        val registry = DistributedServiceRegistry(clusterManager.hazelcastInstance)
+        val (verticle, verticleConfig) = config.buildDiscoveryVerticle(registry)
+        vertx.deployVerticle(verticle, DeploymentOptions().setConfig(verticleConfig))
+      }
+    }
+  }
+
+  fun deployStandalone(config: DiscoveryServiceConfiguration) {
+    Vertx.vertx()
   }
 }

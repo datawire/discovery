@@ -32,6 +32,8 @@ class DiscoveryGatewayVerticleTest {
     jwt = configuration.buildJWTAuthProvider(vertx)
     vertx.deployVerticle(DiscoveryGatewayVerticle(jwt), context.asyncAssertSuccess())
 
+    generateJwt("plombardi.io")
+
     vertx.deployVerticle(DiscoveryResolverVerticle(configuration.buildDiscoveryResolver()), context.asyncAssertSuccess())
   }
 

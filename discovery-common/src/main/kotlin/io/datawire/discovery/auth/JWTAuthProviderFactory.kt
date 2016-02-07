@@ -49,7 +49,7 @@ data class JWTAuthProviderFactory(
   /**
    * Constructs a [JsonObject] that contains configuration for [JWTAuth].
    */
-  private fun buildKeyStoreConfig(): JsonObject {
+  fun buildKeyStoreConfig(): JsonObject {
     val result = JsonObject().put("keyStore", JsonObject(mapOf(
         "path" to keyStorePath,
         "type" to keyStoreType,

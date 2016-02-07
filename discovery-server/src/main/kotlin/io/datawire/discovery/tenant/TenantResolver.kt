@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     property = "type"
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(name="simple", value = SimpleTenantResolver::class),
+    JsonSubTypes.Type(name="single", value = SingleTenantResolver::class),
     JsonSubTypes.Type(name="ec2", value = EC2InstanceTagTenantResolver::class)
 )
 interface TenantResolver {
