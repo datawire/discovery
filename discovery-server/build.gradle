@@ -31,10 +31,11 @@ dependencies {
       "io.datawire.commons:datawire-config:0.0.3-SNAPSHOT",
       "io.datawire.commons:datawire-application:0.0.3-SNAPSHOT",
 
+      "io.vertx:vertx-auth-jwt:${vertxVersion}",
       "io.vertx:vertx-core:${vertxVersion}",
+      "io.vertx:vertx-dropwizard-metrics:${vertxVersion}",
       "io.vertx:vertx-hazelcast:${vertxVersion}",
       "io.vertx:vertx-web:${vertxVersion}",
-      "io.vertx:vertx-auth-jwt:${vertxVersion}",
 
       "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
 
