@@ -23,12 +23,26 @@ import io.datawire.discovery.command.ServerCommand
 
 class DiscoveryService: Application<DiscoveryServiceConfiguration>("discovery-server", DiscoveryServiceConfiguration::class.java) {
   override fun initialize(initializer: Initializer<DiscoveryServiceConfiguration>?) {
+    configureComponentsToUseSlf4j()
     initializer!!.addCommand(ServerCommand(this))
   }
 
   companion object {
+
+    init {
+      configureComponentsToUseSlf4j()
+    }
+
     @JvmStatic fun main(args: Array<String>) {
       DiscoveryService().run(*args)
+    }
+
+    /**
+     * Configure internal components such as Vert.x and Hazelcast to use SLF4J instead of JUL.
+     */
+    private fun configureComponentsToUseSlf4j() {
+      System.setProperty("hazelcast.logging.type", "slf4j")
+      System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
     }
   }
 }

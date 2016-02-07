@@ -37,19 +37,6 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
 
   private val log = LoggerFactory.getLogger(ServerCommand::class.java)
 
-  override fun run(configuration: DiscoveryServiceConfiguration?, context: Context?, namespace: Namespace?) {
-    configuration!!
-
-    log.info("Bootstrapping Discovery")
-
-    when(configuration.clusterManager) {
-      is Hazelcast  -> deployHazelcastClustered(configuration)
-      is Standalone -> deployStandalone(configuration)
-    }
-
-    System.`in`.read()
-  }
-
   fun deployHazelcastClustered(config: DiscoveryServiceConfiguration) {
     val clusterManager = (config.clusterManager as ClusterManagers.Hazelcast).buildClusterManager()
 
@@ -69,5 +56,26 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
 
   fun deployStandalone(config: DiscoveryServiceConfiguration) {
     Vertx.vertx()
+  }
+
+  override fun run(configuration: DiscoveryServiceConfiguration?, context: Context?, namespace: Namespace?) {
+    runServer(configuration!!, context!!, namespace!!)
+  }
+
+  fun runServer(configuration: DiscoveryServiceConfiguration, context: Context, namespace: Namespace) {
+    bootstrap(configuration)
+
+    when(configuration.clusterManager) {
+      is Hazelcast  -> deployHazelcastClustered(configuration)
+      is Standalone -> deployStandalone(configuration)
+    }
+
+    System.`in`.read()
+  }
+
+  private fun bootstrap(config: DiscoveryServiceConfiguration) {
+    log.info("Bootstrapping Discovery Server...")
+
+    log.debug("Bootstrapped Discovery Server...")
   }
 }
