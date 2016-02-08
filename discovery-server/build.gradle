@@ -4,6 +4,7 @@ ext {
   argparse4jVersion = '0.6.0'
   assertjVersion = '3.2.0'
   awsSdkVersion = '1.10.44'
+  hazelcastVersion = '3.6'
   jacksonVersion = '2.7.1'
   jacksonKotlinVersion = "${jacksonVersion}"
   junitVersion = '4.12'
@@ -21,11 +22,17 @@ repositories {
   }
 }
 
+configurations {
+  all*.exclude group: 'com.hazelcast:hazelcast'
+}
+
 dependencies {
   compile(
       "ch.qos.logback:logback-classic:${logbackVersion}",
 
       "com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}",
+
+      "com.hazelcast:hazelcast:${hazelcastVersion}",
 
       "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
       "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
