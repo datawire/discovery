@@ -302,7 +302,7 @@ namespace discovery {
       model.Endpoint endpoint;
 
       DeregisterService(String name, model.Endpoint endpoint) {
-          super("remove-service");
+          super("deregister");
           self.name = name;
           self.endpoint = endpoint;
       }
