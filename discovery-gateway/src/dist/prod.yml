@@ -1,19 +1,15 @@
 ---
 # file: prod.yml
 
-# Configuration for the Discovery address resolver
+gateway:
+  type: simple
+  bindAddress: 127.0.0.1
+  port: 8080
+  jsonWebToken:
+    keyStorePath: "/opt/datawire/discovery-gateway/demo-ks-256.jceks"
+    keyStoreType: jceks
+    keyStorePassword: notasecret
+
 discoveryResolver:
   type: ec2-instance
   region: us-east-1
-
-# Configuration for the JSON Web Token validator
-jsonWebToken:
-
-  # The path to the keystore file
-  keyStore: src/test/resources/test_hs256.jceks
-
-  # The type of keystore
-  keyStoreType: jceks
-
-  # The password protecting the keystore
-  keyStorePassword: notasecret

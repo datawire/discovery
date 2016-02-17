@@ -20,9 +20,7 @@ package io.datawire.discovery.gateway.tenant
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.AmazonEC2Client
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.InstanceStateName
+import com.amazonaws.services.ec2.model.*
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.vertx.core.logging.LoggerFactory
 
@@ -36,8 +34,15 @@ class EC2InstanceDiscoveryServerResolver(private val ec2: AmazonEC2): DiscoveryR
     val query = createTenantTagQuery(tenant)
     val instances = ec2.describeInstances(query)
 
-    val addresses = instances.reservations[0]?.instances?.map {
-      "discovery-${it.instanceId.replace("i-", "")}.datawire.io" }?.toSet() ?: emptySet()
+    val allInstances = mutableListOf<Instance>()
+    for (resv in instances.reservations) {
+      allInstances.addAll(resv.instances)
+    }
+
+    val addresses = allInstances.map {
+      /*"discovery-${it.instanceId.replace("i-", "")}.datawire.io"*/
+      it.publicIpAddress
+    }.toSet() ?: emptySet()
 
     log.info("Resolved Discovery addresses for tenant (count: {0})", addresses.size)
     return addresses
@@ -45,12 +50,11 @@ class EC2InstanceDiscoveryServerResolver(private val ec2: AmazonEC2): DiscoveryR
 
   private fun createTenantTagQuery(tenant: String): DescribeInstancesRequest {
     return DescribeInstancesRequest()
-        .withFilters(Filter("instance-state-name", listOf(InstanceStateName.Running.name)))
+        .withFilters(Filter("instance-state-name", listOf("running")))
         .withFilters(Filter("tag:Role", listOf("dwc:discovery")))
-        .withFilters(Filter("tag:Tenant", listOf(tenant)))
   }
 
-  data class Factory(@JsonProperty private val region: String): DiscoveryResolverFactory {
+  data class Factory(@JsonProperty("region") private val region: String): DiscoveryResolverFactory {
     override fun build(): DiscoveryResolver {
       val ec2 = AmazonEC2Client().withRegion<AmazonEC2Client>(Regions.fromName(region))
       return EC2InstanceDiscoveryServerResolver(ec2)

@@ -5,12 +5,13 @@ ext {
   assertjVersion = '3.2.0'
   awsSdkVersion = '1.10.44'
   datawireCommonsVersion = '0.0.3-SNAPSHOT'
+  hazelcastVersion = '3.6'
   jacksonVersion = '2.7.1'
   junitVersion = '4.12'
   kotlinVersion = '1.0.0-rc-1036'
   logbackVersion = '1.1.3'
-  slf4jVersion = '1.7.13'
-  vertxVersion = '3.2.0'
+  slf4jVersion = '1.7.14'
+  vertxVersion = '3.2.1'
 }
 
 repositories {
@@ -22,12 +23,14 @@ repositories {
 
 dependencies {
   compile(
+      "ch.qos.logback:logback-classic:${logbackVersion}",
+
       "com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}",
 
       "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
       "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}",
 
-      "io.datawire.quark:quark-netty:+",
+      "com.hazelcast:hazelcast-client:${hazelcastVersion}",
 
       "io.datawire.commons:datawire-config:${datawireCommonsVersion}",
       "io.datawire.commons:datawire-application:${datawireCommonsVersion}",
@@ -41,6 +44,8 @@ dependencies {
 
       "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
       "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
+
+      "org.slf4j:slf4j-api:${slf4jVersion}",
 
       project(":discovery-common")
   )

@@ -29,8 +29,8 @@ class DiscoveryGatewayVerticleTest {
 
     val configuration = DiscoveryGatewayTestSupport().loadConfiguration("valid_DiscoveryGatewayConfiguration.yml")
 
-    jwt = configuration.buildJWTAuthProvider(vertx)
-    vertx.deployVerticle(DiscoveryGatewayVerticle(jwt), context.asyncAssertSuccess())
+    //jwt = configuration.buildJWTAuthProvider(vertx)
+    vertx.deployVerticle(DiscoveryGatewayVerticle(), context.asyncAssertSuccess())
 
     generateJwt("plombardi.io")
 

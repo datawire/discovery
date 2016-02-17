@@ -20,22 +20,18 @@ package io.datawire.discovery.gateway
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.datawire.app.ApplicationConfiguration
-import io.datawire.discovery.auth.JWTAuthProviderFactory
+import io.datawire.discovery.gateway.config.GatewayConfiguration
 import io.datawire.discovery.gateway.server.VertxFactory
 import io.datawire.discovery.gateway.tenant.DiscoveryResolver
 import io.datawire.discovery.gateway.tenant.DiscoveryResolverFactory
 import io.vertx.core.Vertx
-import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.core.json.JsonObject
 
 
 class DiscoveryGatewayConfiguration @JsonCreator constructor(
-    @JsonProperty("discoveryResolver") private val discoveryResolverFactory: DiscoveryResolverFactory,
-    @JsonProperty("jsonWebToken") private val jsonWebTokenFactory: JWTAuthProviderFactory
+    @JsonProperty("gateway") private val gateway: GatewayConfiguration,
+    @JsonProperty("discoveryResolver") private val discoveryResolverFactory: DiscoveryResolverFactory
 ): ApplicationConfiguration() {
-
-  fun buildJWTAuthProvider(vertx: Vertx): JWTAuth {
-    return jsonWebTokenFactory.build(vertx)
-  }
 
   fun buildDiscoveryResolver(): DiscoveryResolver {
     return discoveryResolverFactory.build()
@@ -43,5 +39,9 @@ class DiscoveryGatewayConfiguration @JsonCreator constructor(
 
   fun buildVertx(): Vertx {
     return VertxFactory().build()
+  }
+
+  fun buildGatewayVerticle(): Pair<DiscoveryGatewayVerticle, JsonObject> {
+    return gateway.buildGatewayVerticle()
   }
 }

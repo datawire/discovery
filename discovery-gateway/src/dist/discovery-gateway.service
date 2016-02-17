@@ -5,7 +5,7 @@ ConditionPathExists=/opt/datawire/discovery-gateway
 
 [Service]
 ExecStart=/opt/datawire/discovery-gateway/bin/discovery-gateway server /opt/datawire/discovery-gateway/prod.yml
-Type=forking
+Type=simple
 Restart=on-failure
 
 [Install]

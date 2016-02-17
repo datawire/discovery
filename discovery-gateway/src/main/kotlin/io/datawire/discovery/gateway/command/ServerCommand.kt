@@ -37,7 +37,9 @@ class ServerCommand(application: Application<DiscoveryGatewayConfiguration>):
 
     val vertx = configuration!!.buildVertx()
     vertx.deployVerticle(DiscoveryResolverVerticle(configuration.buildDiscoveryResolver()), DeploymentOptions().setWorker(true))
-    vertx.deployVerticle(DiscoveryGatewayVerticle(configuration.buildJWTAuthProvider(vertx)))
+
+    val (gatewayVerticle, gatewayConfig) = configuration.buildGatewayVerticle()
+    vertx.deployVerticle(gatewayVerticle, DeploymentOptions().setConfig(gatewayConfig))
 
     log.info("Bootstrapped Discovery Gateway")
     System.`in`.read()

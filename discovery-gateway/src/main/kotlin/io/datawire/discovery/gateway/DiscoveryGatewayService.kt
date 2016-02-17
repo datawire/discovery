@@ -23,13 +23,32 @@ import io.datawire.discovery.gateway.command.ServerCommand
 
 
 class DiscoveryGatewayService: Application<DiscoveryGatewayConfiguration>("discovery-gateway", DiscoveryGatewayConfiguration::class.java) {
+
   override fun initialize(initializer: Initializer<DiscoveryGatewayConfiguration>?) {
     initializer!!.addCommand(ServerCommand(this))
   }
 
   companion object {
+
+    init {
+      configureComponentsProperties()
+    }
+
     @JvmStatic fun main(args: Array<String>) {
       DiscoveryGatewayService().run(*args)
+    }
+
+    /**
+     * Configure internal components which expose system properties to control features, for example, choice of logging
+     * framework or phone home capabilities.
+     */
+    private fun configureComponentsProperties() {
+      // hazelcast configuration
+      System.setProperty("hazelcast.logging.type", "slf4j")
+      System.setProperty("hazelcast.phone.home.enabled", "false")
+
+      // vertx configuration
+      System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
     }
   }
 }

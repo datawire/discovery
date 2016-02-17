@@ -25,7 +25,7 @@ import io.vertx.ext.web.Router
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.handler.JWTAuthHandler
 
-class DiscoveryGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
+class DiscoveryGatewayVerticle(): AbstractVerticle() {
 
   private val log = LoggerFactory.getLogger(DiscoveryGatewayVerticle::class.java)
 
@@ -35,13 +35,17 @@ class DiscoveryGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
     log.info("Starting Discovery Gateway")
 
     val router = Router.router(vertx)
-    val server = vertx.createHttpServer()
 
     registerHealthCheck(router)
     registerConnectHandler(router)
 
-    log.info("Accepting connections (port: {0})", config().getInteger("port"))
-    server.requestHandler { router.accept(it) }.listen(8080)
+    val server = vertx.createHttpServer()
+    server.requestHandler { router.accept(it) }.listen(config().getInteger("port"))
+
+    // todo(plombardi): replace with {} syntax once this bug fix is released
+    //
+    // https://github.com/eclipse/vert.x/pull/1282
+    log.info("Running server on ${config().getInteger("port")}")
   }
 
   private fun registerHealthCheck(router: Router) {
@@ -53,8 +57,11 @@ class DiscoveryGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
 
   private fun registerConnectHandler(router: Router) {
     log.info("Registering JWT handler")
-    JWTAuthHandler.create(jwt, "/health")
-    router.post("/v1/connect").handler(JWTAuthHandler.create(jwt))
+
+    val jwtAuth = JWTAuth.create(vertx, config().getJsonObject("jsonWebToken"))
+    val jwt = JWTAuthHandler.create(jwtAuth, "/health")
+
+    router.post("/v1/connect").handler(jwt)
 
     log.info("Registering connector URL")
     router.post("/v1/connect").produces("application/json").handler { rc ->
@@ -67,8 +74,10 @@ class DiscoveryGatewayVerticle(private val jwt: JWTAuth): AbstractVerticle() {
 
       vertx.eventBus().send<String>("discovery-resolver", tenant) {
         if (it.succeeded()) {
+          val address = it.result().body()
+
           val connectOptions = JsonObject(mapOf(
-              "url" to "wss://${it.result().body()}/v1/messages"
+              "url" to "ws://$address/v1/messages"
           ))
           response.setStatusCode(200).putHeader("content-type", jsonContentType).end(connectOptions.encodePrettily())
         } else {

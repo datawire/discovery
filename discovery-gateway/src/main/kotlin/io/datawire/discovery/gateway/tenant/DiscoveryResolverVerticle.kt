@@ -19,20 +19,23 @@ package io.datawire.discovery.gateway.tenant
 
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.logging.LoggerFactory
+import java.util.*
 
 
 class DiscoveryResolverVerticle(private val resolver: DiscoveryResolver): AbstractVerticle() {
 
   private val log = LoggerFactory.getLogger(DiscoveryResolverVerticle::class.java)
+  private val random = Random()
 
   override fun start() {
     log.info("Starting Discovery Address Resolver")
     vertx.eventBus().localConsumer<String>("discovery-resolver") { lookup ->
       val tenantId = lookup.body()
-      val addresses = resolver.resolve(tenantId)
+      val addresses = resolver.resolve(tenantId).toList()
+      Collections.shuffle(addresses, random)
 
       if (addresses.isNotEmpty()) {
-        lookup.reply(addresses.first())
+        lookup.reply(addresses[0])
       } else {
         lookup.fail(1, "NO_DISCOVERY_SERVERS_FOUND")
       }
