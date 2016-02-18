@@ -35,7 +35,7 @@ discovery_version=$( \
 # 'packer_exec' the name or path of alternative packer.io binary; useful in RedHat land where a packer binary already exists on the OS and a different name must be used.
 
 is_travis=${TRAVIS:=false}
-build_token=$(uuidgen | tr -d - | tr '[:upper:]' '[:lower:]')
+build_token=$(python  -c 'import uuid; print str(uuid.uuid4()).replace("-", "")')
 build_number=${TRAVIS_BUILD_NUMBER:="snapshot"}
 build_commit=${TRAVIS_COMMIT:="snapshot-${build_token}"}
 
