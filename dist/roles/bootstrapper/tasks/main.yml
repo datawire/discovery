@@ -1,0 +1,14 @@
+---
+
+- name: ensure datawire image and cloud metadata directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/datawire
+    - /etc/datawire/image-metadata
+    - /etc/datawire/cloud-metadata
+- name: ensure bootstrapper playbook is installed
+  copy:
+    src: bootstrap.yml
+    dest: /opt/datawire/bootstrap.yml
