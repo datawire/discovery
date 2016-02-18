@@ -3,7 +3,7 @@
     "build_number": null,
     "builder": null,
     "commit": null,
-    "foundation_ami": "ami-afbf89c5",
+    "foundation_ami": "ami-7f122315",
     "discovery_version": null
   },
   "builders": [
