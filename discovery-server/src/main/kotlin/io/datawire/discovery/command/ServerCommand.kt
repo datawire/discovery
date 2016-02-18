@@ -27,9 +27,11 @@ import io.datawire.discovery.monitoring.MetricsVerticle
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
-import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.dropwizard.DropwizardMetricsOptions
 import net.sourceforge.argparse4j.inf.Namespace
+import org.slf4j.LoggerFactory
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 
 class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
@@ -38,6 +40,8 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
   private val log = LoggerFactory.getLogger(ServerCommand::class.java)
 
   fun deployHazelcastClustered(config: DiscoveryServiceConfiguration) {
+
+
     val clusterManager = (config.clusterManager as ClusterManagers.Hazelcast).buildClusterManager()
 
     val vertxOptions = VertxOptions()
@@ -46,8 +50,18 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
 
     Vertx.clusteredVertx(vertxOptions) {
       if (it.succeeded()) {
+        val serverId = config.serverId
         val vertx = it.result()
-        val (verticle, verticleConfig) = config.buildSharedDiscoveryVerticle(clusterManager.hazelcastInstance)
+        val hazelcast = clusterManager.hazelcastInstance
+//        val discoveryServers = hazelcast.getMap<String, Long>("discovery-servers")
+
+//        discoveryServers.putAsync(serverId, Instant.now().toEpochMilli(), 10, TimeUnit.SECONDS)
+//        vertx.setPeriodic(TimeUnit.SECONDS.toMillis(5)) {
+//          log.debug("Sending heartbeat for server: {}", serverId)
+//          discoveryServers.containsKey(serverId)
+//        }
+
+        val (verticle, verticleConfig) = config.buildSharedDiscoveryVerticle(hazelcast)
         vertx.deployVerticle(verticle, DeploymentOptions().setConfig(verticleConfig))
         vertx.deployVerticle(MetricsVerticle())
       }
@@ -63,10 +77,10 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
   }
 
   fun runServer(configuration: DiscoveryServiceConfiguration, context: Context, namespace: Namespace) {
-    bootstrap(configuration)
-
     when(configuration.clusterManager) {
-      is Hazelcast  -> deployHazelcastClustered(configuration)
+      is Hazelcast  -> {
+        deployHazelcastClustered(configuration)
+      }
       is Standalone -> deployStandalone(configuration)
     }
 
@@ -74,7 +88,10 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
   }
 
   private fun bootstrap(config: DiscoveryServiceConfiguration) {
-    log.info("Bootstrapping Discovery Server...")
+    val serverId = config.serverId
+    log.info("Bootstrapping Discovery Server... (server-id: {})", serverId)
+
+
 
     log.debug("Bootstrapped Discovery Server...")
   }

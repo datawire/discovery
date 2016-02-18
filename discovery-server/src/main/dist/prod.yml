@@ -1,19 +1,20 @@
 ---
-#
-# "serviceRegistry" - REQUIRED
-#
-# Configuration for the Discovery services registry.
-#
-serviceRegistry:
-  type: simple
+clusterManager:
+  type: hazelcast
+  configPath: "/opt/datawire/discovery-server/hazelcast-prod.xml"
+
+discovery:
+  type: shared-hazelcast
+  serverAddress:
+    type: static
+    id: s1
+  mode: replicated
+  bindAddress: 127.0.0.1
   port: 8080
-  bindHost: 127.0.0.1
-
-jwt:
-  type: jceks
-  path: ""
-  password: notasecret
-
-tenantResolver:
-  type: simple
-  id: datawire
+  tenants:
+    type: single
+    id: datawire
+  jsonWebToken:
+    keyStorePath: "/opt/datawire/discovery-server/demo-ks-256.jceks"
+    keyStoreType: jceks
+    keyStorePassword: notasecret

@@ -33,6 +33,7 @@ class DiscoveryServiceConfiguration @JsonCreator constructor(
     @JsonProperty("discovery") private val discovery: DiscoveryConfiguration
 ): ApplicationConfiguration() {
 
+  val serverId = discovery.serverIdResolver.resolve()
 
   fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
     return discovery.buildDiscoveryVerticle(registry)

@@ -4,52 +4,45 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <properties>
-        <property name="hazelcast.mancenter.enabled">false</property>
-        <property name="hazelcast.memcache.enabled">false</property>
         <property name="hazelcast.rest.enabled">false</property>
         <property name="hazelcast.wait.seconds.before.join">0</property>
         <property name="hazelcast.logging.type">slf4j</property>
     </properties>
 
     <group>
-        <name>dev</name>
-        <password>dev-pass</password>
+        <name>prod</name>
+        <password>prod-password</password>
     </group>
+
     <network>
         <port auto-increment="true" port-count="10000">5701</port>
         <outbound-ports>
             <!--
-            Allowed port range when connecting to other nodes.
-            0 or * means use system provided port.
+                Allowed port range when connecting to other nodes.
+                0 or * means use system provided port.
             -->
             <ports>0</ports>
         </outbound-ports>
         <join>
-            <!-- Developers should use multicast -->
-            <multicast enabled="false">
-                <multicast-group>224.2.2.3</multicast-group>
-                <multicast-port>54327</multicast-port>
-            </multicast>
-
             <!--
-                 Deployments on AWS *MUST* use this as AWS does not support IPv4 multicast
+                 Deployments on AWS *MUST* use this as AWS does not support IPv4 multicast.
             -->
             <aws enabled="true">
-                <iam-role>discovery-server</iam-role>
+                <iam-role>dwc-discovery</iam-role>
                 <region>us-east-1</region>
-                <security-group-name>discovery-internal</security-group-name>
+                <security-group-name>discovery-internal-dev</security-group-name>
             </aws>
+            <tcp-ip enabled="false">
+            </tcp-ip>
+            <multicast enabled="false">
+            </multicast>
         </join>
         <ssl enabled="false"/>
         <socket-interceptor enabled="false"/>
-        <symmetric-encryption enabled="false">
-            <algorithm>PBEWithMD5AndDES</algorithm>
-            <salt>thesalt</salt>
-            <password>thepass</password>
-            <iteration-count>19</iteration-count>
-        </symmetric-encryption>
     </network>
+
     <partition-group enabled="false"/>
+
     <executor-service name="default">
         <pool-size>16</pool-size>
         <queue-capacity>0</queue-capacity>
@@ -70,4 +63,5 @@
         <initial-permits>1</initial-permits>
     </semaphore>
     <!-- END: INTERNAL VERT.X DATA STRUCTURES -->
+
 </hazelcast>

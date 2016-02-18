@@ -10,7 +10,6 @@ ext {
   junitVersion = '4.12'
   kotlinVersion = '1.0.0-rc-1036'
   logbackVersion = '1.1.3'
-  redissonVersion = '2.2.7'
   slf4jVersion = '1.7.14'
   vertxVersion = '3.2.1'
 }
@@ -26,6 +25,10 @@ configurations {
   all*.exclude group: 'com.hazelcast:hazelcast'
 }
 
+tasks.withType(Tar){
+  compression = Compression.GZIP
+}
+
 dependencies {
   compile(
       "ch.qos.logback:logback-classic:${logbackVersion}",
@@ -33,6 +36,7 @@ dependencies {
       "com.amazonaws:aws-java-sdk-ec2:${awsSdkVersion}",
 
       "com.hazelcast:hazelcast:${hazelcastVersion}",
+      "com.hazelcast:hazelcast-cloud:${hazelcastVersion}",
 
       "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
       "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
@@ -47,8 +51,6 @@ dependencies {
       "io.vertx:vertx-web:${vertxVersion}",
 
       "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
-
-      "org.redisson:redisson:${redissonVersion}",
 
       "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
       "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
