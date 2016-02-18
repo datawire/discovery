@@ -30,7 +30,7 @@
             <aws enabled="true">
                 <iam-role>dwc-discovery</iam-role>
                 <region>us-east-1</region>
-                <security-group-name>discovery-internal-dev</security-group-name>
+                <security-group-name>prod-discovery-internal</security-group-name>
             </aws>
             <tcp-ip enabled="false">
             </tcp-ip>
