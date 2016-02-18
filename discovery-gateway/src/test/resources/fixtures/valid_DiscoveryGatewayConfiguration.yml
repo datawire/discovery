@@ -11,14 +11,11 @@ discoveryResolver:
     foo-corp:
       - 10.0.2.10:52689
 
-# Configuration for the JSON Web Token validator
-jsonWebToken:
-
-  # The path to the keystore file
-  keyStorePath: src/test/resources/fixtures/test_hs256.jceks
-
-  # The type of keystore
-  keyStoreType: jceks
-
-  # The password protecting the keystore
-  keyStorePassword: notasecret
+gateway:
+  type: simple
+  bindAddress: 127.0.0.1
+  port: 8080
+  jsonWebToken:
+    keyStorePath: src/test/resources/fixtures/test_hs256.jceks
+    keyStoreType: jceks
+    keyStorePassword: notasecret

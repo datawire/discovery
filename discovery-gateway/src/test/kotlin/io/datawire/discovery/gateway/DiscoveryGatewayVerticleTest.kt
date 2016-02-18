@@ -1,6 +1,7 @@
 package io.datawire.discovery.gateway
 
 import io.datawire.discovery.gateway.tenant.DiscoveryResolverVerticle
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
@@ -28,14 +29,14 @@ class DiscoveryGatewayVerticleTest {
     vertx = Vertx.vertx()
 
     val configuration = DiscoveryGatewayTestSupport().loadConfiguration("valid_DiscoveryGatewayConfiguration.yml")
+    jwt = JWTAuth.create(vertx, configuration.gateway.jsonWebTokenFactory.buildKeyStoreConfig())
 
-    //jwt = configuration.buildJWTAuthProvider(vertx)
-    vertx.deployVerticle(DiscoveryGatewayVerticle(), context.asyncAssertSuccess())
+    val (gatewayVerticle, gatewayConfig) = configuration.buildGatewayVerticle()
 
-    generateJwt("plombardi.io")
-
-    vertx.deployVerticle(DiscoveryResolverVerticle(configuration.buildDiscoveryResolver()), context.asyncAssertSuccess())
+    vertx.deployVerticle(gatewayVerticle, DeploymentOptions().setConfig(gatewayConfig), context.asyncAssertSuccess())
+    vertx.deployVerticle(DiscoveryResolverVerticle(configuration.buildDiscoveryResolver()), DeploymentOptions().setWorker(true), context.asyncAssertSuccess())
   }
+
 
   @After
   fun teardown(context: TestContext) {
@@ -77,7 +78,8 @@ class DiscoveryGatewayVerticleTest {
         context.assertTrue(json.containsKey("url"))
 
         val url = json.getString("url")
-        val validUrls = setOf("wss://10.0.1.10:52689/v1/messages", "wss://10.0.1.11:52689/v1/messages")
+        print(url)
+        val validUrls = setOf("ws://10.0.1.10:52689/v1/messages", "ws://10.0.1.11:52689/v1/messages")
 
         context.assertTrue(validUrls.contains(url))
         async.complete()
@@ -90,7 +92,6 @@ class DiscoveryGatewayVerticleTest {
 
   fun generateJwt(tenant: String): String {
     val jwt = jwt.generateToken(JsonObject(), JWTOptions().addAudience(tenant))
-    println(jwt)
     return jwt
   }
 }

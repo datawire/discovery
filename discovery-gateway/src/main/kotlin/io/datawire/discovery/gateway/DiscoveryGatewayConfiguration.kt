@@ -29,7 +29,7 @@ import io.vertx.core.json.JsonObject
 
 
 class DiscoveryGatewayConfiguration @JsonCreator constructor(
-    @JsonProperty("gateway") private val gateway: GatewayConfiguration,
+    @JsonProperty("gateway") val gateway: GatewayConfiguration,
     @JsonProperty("discoveryResolver") private val discoveryResolverFactory: DiscoveryResolverFactory
 ): ApplicationConfiguration() {
 
