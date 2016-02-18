@@ -21,6 +21,10 @@ repositories {
   }
 }
 
+tasks.withType(Tar){
+  compression = Compression.GZIP
+}
+
 dependencies {
   compile(
       "ch.qos.logback:logback-classic:${logbackVersion}",

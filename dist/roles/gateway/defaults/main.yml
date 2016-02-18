@@ -1,0 +1,5 @@
+---
+# file: gateway/defaults/main.yml
+
+install_root: /opt/datawire
+package_base_name: discovery-gateway

@@ -1,0 +1,5 @@
+---
+# file: discovery/tasks/main.yml
+
+- include: haproxy.yml
+- include: discovery.yml

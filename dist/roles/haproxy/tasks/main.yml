@@ -1,0 +1,13 @@
+---
+# file: haproxy/tasks/main.yml
+
+- name: install haproxy
+  dnf:
+    name: haproxy
+    state: latest
+
+- name: enable haproxy at system boot
+  service:
+    name: haproxy
+    enabled: yes
+    state: stopped

@@ -1,0 +1,5 @@
+---
+# file: gateway/tasks/main.yml
+
+- include: haproxy.yml
+- include: gateway.yml

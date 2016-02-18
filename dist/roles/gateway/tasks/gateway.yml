@@ -1,0 +1,35 @@
+---
+# file: gateway/tasks/discovery.yml
+
+- name: ensure installation root is present
+  file:
+    path: "{{ install_root }}"
+    state: directory
+
+- name: extract gateway archive
+  unarchive:
+    copy: no
+    src: "{{ package_archive_path }}"
+    dest: "{{ install_root }}"
+    creates: "{{ install_root }}/{{ package_fqn }}"
+
+- name: create a symlink to the extracted installation location
+  file:
+    src: "{{ install_root }}/{{ package_fqn }}"
+    dest: "{{ install_root }}/{{ package_base_name }}"
+    state: link
+
+- name: copy gateway systemd service
+  copy:
+    src: "{{ package_base_name }}.service"
+    dest: /lib/systemd/system/{{ package_base_name }}.service
+
+- name: enable gateway service at system boot
+  service:
+    name: discovery-gateway
+    enabled: yes
+
+- name: cleanup
+  file:
+    path: "{{ package_archive_path }}"
+    state: absent

@@ -5,3 +5,6 @@ build
 *.iml
 .vertx
 *.class
+*.tgz
+*.zip
+*.log

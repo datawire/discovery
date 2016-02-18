@@ -14,8 +14,8 @@ set -o pipefail
 # 'discovery_version' - the version of the discovery service being baked
 
 build_dir=build
-template_file="fedora-x86_64-discovery.json"
-variable_file="${build_dir}/${template_file}-vars.json"
+template_file="packer.json"
+variable_file="${build_dir}/packer-vars.json"
 discovery_version=$( \
     grep version gradle.properties | \
     awk -F= '{print $2}' | \
@@ -35,7 +35,7 @@ discovery_version=$( \
 # 'packer_exec' the name or path of alternative packer.io binary; useful in RedHat land where a packer binary already exists on the OS and a different name must be used.
 
 is_travis=${TRAVIS:=false}
-build_token=$(uuidgen | tr -d -)
+build_token=$(uuidgen | tr -d - | tr '[:upper:]' '[:lower:]')
 build_number=${TRAVIS_BUILD_NUMBER:="snapshot"}
 build_commit=${TRAVIS_COMMIT:="snapshot-${build_token}"}
 
@@ -62,10 +62,13 @@ cat << EOF > "${variable_file}"
 EOF
 echo "--  Generated build variables"
 
-echo "--> Validating packer template"
-${packer_exec} validate -var-file=${variable_file} ${template_file}
+echo "--> Validating and building packer template"
 
-echo "--> Building images with packer"
-${packer_exec} build -machine-readable -var-file=${variable_file} ${template_file} | tee packer.log
+mkdir -p dist/files
+cp discovery-*/build/distributions/discovery-*-${discovery_version}.tgz dist/files/
+cd dist/
+
+${packer_exec} validate -var-file=../${variable_file} ${template_file}
+${packer_exec} build -machine-readable -var-file=../${variable_file} ${template_file} | tee packer.log
 
 echo "--> Done!"
