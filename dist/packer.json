@@ -77,7 +77,8 @@
       "playbook_file": "gateway.yml",
       "role_paths": [
         "roles/haproxy",
-        "roles/gateway"
+        "roles/gateway",
+        "roles/bootstrapper"
       ],
       "extra_arguments": [
         "-e 'package_version={{ user `discovery_version` }}'"
@@ -95,7 +96,8 @@
       "playbook_file": "discovery.yml",
       "role_paths": [
         "roles/haproxy",
-        "roles/discovery"
+        "roles/discovery",
+        "roles/bootstrapper"
       ],
       "extra_arguments": [
         "-e 'package_version={{ user `discovery_version` }}'"
