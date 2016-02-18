@@ -1,9 +1,6 @@
 package io.datawire.discovery.registry
 
-import com.hazelcast.core.EntryEvent
-import com.hazelcast.core.EntryListener
-import com.hazelcast.core.HazelcastInstance
-import com.hazelcast.core.MapEvent
+import com.hazelcast.core.*
 import com.hazelcast.map.listener.EntryAddedListener
 import com.hazelcast.map.listener.EntryEvictedListener
 import com.hazelcast.map.listener.EntryRemovedListener
@@ -27,7 +24,7 @@ class SharedDiscoveryVerticle(
 
     val eventBus = vertx.eventBus()
 
-    router.route("/messages").handler { rc ->
+    router.route("/v1/messages").handler { rc ->
       val request = rc.request()
       val socket = request.upgrade()
 
@@ -99,7 +96,7 @@ class SharedDiscoveryVerticle(
    */
   private fun configureRoutingTable(tenant: String, mode: RoutingTableMode) {
     routingTableListeners.computeIfAbsent(tenant) { k ->
-      log.info("adding routing table event listener (tenant: {0})", tenant)
+      log.debug("adding routing table event listener (tenant: $tenant)")
       val listenerId = when (mode) {
         RoutingTableMode.REPLICATED  -> {
           val table = hazelcast.getReplicatedMap<ServiceKey, ServiceRecord>("routing-table:$tenant")

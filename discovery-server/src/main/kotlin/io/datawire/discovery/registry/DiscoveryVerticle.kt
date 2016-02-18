@@ -36,7 +36,7 @@ abstract class DiscoveryVerticle(
     jwt = QueryJWTAuthHandler(jwtAuth, "/health")
 
     router.get("/health").handler { rc -> rc.response().setStatusCode(200).end() }
-    router.route("/messages/*").handler(jwt)
+    router.route("/v1/messages/*").handler(jwt)
   }
 
   abstract fun start(verticleId: String)
