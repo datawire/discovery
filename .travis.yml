@@ -12,6 +12,7 @@ addons:
   apt:
     packages:
     - python-pip
+    - uuid
 
 before_cache:
 - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
