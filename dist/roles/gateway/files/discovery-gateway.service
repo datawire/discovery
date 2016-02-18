@@ -1,10 +1,10 @@
 [Unit]
 Description=Datawire Discovery Gateway
-After=network.target
+After=cloud-final.service
 ConditionPathExists=/opt/datawire/discovery-gateway
 
 [Service]
-ExecStart=/opt/datawire/discovery-gateway/bin/discovery-gateway server /opt/datawire/discovery-gateway/prod.yml
+ExecStart=/opt/datawire/discovery-gateway/bin/discovery-gateway server /opt/datawire/discovery-gateway/config.yml
 Type=simple
 Restart=on-failure
 

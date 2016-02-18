@@ -1,10 +1,10 @@
 [Unit]
 Description=Datawire Discovery Server
-After=network.target
+After=cloud-final.service
 ConditionPathExists=/opt/datawire/discovery-server
 
 [Service]
-ExecStart=/opt/datawire/discovery-server/bin/discovery-server server /opt/datawire/discovery-server/prod.yml
+ExecStart=/opt/datawire/discovery-server/bin/discovery-server server /opt/datawire/discovery-server/config.yml
 Type=simple
 Restart=on-failure
 
