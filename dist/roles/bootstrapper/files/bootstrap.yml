@@ -24,6 +24,12 @@
       mode: get
       object: "{{ dwc_name }}/{{ dwc_service_id }}/config.yml"
       dest: /opt/datawire/{{ dwc_service_id }}/config.yml
+  - name: download hazelcast configuration from s3
+    s3:
+      bucket: "{{ dwc_config_bucket }}"
+      mode: get
+      object: "{{ dwc_name }}/{{ dwc_service_id }}/hazelcast-prod.xml"
+      dest: /opt/datawire/{{ dwc_service_id }}/hazelcast-prod.yml
   - name: download java key store from s3
     s3:
       bucket: "{{ dwc_secrets_bucket }}"
