@@ -30,6 +30,7 @@
       mode: get
       object: "{{ dwc_name }}/{{ dwc_service_id }}/hazelcast-prod.xml"
       dest: /opt/datawire/{{ dwc_service_id }}/hazelcast-prod.xml
+    when: dwc_service_id == "discovery-server"
   - name: download java key store from s3
     s3:
       bucket: "{{ dwc_secrets_bucket }}"
