@@ -558,7 +558,7 @@ namespace discovery {
         if (socket == null) {
           String target = discoveryUrl + "?token=" + token;
 
-          logger.info("CONNECT " + target);
+          logger.debug("CONNECT " + target);
 
           runtime.open(target, self);
         }
@@ -606,12 +606,12 @@ namespace discovery {
         if (message != null && isConnected()) {
           JSONObject json = message.toJSON();
 
-          logger.info("SEND " + json.toString());
+          logger.trace("SEND " + json.toString());
 
           socket.send(json.toString());
         }
         else {
-          logger.info("CANNOT SEND " + message.toString());
+          logger.trace("CANNOT SEND " + message.toString());
         }
       }
 
@@ -627,7 +627,7 @@ namespace discovery {
         self.socket = socket;
         event.Connected connected = new event.Connected();
 
-        logger.info("CONNECTED");
+        logger.debug("CONNECTED");
 
         connected.dispatch(self);
       }
@@ -636,7 +636,7 @@ namespace discovery {
         self.socket = null;
         event.Disconnected disconnected = new event.Disconnected();
 
-        logger.info("DISCONNECTED");
+        logger.debug("DISCONNECTED");
 
         disconnected.dispatch(self);
       }
@@ -644,7 +644,7 @@ namespace discovery {
       void onWSMessage(WebSocket socket, String raw) {
         JSONObject json = raw.parseJSON();
 
-        logger.info("RECV " + json.toString());
+        logger.trace("RECV " + json.toString());
 
         message.BaseMessage message = messageFactory.create(json);
         message.dispatch(self);
