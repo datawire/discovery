@@ -45,7 +45,7 @@ packer_exec=${PACKER_EXEC:="packer"}
 
 if [[ "$is_travis" = "true" && ("$build_branch" != "master" || "$build_pull_request" != "false") ]]; then
     echo "--> Skipping AMI creation: Branch or Pull Request (branch: $build_branch, pull: $build_pull_request)"
-    exit 1
+    exit 0
 fi
 
 if [ "$is_travis" = "true" ]; then build_runner="travis"; else build_runner=${USER:="unknown"}; fi
