@@ -35,11 +35,18 @@ discovery_version=$( \
 # 'packer_exec' the name or path of alternative packer.io binary; useful in RedHat land where a packer binary already exists on the OS and a different name must be used.
 
 is_travis=${TRAVIS:=false}
+build_branch=${TRAVIS_BRANCH:=$(git rev-parse --abbrev-ref HEAD)}
+build_pull_request=${TRAVIS_PULL_REQUEST:="false"}
 build_token=$(python  -c 'import uuid; print str(uuid.uuid4()).replace("-", "")')
 build_number=${TRAVIS_BUILD_NUMBER:="snapshot"}
 build_commit=${TRAVIS_COMMIT:="snapshot-${build_token}"}
 
 packer_exec=${PACKER_EXEC:="packer"}
+
+if [[ "$is_travis" = "true" && ("$build_branch" != "master" || "$build_pull_request" != "false") ]]; then
+    echo "--> Skipping AMI creation: Branch or Pull Request (branch: $build_branch, pull: $build_pull_request)"
+    exit 1
+fi
 
 if [ "$is_travis" = "true" ]; then build_runner="travis"; else build_runner=${USER:="unknown"}; fi
 
