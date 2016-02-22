@@ -3,7 +3,7 @@ ext {
   datawireCommonsVersion = '0.0.3-SNAPSHOT'
   jacksonVersion = '2.7.1'
   junitVersion = '4.12'
-  kotlinVersion = '1.0.0-rc-1036'
+  kotlinVersion = '1.0.0'
   vertxVersion = '3.2.0'
 }
 
