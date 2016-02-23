@@ -1,10 +1,7 @@
 package io.datawire.discovery.registry
 
 import com.hazelcast.config.ClasspathXmlConfig
-import com.hazelcast.core.EntryEvent
-import com.hazelcast.core.EntryListener
-import com.hazelcast.core.Hazelcast
-import com.hazelcast.core.MapEvent
+import com.hazelcast.core.*
 import io.datawire.discovery.registry.model.Endpoint
 import io.datawire.discovery.registry.model.ServiceKey
 import org.junit.After
@@ -26,18 +23,30 @@ class ReplicatedRoutingTableTest {
 
   private lateinit var primaryRoutingTable: ReplicatedRoutingTable
 
+  private val hazelcasts = mutableListOf<HazelcastInstance>()
+
   @Before
   fun setup() {
     val hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig)
+    hazelcasts.add(hazelcast)
+
     primaryRoutingTable = ReplicatedRoutingTable(hazelcast)
   }
 
   @After
-  fun teardown() { }
+  fun teardown() {
+    for (hazelcast in hazelcasts) {
+      hazelcast.lifecycleService.shutdown()
+    }
+
+    hazelcasts.clear()
+  }
 
   @Test
   fun addService_recordIsReplicatedToSecondaryRoutingTable() {
     val otherHazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig)
+    hazelcasts.add(otherHazelcast)
+
     val secondaryRoutingTable = ReplicatedRoutingTable(otherHazelcast)
 
     val endpoint = Endpoint("ws", "localhost", 52689)
