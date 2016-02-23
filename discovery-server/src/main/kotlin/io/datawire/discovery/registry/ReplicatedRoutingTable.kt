@@ -20,7 +20,7 @@ class ReplicatedRoutingTable(val hazelcast: HazelcastInstance): RoutingTable {
     log.info("initializing replicated routing table")
   }
 
-  private fun getRoutingTable(tenant: String): ReplicatedMap<ServiceKey, ServiceRecord> {
+  fun getRoutingTable(tenant: String): ReplicatedMap<ServiceKey, ServiceRecord> {
     return hazelcast.getReplicatedMap<ServiceKey, ServiceRecord>("routing-table:$tenant")
   }
 
@@ -30,6 +30,7 @@ class ReplicatedRoutingTable(val hazelcast: HazelcastInstance): RoutingTable {
   }
 
   override fun updateLastContactTime(key: ServiceKey) {
+    //routes.put(key, routes[key], 30, TimeUnit.SECONDS)
     contains(key)
   }
 
@@ -39,7 +40,6 @@ class ReplicatedRoutingTable(val hazelcast: HazelcastInstance): RoutingTable {
 
   override fun addService(key: ServiceKey, endpoint: Endpoint): Boolean {
     log.debug("adding service -> [$key]")
-    // todo: replicated maps dont support auto-eviction. this will require a workaround.
     return getRoutingTable(key.tenant).put(key, ServiceRecord(endpoint, Instant.now()), 30, TimeUnit.SECONDS) == null
   }
 
