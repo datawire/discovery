@@ -3,11 +3,10 @@ package io.datawire.discovery.registry
 import com.fasterxml.jackson.databind.InjectableValues
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.datawire.discovery.auth.QueryJWTAuthHandler
+import io.datawire.discovery.auth.DiscoveryAuthHandler
 import io.datawire.discovery.registry.model.BaseMessage
 import io.datawire.discovery.registry.model.MessageContext
 import io.datawire.discovery.registry.model.RoutesResponse
-import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
@@ -18,7 +17,6 @@ import java.nio.charset.Charset
 
 
 abstract class DiscoveryVerticle(
-    protected val tenants: TenantResolver,
     protected val registry: RoutingTable
 ): AbstractVerticle() {
 
@@ -33,7 +31,7 @@ abstract class DiscoveryVerticle(
 
   fun setup() {
     val jwtAuth = JWTAuth.create(vertx, config().getJsonObject("jsonWebToken"))
-    jwt = QueryJWTAuthHandler(jwtAuth, "/health")
+    jwt = DiscoveryAuthHandler(jwtAuth, "/health")
 
     router.get("/health").handler { rc -> rc.response().setStatusCode(200).end() }
     router.route("/v1/messages/*").handler(jwt)

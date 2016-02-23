@@ -50,16 +50,8 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
 
     Vertx.clusteredVertx(vertxOptions) {
       if (it.succeeded()) {
-        val serverId = config.serverId
         val vertx = it.result()
         val hazelcast = clusterManager.hazelcastInstance
-//        val discoveryServers = hazelcast.getMap<String, Long>("discovery-servers")
-
-//        discoveryServers.putAsync(serverId, Instant.now().toEpochMilli(), 10, TimeUnit.SECONDS)
-//        vertx.setPeriodic(TimeUnit.SECONDS.toMillis(5)) {
-//          log.debug("Sending heartbeat for server: {}", serverId)
-//          discoveryServers.containsKey(serverId)
-//        }
 
         val (verticle, verticleConfig) = config.buildSharedDiscoveryVerticle(hazelcast)
         vertx.deployVerticle(verticle, DeploymentOptions().setConfig(verticleConfig))
@@ -88,11 +80,7 @@ class ServerCommand(application: Application<DiscoveryServiceConfiguration>):
   }
 
   private fun bootstrap(config: DiscoveryServiceConfiguration) {
-    val serverId = config.serverId
-    log.info("Bootstrapping Discovery Server... (server-id: {})", serverId)
-
-
-
+    log.info("Bootstrapping Discovery Server... (server-id: {})")
     log.debug("Bootstrapped Discovery Server...")
   }
 }

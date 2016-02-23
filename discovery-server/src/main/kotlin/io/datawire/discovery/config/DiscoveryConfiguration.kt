@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.hazelcast.core.HazelcastInstance
 import io.datawire.discovery.auth.JWTAuthProviderFactory
 import io.datawire.discovery.registry.*
-import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.json.JsonObject
 
 
@@ -23,8 +22,6 @@ import io.vertx.core.json.JsonObject
 abstract class DiscoveryConfiguration(
     val bindAddress: String,
     val port: Int,
-    val tenants: TenantResolver,
-    val serverIdResolver: ServerIdResolver,
     val jsonWebTokenFactory: JWTAuthProviderFactory
 ) {
   abstract fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject>
@@ -40,27 +37,25 @@ abstract class DiscoveryConfiguration(
 class StandaloneDiscoveryConfiguration @JsonCreator constructor(
     @JsonProperty("bindAddress") bindAddress: String,
     @JsonProperty("port") port: Int,
-    @JsonProperty("tenants") tenants: TenantResolver,
-    @JsonProperty("serverAddress") serverId: ServerIdResolver,
     @JsonProperty("jsonWebToken") jsonWebToken: JWTAuthProviderFactory
-): DiscoveryConfiguration(bindAddress, port, tenants, serverId, jsonWebToken) {
+): DiscoveryConfiguration(bindAddress, port, jsonWebToken) {
 
+  @Deprecated("Remove upon refactor. Internal.")
   override fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
-    return Pair(PrototypeServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
+    throw UnsupportedOperationException()
   }
 }
 
 class SharedHazelcastDiscoveryConfiguration @JsonCreator constructor(
     @JsonProperty("bindAddress") bindAddress: String,
     @JsonProperty("port") port: Int,
-    @JsonProperty("tenants") tenants: TenantResolver,
-    @JsonProperty("serverAddress") serverId: ServerIdResolver,
     @JsonProperty("jsonWebToken") jsonWebToken: JWTAuthProviderFactory,
     @JsonProperty("mode") val mode: String
-): DiscoveryConfiguration(bindAddress, port, tenants, serverId, jsonWebToken) {
+): DiscoveryConfiguration(bindAddress, port, jsonWebToken) {
 
+  @Deprecated("Remove upon refactor. Internal.")
   override fun buildDiscoveryVerticle(registry: RoutingTable): Pair<DiscoveryVerticle, JsonObject> {
-    return Pair(PrototypeServiceRegistryVerticle(tenants, registry), buildVerticleConfig())
+   throw UnsupportedOperationException()
   }
 
   fun buildDiscoveryVerticle(hazelcast: HazelcastInstance): Pair<DiscoveryVerticle, JsonObject> {
@@ -72,6 +67,6 @@ class SharedHazelcastDiscoveryConfiguration @JsonCreator constructor(
       }
     }
 
-    return Pair(SharedDiscoveryVerticle(tenants, registry, hazelcast), buildVerticleConfig())
+    return Pair(SharedDiscoveryVerticle(registry, hazelcast), buildVerticleConfig())
   }
 }

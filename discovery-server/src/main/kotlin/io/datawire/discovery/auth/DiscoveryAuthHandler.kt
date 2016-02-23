@@ -20,11 +20,21 @@ import io.vertx.ext.auth.AuthProvider
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
 
+/**
+ * Specialized authentication handler for the Discovery server that allows alternative mechanisms for passing
+ * credentials to the server, for example, by URI query parameters.
+ *
+ * @author plombardi@datawire.io
+ * @since 1.0
+ */
 
-class QueryJWTAuthHandler(authProvider: AuthProvider, skip: String?) : JWTAuthHandlerImpl(authProvider, skip) {
+class DiscoveryAuthHandler(authProvider: AuthProvider, skip: String?) : JWTAuthHandlerImpl(authProvider, skip) {
+
   override fun handle(context: RoutingContext?) {
-    context!!.request()!!.getParam("token")?.let { jwt ->
-      context.request().headers().add("Authorization", "Bearer $jwt")
+    context?.request()?.getParam("token")?.let { token ->
+      context
+          .request()
+          .headers().set("Authorization", "Bearer " + token.trim())
     }
 
     super.handle(context)

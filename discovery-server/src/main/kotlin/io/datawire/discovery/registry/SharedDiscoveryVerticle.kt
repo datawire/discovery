@@ -5,17 +5,15 @@ import com.hazelcast.map.listener.EntryAddedListener
 import com.hazelcast.map.listener.EntryEvictedListener
 import com.hazelcast.map.listener.EntryRemovedListener
 import io.datawire.discovery.registry.model.*
-import io.datawire.discovery.tenant.TenantResolver
 import io.vertx.core.json.JsonArray
 import io.vertx.core.logging.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 
 
 class SharedDiscoveryVerticle(
-    tenants: TenantResolver,
     services: RoutingTable,
     val hazelcast: HazelcastInstance
-): DiscoveryVerticle(tenants, services) {
+): DiscoveryVerticle(services) {
 
   private val log = LoggerFactory.getLogger(SharedDiscoveryVerticle::class.java)
   private val routingTableListeners = ConcurrentHashMap<String, String>()
