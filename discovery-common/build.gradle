@@ -24,6 +24,7 @@ dependencies {
       "io.datawire.commons:datawire-util:${datawireCommonsVersion}",
 
       "io.vertx:vertx-auth-jwt:${vertxVersion}",
+      "io.vertx:vertx-web:${vertxVersion}",
 
       "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
       "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
