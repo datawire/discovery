@@ -19,7 +19,7 @@
  */
 
 @version("1.0.0")
-namespace datawire_discovery {
+namespace discovery {
 
   @doc("Contains Discovery domain model interfaces and classes.")
   namespace model {
