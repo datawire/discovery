@@ -655,7 +655,7 @@ namespace datawire_discovery {
     @doc("Provides a client that can communicate with the Datawire Cloud Discovery.")
     class CloudDiscoveryClient extends BasicDiscoveryClient, HTTPHandler {
 
-      static Logger logger = new Logger("discovery_gateway.client.CloudDiscoveryClient");
+      //static Logger logger = new Logger("discovery_gateway.client.CloudDiscoveryClient");
 
       GatewayOptions gateway = null;
 
