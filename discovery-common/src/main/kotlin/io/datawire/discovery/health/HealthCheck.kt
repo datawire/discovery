@@ -3,9 +3,10 @@ package io.datawire.discovery.health
 
 abstract class HealthCheck {
 
-  data class Result private constructor(val isHealthy: Boolean, val message: String?, val error: Throwable?) {
+  data class Result private constructor(val healthy: Boolean, val message: String?, val error: Throwable?) {
 
     companion object {
+
       private val HEALTHY = Result(true, null, null)
 
       fun healthy(): Result {

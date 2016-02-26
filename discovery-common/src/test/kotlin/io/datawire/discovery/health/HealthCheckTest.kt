@@ -30,7 +30,7 @@ class HealthCheckTest {
 
     try {
       val result = badCheck.execute()
-      assertThat(result.isHealthy).isFalse()
+      assertThat(result.healthy).isFalse()
       assertThat(result.error)
           .isInstanceOf(RuntimeException::class.java)
           .hasMessage("Ruh roh!")

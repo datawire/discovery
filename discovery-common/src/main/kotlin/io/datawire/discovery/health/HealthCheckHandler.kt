@@ -46,7 +46,7 @@ abstract class HealthCheckHandler : Handler<HttpServerRequest> {
 
   private fun isAllHealthy(results: Map<String, HealthCheck.Result>): Boolean {
     for (result in results) {
-      if (!result.value.isHealthy) {
+      if (!result.value.healthy) {
         return false
       }
     }
@@ -61,9 +61,5 @@ abstract class HealthCheckHandler : Handler<HttpServerRequest> {
 
     response.statusCode = status.code()
     response.statusMessage = status.reasonPhrase()
-  }
-
-  class RoutingContextAdapter(private val delegate: HealthCheckHandler) : Handler<RoutingContext> {
-    override fun handle(routingContext: RoutingContext?) = delegate.handle(routingContext?.request())
   }
 }
