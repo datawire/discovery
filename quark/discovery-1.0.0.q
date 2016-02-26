@@ -19,7 +19,7 @@
  */
 
 @version("1.0.0")
-namespace discovery {
+namespace datawire_discovery {
 
   @doc("Contains Discovery domain model interfaces and classes.")
   namespace model {
@@ -519,6 +519,7 @@ namespace discovery {
 
     @doc("Defines the communication semantics between the client and server.")
     class BasicDiscoveryClient extends DiscoveryClient, DiscoveryHandler, WSHandler {
+      static Logger logger = new Logger("discovery.client");
 
       @doc("Quark runtime")
       Runtime runtime;
@@ -555,7 +556,11 @@ namespace discovery {
 
       void connect() {
         if (socket == null) {
-          runtime.open(discoveryUrl + "?token=" + token, self);
+          String target = discoveryUrl + "?token=" + token;
+
+          logger.debug("CONNECT " + target);
+
+          runtime.open(target, self);
         }
       }
 
@@ -600,7 +605,13 @@ namespace discovery {
       void send(message.BaseMessage message) {
         if (message != null && isConnected()) {
           JSONObject json = message.toJSON();
+
+          logger.trace("SEND " + json.toString());
+
           socket.send(json.toString());
+        }
+        else {
+          logger.trace("CANNOT SEND " + message.toString());
         }
       }
 
@@ -615,17 +626,26 @@ namespace discovery {
       void onWSConnected(WebSocket socket) {
         self.socket = socket;
         event.Connected connected = new event.Connected();
+
+        logger.debug("CONNECTED");
+
         connected.dispatch(self);
       }
 
       void onWSClosed(WebSocket socket) {
         self.socket = null;
         event.Disconnected disconnected = new event.Disconnected();
+
+        logger.debug("DISCONNECTED");
+
         disconnected.dispatch(self);
       }
 
       void onWSMessage(WebSocket socket, String raw) {
         JSONObject json = raw.parseJSON();
+
+        logger.trace("RECV " + json.toString());
+
         message.BaseMessage message = messageFactory.create(json);
         message.dispatch(self);
       }
