@@ -16,11 +16,15 @@ class HealthCheckRegistry {
     healthChecks.putIfAbsent(name, healthCheck)
   }
 
-  fun unregister(name: String) {
+  fun deregister(name: String) {
     healthChecks.remove(name)
   }
 
   fun isRegistered(name: String): Boolean {
+    return contains(name)
+  }
+
+  fun contains(name: String): Boolean {
     return name in healthChecks
   }
 
