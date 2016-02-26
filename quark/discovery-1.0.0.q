@@ -519,7 +519,8 @@ namespace datawire_discovery {
 
     @doc("Defines the communication semantics between the client and server.")
     class BasicDiscoveryClient extends DiscoveryClient, DiscoveryHandler, WSHandler {
-      static Logger logger = new Logger("discovery.client");
+
+      static Logger logger = new Logger("discovery_gateway.client.BasicDiscoveryClient");
 
       @doc("Quark runtime")
       Runtime runtime;
@@ -654,6 +655,8 @@ namespace datawire_discovery {
     @doc("Provides a client that can communicate with the Datawire Cloud Discovery.")
     class CloudDiscoveryClient extends BasicDiscoveryClient, HTTPHandler {
 
+      static Logger logger = new Logger("discovery_gateway.client.CloudDiscoveryClient");
+
       GatewayOptions gateway = null;
 
       CloudDiscoveryClient(Runtime runtime, GatewayOptions gateway, String serviceName, model.Endpoint endpoint) {
@@ -678,8 +681,10 @@ namespace datawire_discovery {
         if (response.getCode() == 200) {
           JSONObject connectionInfo = response.getBody().parseJSON();
           self.discoveryUrl = connectionInfo["url"];
+          logger.debug("GATEWAY CONNECT SUCCEEDED (server: " + self.discoveryUrl + ")");
           self.runtime.open(self.discoveryUrl + "?token=" + gateway.getToken(), self);
         } else {
+          logger.error("GATEWAY CONNECT FAILED (status: " + response.getCode().toString() + ")");
           message.DiscoveryError error = new message.DiscoveryError(response.getCode(), "http-error");
           error.dispatch(self);
         }
