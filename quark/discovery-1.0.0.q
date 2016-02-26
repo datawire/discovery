@@ -701,7 +701,7 @@ namespace datawire_discovery {
       bool authenticate = true;
 
       @doc("The DNS name or IP of the Discovery Gateway service.")
-      String gatewayHost = "discovery-gw.datawire.io";
+      String gatewayHost = "disco.datawire.io";
 
       @doc("The port of the running Discovery Gateway service.")
       int gatewayPort = 443;
