@@ -677,6 +677,10 @@ namespace datawire_discovery {
       // INTERNAL
       // ---------------------------------------------------------------------------------------------------------------
 
+      void onHTTPError(HTTPRequest request, String message) {
+        self.logger.error("GATEWAY CONNECT FAILED (message: " + message + ")");
+      }
+
       void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
         if (response.getCode() == 200) {
           JSONObject connectionInfo = response.getBody().parseJSON();
