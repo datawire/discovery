@@ -31,6 +31,7 @@ discovery_version=$( \
 # 'build_token' a unique token generated for the build and only used when default values need to be generated.
 # 'build_runner' the name of the build runner (basically $USER).
 # 'build_number' the number of the build being run.
+# 'build_branch' the name of the branch being build against.
 # 'build_commit' the Git commit for the current build or snapshot-$(build_token).
 # 'packer_exec' the name or path of alternative packer.io binary; useful in RedHat land where a packer binary already exists on the OS and a different name must be used.
 
@@ -43,8 +44,8 @@ build_commit=${TRAVIS_COMMIT:="snapshot-${build_token}"}
 
 packer_exec=${PACKER_EXEC:="packer"}
 
-if [[ "$is_travis" = "true" && ("$build_branch" != "master" || "$build_pull_request" != "false") ]]; then
-    echo "--> Skipping AMI creation: Branch or Pull Request (branch: $build_branch, pull: $build_pull_request)"
+if [[ "$is_travis" == "true" && "$build_pull_request" == "true" ]]; then
+    echo "--> Skipping AMI creation: Pull Request (branch: $build_branch, pull: $build_pull_request)"
     exit 0
 fi
 
@@ -52,6 +53,7 @@ if [ "$is_travis" = "true" ]; then build_runner="travis"; else build_runner=${US
 
 echo "--> Building service images"
 echo "--  travis = '${is_travis}'"
+echo "--  branch = '${build_branch}'"
 echo "--  number = '${build_number}'"
 echo "--  runner = '${build_runner}'"
 echo "--  commit = '${build_commit}'"
@@ -63,6 +65,7 @@ cat << EOF > "${variable_file}"
 {
   "build_number": "${build_number}",
   "builder": "${build_runner}",
+  "branch": "${build_branch}"
   "commit": "${build_commit}",
   "discovery_version": "${discovery_version}"
 }
