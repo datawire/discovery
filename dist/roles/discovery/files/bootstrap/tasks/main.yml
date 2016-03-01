@@ -1,0 +1,6 @@
+---
+# file: discovery_bootstrap/tasks/main.yml
+
+- include: configuration.yml
+- include: secrets.yml
+- include: logging.yml

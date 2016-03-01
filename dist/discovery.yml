@@ -5,6 +5,5 @@
   connection: local
   become: yes
   roles:
-  - bootstrapper
   - haproxy
   - discovery

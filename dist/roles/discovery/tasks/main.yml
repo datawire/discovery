@@ -3,3 +3,8 @@
 
 - include: haproxy.yml
 - include: discovery.yml
+
+- name: install bootstrap role
+  copy:
+    src: bootstrap/
+    dest: /opt/datawire/bootstrap/service_bootstrap

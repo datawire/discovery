@@ -3,7 +3,7 @@
     "build_number": null,
     "builder": null,
     "commit": null,
-    "foundation_ami": "ami-7f122315",
+    "foundation_ami": "ami-985d63f2",
     "discovery_version": null
   },
   "builders": [
@@ -32,7 +32,7 @@
         "Commit": "{{ user `commit` }}",
         "OS": "fedora",
         "Release": "alpha",
-        "Role": "dwc:images:discovery-gateway:{{ user `discovery_version` }}"
+        "Role": "dwc:images:discovery-gateway"
       }
     },
     {
@@ -60,7 +60,7 @@
         "Commit": "{{ user `commit` }}",
         "OS": "fedora",
         "Release": "alpha",
-        "Role": "dwc:images:discovery-server:{{ user `discovery_version` }}"
+        "Role": "dwc:images:discovery-server"
       }
     }
   ],
@@ -77,8 +77,7 @@
       "playbook_file": "gateway.yml",
       "role_paths": [
         "roles/haproxy",
-        "roles/gateway",
-        "roles/bootstrapper"
+        "roles/gateway"
       ],
       "extra_arguments": [
         "-e 'package_version={{ user `discovery_version` }}'"
@@ -96,8 +95,7 @@
       "playbook_file": "discovery.yml",
       "role_paths": [
         "roles/haproxy",
-        "roles/discovery",
-        "roles/bootstrapper"
+        "roles/discovery"
       ],
       "extra_arguments": [
         "-e 'package_version={{ user `discovery_version` }}'"

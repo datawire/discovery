@@ -3,3 +3,8 @@
 
 - include: haproxy.yml
 - include: gateway.yml
+
+- name: install bootstrap role
+  copy:
+    src: bootstrap/
+    dest: /opt/datawire/bootstrap/service_bootstrap
