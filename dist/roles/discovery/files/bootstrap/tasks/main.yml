@@ -6,5 +6,6 @@
 - include: logging.yml
 
 - name: restart haproxy
-  service: haproxy
-  state: restarted
+  service:
+    name: haproxy
+    state: restarted
