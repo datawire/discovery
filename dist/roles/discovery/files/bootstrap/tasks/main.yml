@@ -4,3 +4,7 @@
 - include: configuration.yml
 - include: secrets.yml
 - include: logging.yml
+
+- name: restart haproxy
+  service: haproxy
+  state: restarted
