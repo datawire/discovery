@@ -65,7 +65,7 @@ cat << EOF > "${variable_file}"
 {
   "build_number": "${build_number}",
   "builder": "${build_runner}",
-  "branch": "${build_branch}"
+  "branch": "${build_branch}",
   "commit": "${build_commit}",
   "discovery_version": "${discovery_version}"
 }
