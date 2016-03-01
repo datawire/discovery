@@ -3,7 +3,46 @@ set -e
 set -u
 set -o pipefail
 
-# --------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# resolve_version()
+#
+# Resolves the version of a release artifact. Projects are free to implement this any way they see necessary.
+#
+# Args:
+#   - None
+#
+# Returns:
+#   String indicating the version of the release artifact.
+#
+resolve_version() {
+  local result=$( \
+    grep version gradle.properties | \
+    awk -F= '{print $2}' | \
+    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+  )
+
+  echo "$result"
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# before_packer()
+#
+# Custom logic that needs to be executed before the packer process begins, for example, moving one or more files into
+# a different directory.
+#
+# Args:
+#   - None
+#
+# Returns:
+#   - None
+#
+before_packer() {
+  mkdir -p dist/files
+  cp discovery-*/build/distributions/discovery-*-${version}.tgz dist/files/
+  cd dist/
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Configurable parameters
 #
 # OK to edit these as necessary.
@@ -16,13 +55,9 @@ set -o pipefail
 build_dir=build
 template_file="packer.json"
 variable_file="${build_dir}/packer-vars.json"
-discovery_version=$( \
-    grep version gradle.properties | \
-    awk -F= '{print $2}' | \
-    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
-)
+version=$(resolve_version)
 
-# --------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Operational parameters
 #
 # Do NOT modify unless you understand what you're doing.
@@ -57,7 +92,7 @@ echo "--  branch = '${build_branch}'"
 echo "--  number = '${build_number}'"
 echo "--  runner = '${build_runner}'"
 echo "--  commit = '${build_commit}'"
-echo "--  discovery version = '${discovery_version}'"
+echo "--  discovery version = '${version}'"
 
 echo "--> Generating build variables"
 mkdir -p ${build_dir}
@@ -67,16 +102,14 @@ cat << EOF > "${variable_file}"
   "builder": "${build_runner}",
   "branch": "${build_branch}",
   "commit": "${build_commit}",
-  "discovery_version": "${discovery_version}"
+  "discovery_version": "${version}"
 }
 EOF
 echo "--  Generated build variables"
 
 echo "--> Validating and building packer template"
 
-mkdir -p dist/files
-cp discovery-*/build/distributions/discovery-*-${discovery_version}.tgz dist/files/
-cd dist/
+before_packer
 
 ${packer_exec} validate -var-file=../${variable_file} ${template_file}
 ${packer_exec} build -machine-readable -var-file=../${variable_file} ${template_file} | tee packer.log
