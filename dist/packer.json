@@ -4,7 +4,7 @@
     "builder": null,
     "branch": null,
     "commit": null,
-    "foundation_ami": "ami-985d63f2",
+    "foundation_ami": "ami-9bf7c9f1",
     "discovery_version": null
   },
   "builders": [
