@@ -7,7 +7,7 @@
     object: "{{ item.object }}"
     dest: "{{ item.dest }}"
     mode: get
-  with:
+  with_items:
     - object: "{{ dwc_name }}/{{ dwc_service_id }}/config.yml"
       dest: "/opt/datawire/{{ dwc_service_id }}/config.yml"
     - object: "{{ dwc_name }}/{{ dwc_service_id }}/hazelcast.xml"

@@ -7,8 +7,8 @@
     object: "{{ item.object }}"
     dest: "{{ item.dest }}"
     mode: get
-  with:
-    - object: "{{ dwc_name }}/{{ dwc_service_id }}/config.yml"
+  with_items:
+    - object: "{{ dwc_environment_fqn }}/{{ dwc_service_fqn }}/config.yml"
       dest: "/opt/datawire/{{ dwc_service_id }}/config.yml"
 
 - name: configure permissions on configuration
@@ -17,4 +17,3 @@
     mode: 0644
   with_items:
     - /opt/datawire/{{ dwc_service_id }}/config.yml
-    - /opt/datawire/{{ dwc_service_id }}/hazelcast.xml

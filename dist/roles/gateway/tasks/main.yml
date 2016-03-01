@@ -7,4 +7,4 @@
 - name: install bootstrap role
   copy:
     src: bootstrap/
-    dest: /opt/datawire/bootstrap/service_bootstrap
+    dest: /opt/datawire/bootstrap/roles/service_bootstrap

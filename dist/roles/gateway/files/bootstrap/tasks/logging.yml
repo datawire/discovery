@@ -2,6 +2,6 @@
 # file: discovery_bootstrap/tasks/logging.yml
 
 - name: ensure logging configuration is installed
-  copy:
+  template:
     src: gateway_logs.conf
     dest: /var/awslogs/etc/config/gateway_logs.conf
