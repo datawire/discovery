@@ -18,11 +18,11 @@ package io.datawire.discovery.gateway
 
 
 import io.vertx.core.AbstractVerticle
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import io.vertx.core.logging.LoggerFactory
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
 
 class DiscoveryGatewayVerticle(): AbstractVerticle() {
@@ -45,7 +45,7 @@ class DiscoveryGatewayVerticle(): AbstractVerticle() {
     // todo(plombardi): replace with {} syntax once this bug fix is released
     //
     // https://github.com/eclipse/vert.x/pull/1282
-    log.info("Running server on ${config().getInteger("port")}")
+    log.info("Running server on {}", config().getInteger("port"))
   }
 
   private fun registerHealthCheck(router: Router) {
@@ -61,18 +61,14 @@ class DiscoveryGatewayVerticle(): AbstractVerticle() {
     val jwtAuth = JWTAuth.create(vertx, config().getJsonObject("jsonWebToken"))
     val jwt = JWTAuthHandler.create(jwtAuth, "/health")
 
+    router.route("/*").handler(CorsHandler.create("*"))
     router.post("/v1/connect").handler(jwt)
 
     log.info("Registering connector URL")
     router.post("/v1/connect").produces("application/json").handler { rc ->
-      val user = rc.user()
-
-      val audience = user.principal().getValue("aud")
-      val tenant = if (audience is String) audience else (audience as JsonArray).getString(0)
-
       val response = rc.response()!!
 
-      vertx.eventBus().send<String>("discovery-resolver", tenant) {
+      vertx.eventBus().send<String>("discovery-resolver", "DEPRECATED") {
         if (it.succeeded()) {
           val address = it.result().body()
 

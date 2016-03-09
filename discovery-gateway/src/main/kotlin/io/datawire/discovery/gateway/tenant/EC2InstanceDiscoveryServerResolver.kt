@@ -25,39 +25,48 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.vertx.core.logging.LoggerFactory
 
 
-class EC2InstanceDiscoveryServerResolver(private val ec2: AmazonEC2): DiscoveryResolver {
+class EC2InstanceDiscoveryServerResolver(
+    private val ec2: AmazonEC2,
+    private val filters: Collection<Filter>
+): DiscoveryResolver {
 
   private val log = LoggerFactory.getLogger(EC2InstanceDiscoveryServerResolver::class.java)
 
   override fun resolve(tenant: String): Set<String> {
     log.info("Resolving Discovery addresses for tenant (tenant: {0})", tenant)
-    val query = createTenantTagQuery(tenant)
+    val query     = createQuery()
     val instances = ec2.describeInstances(query)
 
     val allInstances = mutableListOf<Instance>()
-    for (resv in instances.reservations) {
-      allInstances.addAll(resv.instances)
+    for (reservation in instances.reservations) {
+      allInstances.addAll(reservation.instances)
     }
 
-    val addresses = allInstances.map {
-      /*"discovery-${it.instanceId.replace("i-", "")}.datawire.io"*/
-      it.publicIpAddress
-    }.toSet() ?: emptySet()
+    val addresses = allInstances.map { it.publicIpAddress }.toSet() ?: emptySet()
 
     log.info("Resolved Discovery addresses for tenant (count: {0})", addresses.size)
     return addresses
   }
 
-  private fun createTenantTagQuery(tenant: String): DescribeInstancesRequest {
-    return DescribeInstancesRequest()
+  private fun createQuery(): DescribeInstancesRequest {
+    val result = DescribeInstancesRequest()
+    result.withFilters(filters)
         .withFilters(Filter("instance-state-name", listOf("running")))
-        .withFilters(Filter("tag:Role", listOf("dwc:discovery")))
+
+    return result
   }
 
-  data class Factory(@JsonProperty("region") private val region: String): DiscoveryResolverFactory {
+  data class Factory(
+      @JsonProperty("region") private val region: String,
+      @JsonProperty("filters") private val filters: Map<String, String>
+  ): DiscoveryResolverFactory {
     override fun build(): DiscoveryResolver {
       val ec2 = AmazonEC2Client().withRegion<AmazonEC2Client>(Regions.fromName(region))
-      return EC2InstanceDiscoveryServerResolver(ec2)
+      return EC2InstanceDiscoveryServerResolver(ec2, buildFilters(filters))
+    }
+
+    private fun buildFilters(filters: Map<String, String>): List<Filter> {
+      return filters.entries.fold(listOf<Filter>()) { acc, it -> acc + Filter(it.key, listOf(it.value)) }
     }
   }
 }

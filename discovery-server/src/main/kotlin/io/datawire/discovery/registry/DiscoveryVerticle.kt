@@ -12,6 +12,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
 import java.nio.charset.Charset
 
@@ -33,6 +34,7 @@ abstract class DiscoveryVerticle(
     val jwtAuth = JWTAuth.create(vertx, config().getJsonObject("jsonWebToken"))
     jwt = DiscoveryAuthHandler(jwtAuth, "/health")
 
+    router.route("/*").handler(CorsHandler.create("*"))
     router.get("/health").handler { rc -> rc.response().setStatusCode(200).end() }
     router.route("/v1/messages/*").handler(jwt)
   }
