@@ -1,8 +1,6 @@
 ---
 type: simple
 servers:
-  datawire:
     - 10.0.1.10:52689
     - 10.0.1.11:52689
-  foo-corp:
     - 10.0.2.10:52689

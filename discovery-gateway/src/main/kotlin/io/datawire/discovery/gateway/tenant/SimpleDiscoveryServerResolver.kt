@@ -27,13 +27,13 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @since 1.0
  */
 
-data class SimpleDiscoveryServerResolver(private val discoveryServers: Map<String, Set<String>>) : DiscoveryResolver {
+data class SimpleDiscoveryServerResolver(private val discoveryServers: Set<String>) : DiscoveryResolver {
 
   override fun resolve(tenant: String): Set<String> {
-    return discoveryServers[tenant] ?: emptySet()
+    return discoveryServers
   }
 
-  data class Factory(@JsonProperty("servers") private val servers: Map<String, Set<String>>): DiscoveryResolverFactory {
+  data class Factory(@JsonProperty("servers") private val servers: Set<String>): DiscoveryResolverFactory {
     override fun build(): DiscoveryResolver {
       return SimpleDiscoveryServerResolver(servers)
     }

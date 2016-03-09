@@ -27,19 +27,11 @@ class SimpleDiscoveryResolverTest {
 
   private val fixtures = Fixtures()
 
-  private val resolver = SimpleDiscoveryServerResolver(mapOf(
-      "datawire" to setOf("10.0.1.10:52689", "10.0.1.11:52689"),
-      "foo-corp" to setOf("10.0.2.10:52689")
-  ))
+  private val resolver = SimpleDiscoveryServerResolver(setOf("10.0.1.10:52689", "10.0.1.11:52689", "10.0.2.10:52689"))
 
   @Test
   fun resolve_tenantExists_returnSetOfTenantDiscoveryServers() {
-    assertThat(resolver.resolve("datawire")).hasSameElementsAs(listOf("10.0.1.10:52689", "10.0.1.11:52689"))
-  }
-
-  @Test
-  fun resolve_tenantDoesNotExist_returnsEmptySet() {
-    assertThat(resolver.resolve("NOT_A_TENANT")).isEqualTo(emptySet<String>())
+    assertThat(resolver.resolve("DEPRECATED")).hasSameElementsAs(listOf("10.0.1.10:52689", "10.0.1.11:52689", "10.0.2.10:52689"))
   }
 
   @Test

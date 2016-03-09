@@ -28,10 +28,7 @@ class DiscoveryResolverVerticleTest {
     vertx = Vertx.vertx()
     eventBus = vertx.eventBus()
 
-    val resolver = SimpleDiscoveryServerResolver(mapOf(
-        "datawire" to setOf("10.0.1.10:52689", "10.0.1.11:52689"),
-        "foo-corp" to setOf("10.0.2.10:52689")
-    ))
+    val resolver = SimpleDiscoveryServerResolver(setOf("10.0.1.10:52689", "10.0.1.11:52689", "10.0.2.10:52689"))
 
     vertx.deployVerticle(DiscoveryResolverVerticle(resolver), context.asyncAssertSuccess())
   }
@@ -46,21 +43,7 @@ class DiscoveryResolverVerticleTest {
     val async = context.async()
     eventBus.send<String>("discovery-resolver", "datawire") { it ->
       context.assertTrue(it.succeeded())
-      context.assertTrue(setOf("10.0.1.10:52689", "10.0.1.11:52689").contains(it.result().body()))
-      async.complete()
-    }
-  }
-
-  @Test
-  fun resolverFailsToReturnDiscoveryServersForNonExistentTenant(context: TestContext) {
-    val async = context.async()
-    eventBus.send<String>("discovery-resolver", "NOT_A_TENANT") { it ->
-      context.assertTrue(it.failed())
-
-      val ex = it.cause() as ReplyException
-      context.assertEquals(1, ex.failureCode())
-      context.assertEquals("NO_DISCOVERY_SERVERS_FOUND", ex.message)
-
+      context.assertTrue(setOf("10.0.1.10:52689", "10.0.1.11:52689", "10.0.2.10:52689").contains(it.result().body()))
       async.complete()
     }
   }

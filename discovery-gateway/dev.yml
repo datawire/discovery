@@ -17,5 +17,4 @@ gateway:
 discoveryResolver:
   type: simple
   servers:
-    H3KA9BVWH1:
-      - 127.0.0.1:52689
+    - 127.0.0.1:52689
