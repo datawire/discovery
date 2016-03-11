@@ -18,6 +18,8 @@ package io.datawire.discovery.gateway
 
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.http.HttpHeaders
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
@@ -61,7 +63,15 @@ class DiscoveryGatewayVerticle(): AbstractVerticle() {
     val jwtAuth = JWTAuth.create(vertx, config().getJsonObject("jsonWebToken"))
     val jwt = JWTAuthHandler.create(jwtAuth, "/health")
 
-    router.route("/*").handler(CorsHandler.create("*"))
+    router.route("/v1/connect*").handler(CorsHandler
+        .create("*")
+        .allowedMethods(setOf(HttpMethod.OPTIONS, HttpMethod.POST))
+        .allowedHeaders(setOf(
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.CONTENT_LENGTH,
+            HttpHeaders.ORIGIN).map { it.toString() }.toSet())
+        .allowCredentials(true))
     router.post("/v1/connect").handler(jwt)
 
     log.info("Registering connector URL")
