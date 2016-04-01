@@ -254,7 +254,7 @@ namespace datawire_discovery {
         }
         
         if (id != null) {
-          json["id"] = self.origin;
+          json["id"] = self.id;
         }
         
         return json;
