@@ -1,6 +1,7 @@
 package daas 0.1.0;
 
 import quark.concurrent;
+import quark.reflect;
 
 namespace daas {
 
@@ -15,6 +16,16 @@ namespace daas {
         String address;
         @doc("Additional metadata associated with this service instance.")
         Map<String,Object> metadata;
+
+	void update(Endpoint endpoint) {
+	    service = endpoint.service;
+	    version = endpoint.version;
+	    address = endpoint.address;
+	    metadata = endpoint.metadata;
+	    // hmm, if we need a mutex, then we can't toJSON anymore
+	    // without fixes to ignore non JSONable stuff..., we could
+	    // remove this in favor of putting onActive/onExpire here
+	}
     }
 
     class Endpoints {
@@ -38,37 +49,37 @@ namespace daas {
 
         String url;
 
-        // Endpoints we are advertising to the disco service.
-        Map<String,Endpoints> advertising = new Map<String,Endpoints>();
-        // Endpoints the disco says are available.
-        Map<String,Endpoints> available = new Map<String,Endpoints>();
-        // Endpoints we are interested in but still awaiting info
-        // about. We only allow one of these at a time.
-        Map<String,Endpoint> awaiting = new Map<String,Endpoint>();
+        // Endpoints we advertise to the disco service.
+        Map<String,Endpoints> registered = new Map<String,Endpoints>();
+        // Endpoints the disco says are available, as well as
+        // endpoints for which we are awaiting resolution.
+        Map<String,Endpoints> endpoints = new Map<String,Endpoints>();
 
         bool started = false;
         Lock mutex = new Lock();
-        DiscoHandler handler;
+        DiscoClient client;
 
         Discovery(String url) {
             self.url = url;
-            handler = new DiscoHandler(self);
+            client = new DiscoClient(self);
         }
 
+	@doc("Start the uplink to the discovery service.")
         void start() {
             mutex.acquire();
             if (!started) {
                 started = true;
-                handler.start();
+                client.start();
             }
             mutex.release();
         }
 
+	@doc("Stop the uplink to the discovery service.")
         void stop() {
             mutex.acquire();
             if (started) {
                 started = false;
-                handler.stop();
+                client.stop();
             }
             mutex.release();
         }
@@ -77,11 +88,11 @@ namespace daas {
         void register(Endpoint endpoint) {
             mutex.acquire();
             String service = endpoint.service;
-            if (!advertising.contains(service)) {
-                advertising[service] = new Endpoints();
+            if (!registered.contains(service)) {
+                registered[service] = new Endpoints();
             }
-            advertising[service].endpoints.add(endpoint);
-            handler.register(endpoint);
+            registered[service].endpoints.add(endpoint);
+            client.register(endpoint);
             mutex.release();
         }
 
@@ -89,17 +100,14 @@ namespace daas {
         Endpoint resolve(String service) {
             Endpoint result;
             mutex.acquire();
-            if (available.contains(service)) {
-                result = available[service].choose();
+            if (endpoints.contains(service)) {
+                result = endpoints[service].choose();
             } else {
-                if (awaiting.contains(service)) {
-                    result = awaiting[service];
-                } else {
-                    result = new Endpoint();
-                    result.service = service;
-                    awaiting[service] = result;
-                    handler.resolve(result);
-                }
+		result = new Endpoint();
+		result.service = service;
+		endpoints[service] = new Endpoints();
+		endpoints[service].endpoints.add(result);
+		client.resolve(result);
             }
             mutex.release();
             return result;
@@ -107,11 +115,12 @@ namespace daas {
 
     }
 
-    class DiscoHandler extends HTTPHandler, WSHandler, Task {
+    class DiscoClient extends DiscoHandler, HTTPHandler, WSHandler, Task {
 
         Discovery disco;
+	float restartDelay = 0.1;
 
-        DiscoHandler(Discovery discovery) {
+        DiscoClient(Discovery discovery) {
             disco = discovery;
         }
 
@@ -120,8 +129,8 @@ namespace daas {
         }
 
         void stop() {
-            // we've been asked to stop, so cancel the request/close
-            // the web socket if it is open
+            // We've been asked to stop, so cancel the request/close
+            // the web socket if it is open.
 
             // ...
         }
@@ -131,9 +140,9 @@ namespace daas {
         }
 
         void register(Endpoint endpoint) {
-            // trigger send of delta if we are connected, otherwise do
+            // Trigger send of delta if we are connected, otherwise do
             // nothing because the full set of endpoints will be
-            // resent when we connect/reconnect
+            // resent when we connect/reconnect.
 
             // ...
         }
@@ -144,30 +153,150 @@ namespace daas {
             // wanted to change this, we'd have to track the set of
             // points we are interested in resolving and communicate
             // as this changes.
+
+	    // Hmm, maybe we actually need to do something to deal
+	    // with timeouts.
         }
+
+	void onActive(Active active) {
+	    // Stick the endpoint in the available set.
+
+	    Endpoint endpoint = active.endpoint;
+	    String service = endpoint.service;
+
+	    if (!disco.endpoints.contains(service)) {
+		disco.endpoints[service] = new Endpoints();
+	    }
+
+	    List<Endpoint> endpoints = disco.endpoints[service].endpoints;
+	    int idx = 0;
+	    bool updated = false;
+	    while (idx < endpoints.size()) {
+		Endpoint ep = endpoints[idx];
+		if (ep.address == endpoint.address) {
+		    ep.update(endpoint);
+		    updated = true;
+		    ep.finish(null);
+		    break;
+		}
+		idx = idx + 1;
+	    }
+	    if (!updated) {
+		endpoints.add(endpoint);
+		endpoint.finish(null);
+	    }
+	}
+
+	void onExpire(Expire expire) {
+	    // Remove the endpoint from our available set.
+
+	    // hmm, we could make all Endpoint objects we hand out be
+	    // continually updated until they expire...
+
+	    Endpoint endpoint = expire.endpoint;
+	    String service = endpoint.service;
+
+	    if (disco.endpoints.contains(service)) {
+		// XXX: no way to remove from List or Map
+		// ...
+	    }
+
+	    // ...
+	}
 
         void onExecute(Runtime runtime) {
             // Do our periodic chores here, this will involve checking
             // the desired state held by disco against our actual
             // state and taking any measures necessary to address the
-            // difference.
+            // difference:
+	    //
+	    //  - if we aren't connected and we are supposed to be,
+	    //    then kick off the connection sequence
+	    //  - if we haven't sent a heartbeat recently enough, then
+	    //    do that
 
             // ...
         }
 
-        void onWSInit(WebSocket socket) {}
-        void onWSConnected(WebSocket socket) {}
-        void onWSMessage(WebSocket socket, String message) {}
-        void onWSBinary(WebSocket socket, Buffer message) {}
-        void onWSClosed(WebSocket socket) {}
-        void onWSError(WebSocket socket) {}
-        void onWSFinal(WebSocket socket) {}
+        void onHTTPInit(HTTPRequest request) { /* unused */ }
+        void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
+	    // Check the response for the websocket url and connect to it.
+	}
+        void onHTTPError(HTTPRequest request, String message) {
+	    // XXX: How do we report the error?
+	}
+        void onHTTPFinal(HTTPRequest request) { /* unused */ }
 
-        void onHTTPInit(HTTPRequest request) {}
-        void onHTTPResponse(HTTPRequest request, HTTPResponse response) {}
-        void onHTTPError(HTTPRequest request, String message) {}
-        void onHTTPFinal(HTTPRequest request) {}
-        
+        void onWSInit(WebSocket socket) { /* unused */ }
+        void onWSConnected(WebSocket socket) {
+	    // Whenever we (re)connect, notify the server of any
+	    // endpoints we have registered.
+
+	    // ...
+	}
+        void onWSMessage(WebSocket socket, String message) {
+	    // Decode and dispatch incoming messages.
+	    Event event = Event.decode(message);
+	    disco.mutex.acquire();
+	    event.dispatch(self);
+	    disco.mutex.release();
+	}
+        void onWSBinary(WebSocket socket, Buffer message) { /* unused */ }
+
+        void onWSClosed(WebSocket socket) { /* unused */ }
+
+        void onWSError(WebSocket socket) {
+	    // XXX: Should log the error here.
+	}
+
+        void onWSFinal(WebSocket socket) {
+	    disco.mutex.acquire();
+	    if (disco.started) {
+		schedule(restartDelay);
+	    }
+	    disco.mutex.release();
+	}
+
+    }
+
+    interface DiscoHandler {
+
+	void onActive(Active active);
+
+	void onExpire(Expire expire);
+
+    }
+
+    class Event {
+
+	static Event decode(String message) {
+	    JSONObject json = message.parseJSON();
+	    String type = json["type"];
+	    Class clazz = Class.get(type);
+	    Event event = ?clazz.construct([]);
+	    fromJSON(clazz, event, json);
+	    return event;
+	}
+
+	void dispatch(DiscoHandler handler);
+    }
+
+    class Active extends Event {
+
+	Endpoint endpoint;
+
+	void dispatch(DiscoHandler handler) {
+	    handler.onActive(self);
+	}
+    }
+
+    class Expire extends Event {
+
+	Endpoint endpoint;
+
+	void dispatch(DiscoHandler handler) {
+	    handler.onExpire(self);
+	}
     }
 
 }
