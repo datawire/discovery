@@ -112,7 +112,8 @@ namespace proto {
 	    // Check the response for the websocket url and connect to it.
 	}
         void onHTTPError(HTTPRequest request, String message) {
-	    // XXX: How do we report the error?
+	    // Any non-transient errors should be reported back to the
+	    // user via any Endpoints they have requested.
 	}
         void onHTTPFinal(HTTPRequest request) { /* unused */ }
 
@@ -136,6 +137,9 @@ namespace proto {
 
         void onWSError(WebSocket socket) {
 	    // XXX: Should log the error here.
+
+            // Any non-transient errors should be reported back to the
+            // user via any Endpoints they have requested.
 	}
 
         void onWSFinal(WebSocket socket) {
