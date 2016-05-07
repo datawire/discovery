@@ -9,8 +9,9 @@ import daas.proto;
 
 namespace daas {
 
-    @doc("The Endpoint class captures address and metadata information")
-    @doc("for a server functioning as a service instance.")
+    @doc("The Endpoint class captures address and metadata information about a")
+    @doc("server functioning as a service instance. Endpoint instances are")
+    @doc("asynchronously updated as address/metadata information changes.")
     class Endpoint extends Future {
         @doc("The service name.")
         String service;
@@ -26,9 +27,8 @@ namespace daas {
 	    version = endpoint.version;
 	    address = endpoint.address;
 	    metadata = endpoint.metadata;
-	    // hmm, if we need a mutex, then we can't toJSON anymore
-	    // without fixes to ignore non JSONable stuff..., we could
-	    // remove this in favor of putting onActive/onExpire here
+	    // hmm, we could remove this in favor of putting
+	    // onActive/onExpire here
 	}
     }
 
