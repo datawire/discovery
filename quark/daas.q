@@ -30,6 +30,31 @@ namespace daas {
 	    // hmm, we could remove this in favor of putting
 	    // onActive/onExpire here
 	}
+
+        String toString() {
+            // XXX: this doesn't get mapped into __str__, etc in targets
+            String result = "Endpoint(";
+            if (service == null) {
+                result = result + "<unnamed>";
+            } else {
+                result = result + service;
+            }
+            result = result + ": ";
+            if (address == null) {
+                result = result + "<unlocated>";
+            } else {
+                result = result + address;
+            }
+            if (version != null) {
+                result = result + ", " + version;
+            }
+            result = result + ")";
+
+            if (metadata != null) {
+                result = result + " " + metadata.toString();
+            }
+            return result;
+        }
     }
 
     class Endpoints {
