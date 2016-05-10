@@ -25,7 +25,7 @@ namespace proto {
         }
 
         void schedule(float time) {
-            Context.runtime().schedule(self, 0.0);
+            Context.runtime().schedule(self, time);
         }
 
         void register(Endpoint endpoint) {
@@ -171,7 +171,13 @@ namespace proto {
 	    return event;
 	}
 
+        String encode() {
+            JSONObject json = toJSON(self, self.getClass());
+            return json.toString();
+        }
+
 	void dispatch(DiscoHandler handler);
+
     }
 
     class Active extends Event {

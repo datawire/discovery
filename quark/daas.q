@@ -7,6 +7,60 @@ import quark.reflect;
 
 import daas.proto;
 
+/*
+   Context:
+
+     For phase one, all our user wants to do is have a convenient
+     library to get an address to connect to that is backed by a
+     realtime discovery service rather than DNS. The mechanism for
+     connecting is entirely in the user's code, all we do is provide
+     an address (likely in the form of a url, but really it's just an
+     opaque string that was advertised by a service instance).
+
+     Behind the scenes we will do client side load balancing and
+     possibly fancier routing in the future, but the user doesn't
+     observe this directly through the API. The user *does* observe
+     this indirectly because they don't need to deploy a central load
+     balancer.
+
+     Conceptually, we should strive to be a drop-in replacement for
+     dns, with the one difference being that the server process is
+     creating the dns record directly rather than a system
+     administrator.
+
+   API usage sketch:
+
+     Server:
+
+       from daas import Discovery, Endpoint
+       disco = Discovery.get("https://disco.datawire.io")
+       ... bind to port
+       disco.register(Endpoint("service", "address", "version"))
+       ... serve stuff
+
+     Client:
+
+       from daas import Discovery, Endpoint
+       disco = Discovery.get("https://disco.datawire.io")
+       endpoint = disco.resolve("servicefoo")
+
+       ... create a connection to endpoint.address
+       ... use connection
+ */
+
+/*
+
+  TODO:
+
+    - rename Endpoints to something reasonable, e.g. ServiceInfo
+    - disco.lookup -> Endpoints (renamed)
+    - disco.resolve -> is convenience for disco.lookup("<service>").choose()
+    - disco.register -> Endpoints (renamed), use to communicate error info on registry.
+    - make Endpoints (renamed) be the mutable, asynchronously updated thing
+    - maybe make Endpoint immutable?
+
+*/
+
 namespace daas {
 
     @doc("The Endpoint class captures address and metadata information about a")
@@ -88,6 +142,7 @@ namespace daas {
         Lock mutex = new Lock();
         DiscoClient client;
 
+        @doc("The url parameter points to the discovery service.")
         Discovery(String url) {
             self.url = url;
             client = new DiscoClient(self);
