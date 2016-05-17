@@ -36,7 +36,7 @@ namespace daas {
         // ...
       }
 
-      void resolve(Endpoint endpoint) {
+      void resolve(ServiceInfo endpoint) {
         // Right now the disco protocol will notify about any
         // endpoint, so we don't need to do anything here, if we
         // wanted to change this, we'd have to track the set of
@@ -53,11 +53,11 @@ namespace daas {
         Endpoint endpoint = active.endpoint;
         String service = endpoint.service;
 
-        if (!disco.endpoints.contains(service)) {
-          disco.endpoints[service] = new Endpoints();
+        if (!disco.services.contains(service)) {
+          disco.services[service] = new ServiceInfo();
         }
 
-        List<Endpoint> endpoints = disco.endpoints[service].endpoints;
+        List<Endpoint> endpoints = disco.services[service].endpoints;
 
         int idx = 0;
         bool updated = false;
@@ -88,7 +88,7 @@ namespace daas {
         Endpoint endpoint = expire.endpoint;
         String service = endpoint.service;
 
-        if (disco.endpoints.contains(service)) {
+        if (disco.services.contains(service)) {
           // XXX: no way to remove from List or Map
           // ...
         }

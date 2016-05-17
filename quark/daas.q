@@ -1,9 +1,11 @@
 package daas 0.1.0;
 
 include daas_proto.q;
+use ./quark-improvements.q;
 
 import quark.concurrent;
 import quark.reflect;
+import quark_ext1;
 
 import daas.proto;
 
@@ -48,24 +50,12 @@ import daas.proto;
       ... use connection
  */
 
-/*
-  TODO:
-
-    - rename Endpoints to something reasonable, e.g. ServiceInfo
-    - disco.lookup -> Endpoints (renamed)
-    - disco.resolve -> is convenience for disco.lookup("<service>").choose()
-    - disco.register -> Endpoints (renamed), use to communicate error info on registry.
-    - make Endpoints (renamed) be the mutable, asynchronously updated thing
-    - maybe make Endpoint immutable?
-
-*/
-
 namespace daas {
 
   @doc("The Endpoint class captures address and metadata information about a")
   @doc("server functioning as a service instance. Endpoint instances are")
   @doc("asynchronously updated as address/metadata information changes.")
-  class Endpoint extends Future {
+  class Endpoint extends nice.Future {
     @doc("The service name.")
     String service;
     @doc("The service version.")
@@ -118,8 +108,13 @@ namespace daas {
     }
   }
 
-  class Endpoints {
+  @doc("The ServiceInfo class captures address and metadata information about a")
+  @doc("group of servers functioning to provide a single server. ServiceInfo")
+  @doc("instances are asynchronously updated as address/metadata information changes.")
+  class ServiceInfo extends nice.Future {
+    String serviceName = null;
     List<Endpoint> endpoints = [];
+
     int idx = 0;
 
     Endpoint choose() {
@@ -137,16 +132,18 @@ namespace daas {
 
   @doc("The Discovery class functions as a conduit to the discovery service.")
   @doc("Using it, an application can register and/or lookup service instances.")
-  class Discovery {
+  class Discovery extends nice.Bindable {
 
     String url;
 
-    // Endpoints we advertise to the disco service.
-    Map<String,Endpoints> registered = new Map<String,Endpoints>();
+    // Services that we advertise for others to use.
+    Map<String, ServiceInfo> registered = new Map<String, ServiceInfo>();
 
-    // Endpoints the disco says are available, as well as
-    // endpoints for which we are awaiting resolution.
-    Map<String,Endpoints> endpoints = new Map<String,Endpoints>();
+    // Services that the discoball says are available, as well as
+    // services for which we are awaiting resolution.
+    Map<String, ServiceInfo> services = new Map<String, ServiceInfo>();
+
+    static Logger logger = new Logger("Discovery");
 
     bool started = false;
     Lock mutex = new Lock();
@@ -165,6 +162,11 @@ namespace daas {
       if (!started) {
         started = true;
         client.start();
+
+        logger.debug("uplink starting");
+      }
+      else {
+        logger.debug("uplink already started");
       }
 
       mutex.release();
@@ -177,48 +179,129 @@ namespace daas {
       if (started) {
         started = false;
         client.stop();
+
+        logger.debug("uplink stopped");
+      }
+      else {
+        logger.debug("uplink already stopped");
       }
 
       mutex.release();
     }
 
-    @doc("Register info about a service endpoint with the discovery service.")
+/*
+  TODO:
+
+    - disco.register -> ServiceInfo (renamed), use to communicate error info on registry.
+    - make ServiceInfo (renamed) be the mutable, asynchronously updated thing
+    - maybe make Endpoint immutable?
+
+*/
+
+    @doc("Register info about a service with the discovery service.")
     void register(Endpoint endpoint) {
       mutex.acquire();
 
-      String service = endpoint.service;
+      String serviceName = endpoint.service;
+      logger.debug("registering " + serviceName);
 
-      if (!registered.contains(service)) {
-        registered[service] = new Endpoints();
+      if (!registered.contains(serviceName)) {
+        registered[serviceName] = new ServiceInfo();
       }
 
-      registered[service].endpoints.add(endpoint);
+      registered[serviceName].endpoints.add(endpoint);
 
       client.register(endpoint);
       mutex.release();
     }
 
-    @doc("Resolve a service name into an available service endpoint.")
-    Endpoint resolve(String service) {
-      Endpoint result;
+    @doc("Get a ServiceInfo for a given service")
+    @doc("NOTE WELL: ServiceInfo is a Future! therefore our return value may")
+    @doc("or may not be finished. It is the caller's responsibility to make")
+    @doc("sure that the ServiceInfo is finished before doing anything with it.")
+    ServiceInfo lookup(String serviceName) {
+      ServiceInfo result;
+
+      logger.debug("lookup " + serviceName);
+
+      // Grab the lock...
       mutex.acquire();
 
-      if (endpoints.contains(service)) {
-        result = endpoints[service].choose();
+      // ...and see if we already know about this service.
+      if (services.contains(serviceName)) {
+        // We do; return its ServiceInfo. Note that this doesn't mean that
+        // said ServiceInfo is finished.
+        logger.debug("lookup found cached " + serviceName);
+        result = services[serviceName];
       }
       else {
-        result = new Endpoint();
-        result.service = service;
-        endpoints[service] = new Endpoints();
-        endpoints[service].endpoints.add(result);
+        // This is a brand-new service. Grab a new ServiceInfo for it...
+        logger.debug("lookup going for new " + serviceName);
+
+        result = new ServiceInfo();
+        result.serviceName = serviceName;        
+
+        // ...add it to the list of services we're paying attention to...
+        services[serviceName] = result;
+
+        // ...and ask the discoball to resolve it for us.
+        //
+        // XXX Shouldn't we drop the lock here?
+        logger.debug("lookup starting disco resolution for " + serviceName);
         client.resolve(result);
       }
 
+      // We're finished interacting with the services array, so drop the
+      // lock...
       mutex.release();
 
-      return result;
+      // ...and return whatever we found.
+      //
+      // NOTE WELL: result is a Future. It may or may not be finished here.
+      return result;      
     }
 
-  }
+    @doc("Resolve a service name into an available service endpoint.")
+    @doc("NOTE WELL: Endpoint is a Future! therefore our return value may")
+    @doc("or may not be finished. It is the caller's responsibility to make")
+    @doc("sure that the Endpoint is finished before doing anything with it.")
+    Endpoint resolve(String serviceName) {
+      logger.debug("resolve " + serviceName);
 
+      // We return an Endpoint -- which doesn't mean it's a _finished_ Endpoint.
+      // You may need to wait for it to be finished.
+      Endpoint futureEndpoint = new Endpoint();
+
+      // Look up the service we're interested in.
+      ServiceInfo service = self.lookup(serviceName);
+
+      if (service == null) {
+        // WTFO?
+        logger.debug("resolve: nothing found looking up " + serviceName);
+        return null;
+      }
+
+      logger.debug("resolve: waiting to finish " + serviceName);
+
+      // OK. The rest of this happens once the ServiceInfo is finished.
+      service.then(self.__method__("_continue_resolution"),
+                  [ serviceName, futureEndpoint ]);
+
+      // For now, return our future Endpoint.
+      logger.debug("resolve: returning futureEndpoint for " + serviceName);
+
+      return futureEndpoint;
+    }
+
+    void _continue_resolution(ServiceInfo service, String serviceName,
+                              Endpoint futureEndpoint) {
+      // OK, we land here when we have a ServiceInfo to work with. Grab the
+      // endpoint we're interested in.
+
+      logger.debug("resolve: finished waiting for " + serviceName);
+
+      futureEndpoint.update(service.choose());
+      futureEndpoint.finish(null);
+    }
+  }
 }
