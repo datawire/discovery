@@ -6,7 +6,7 @@ package daas 0.1.0;
   -------------------
 
   Two pieces of information need to be determined! The first it the host
-  address which is dynamically allocated by the infrastructure service.
+  host which is dynamically allocated by the infrastructure service.
 
   The second piece of information is the service port. For virtual
   machines this is going to be application configuration that is stored on disk 
@@ -74,40 +74,40 @@ package daas 0.1.0;
 
   API Sketch:
 
-    // Simplest usage assumes $HOST_PROVIDER environment variable is set.
+    // Simplest usage assumes $HOST_PLATFORM environment variable is set.
     
     HostInfo hostInfo = HostInfo.resolve();
 
-    hostInfo.address(); // returns the host IP or DNS name as a String
+    hostInfo.host(); // returns the host IP or DNS name as a String
     hostInfo.port();    // returns the service port as an Integer 
     
-    // Use an alternative to the $HOST_PROVIDER variable.
+    // Use an alternative to the $HOST_PLATFORM variable.
 
     HostInfo hostInfo = HostInfo.resolve("SNOWFLAKE_HOST_PROVIDER")
     
     // Dynamically resolve the Service Host but programmatically configure port
 
     HostInfo hostInfo = HostInfo.resolver()
-                                .portProvider(new Port(8080))
+                                .portResolver(Port(8080))
                                 .resolve();
                                 
     // Statically configure both the host and the port
     
     HostInfo hostInfo = HostInfo.resolver()
-                                .addressProvider(new Address("10.1.2.3"))
-                                .portProvider(new Port(8080))
+                                .hostResolver(Host("10.1.2.3"))
+                                .portResolver(Port(8080))
                                 .resolve();
 
-    // Set a custom address provider
+    // Set a custom host provider
     HostInfo hostInfo = HostInfo.resolver()
-                                .addressProvider(new SpecialSnowflakeAddressResolver())
+                                .hostResolver(SpecialSnowflakeHostResolver())
                                 .resolve()
     
-    // Set a custom provider chain for ports (similar one would exist for addresses).
+    // Set a custom provider chain for ports (similar one would exist for hostes).
     HostInfo hostInfo = HostInfo.resolver()
                                 .portProviderChain([
-                                  new EnvironmentVariablePortResolver("PORT0"),
-                                  new CustomAPIPortResolver(),
+                                  EnvironmentVariablePort("PORT0"),
+                                  CustomAPIPortResolver(),
                                 ])
                                 .resolve()
 
@@ -117,20 +117,69 @@ namespace daas {
 
   class HostInfo 
   {
-    static HostInfoResolver DEFAULT_RESOLVER = HostInfoResolver();
+    static HostInfoResolver DEFAULT_RESOLVER = providerResolver();
   
-    String address = null;
-    int port = null;
+    String host = null;
+    int port    = null;
     
-    HostInfo(String address, int port) 
+    HostInfo(String host, int port) 
     {
-      self.address = address;
+      self.host = host;
       self.port = port;
     }
   
     static HostInfo resolve() 
     {
       return DEFAULT_RESOLVER.resolve();
+    }
+  
+    static HostInfoResolver providerResolver() 
+    {
+      String provider = EnvironmentVariable("DATAWIRE_HOST_PLATFORM").resolve();
+      
+      List<Resolver<String>> hostChain = [];
+      List<Resolver<int>> portChain = [];
+      
+      if (provider == "EC2") 
+      {
+        // ... add specific provider resolver impls; e.g. query metadata service.
+        hostChain = [];
+
+        // ... add specific provider resolver impls; e.g. query metadata service.
+        portChain = [];
+      }
+      
+      if (provider == "ECS") 
+      {
+      
+      }
+      
+      if (provider == "MARATHON") 
+      {
+      
+      }
+      
+      if (provider == "SINGULARITY") 
+      {
+      
+      }
+      
+      if (provider == "GCE") 
+      {
+      
+      }
+      
+      if (provider == "KUBERNETES") 
+      {
+      
+      }
+      
+      if (provider == "SWARM") 
+      {
+      
+      }
+      
+      return HostInfoResolver().hostResolverChain(hostChain).portResolverChain(portChain);
     }
     
     static HostInfoResolver resolver() 
@@ -141,52 +190,58 @@ namespace daas {
   
   class HostInfoResolver extends Resolver<HostInfo> {
   
-    List<Resolver<String>> addressResolvers = [null];
+    List<Resolver<String>> hostResolvers = [null];
     List<Resolver<int>>    portResolvers = [null];
   
     HostInfo resolve() 
     {
-      String address = resolveAddress();
+      String host = resolveHost();
       int port = resolvePort();
       
-      if (address == null || port == null) 
+      if (host == null || port == null) 
       {
         // TODO: What to do in the exceptional case without exceptions?
       }
       
-      return new HostInfo(address, port);
+      return new HostInfo(host, port);
     }
     
-    HostInfoResolver portProviderChain(List<Resolver<int>> resolvers) 
+    HostInfoResolver portResolverChain(List<Resolver<int>> resolvers) 
     {
       portResolvers = resolvers;
       return self;
     }
     
-    HostInfoResolver addressProviderChain(List<Resolver<String>> resolvers)
+    HostInfoResolver hostResolverChain(List<Resolver<String>> resolvers)
     {
-      addressResolvers = resolvers;
+      hostResolvers = resolvers;
       return self;
     }
     
-    HostInfoResolver portProvider(Resolver<int> provider) 
+    @doc("Set a custom port provider, for example, one that communicates with a custom metadata service.")
+    @doc("The custom provider set by this method is always prepended to ANY chain. If a custom chain order is needed then use portResolverChain.")
+    HostInfoResolver portResolver(Resolver<int> provider) 
+    {
+      
+    
+      return self;
+    }
+    
+    @doc("Set a custom host provider, for example, one that communicates with a custom metadata service.")
+    @doc("The custom provider set by this method is always prepended to ANY chain. If a custom chain order is needed then use hostResolverChain.")    
+    HostInfoResolver hostResolver(Resolver<String> provider) 
     {
       return self;
     }
     
-    HostInfoResolver addressProvider(Resolver<String> provider) 
-    {
-      return self;
-    }
-    
-    String resolveAddress() 
+    String resolveHost() 
     {
       String result = null;
       int idx = 0;
       
-      while(idx < addressResolvers.size()) 
+      while(idx < hostResolvers.size()) 
       {
-        Resolver<String> resolver = addressResolvers[0];
+        Resolver<String> resolver = hostResolvers[0];
         if (resolver != null) 
         {
           result = resolver.resolve();
@@ -258,6 +313,20 @@ namespace daas {
     // DO NOT IMPLEMENT
   }
   
+  class EnvironmentVariable extends EnvironmentVariableResolver<String>
+  {    
+    EnvironmentVariable(String variable) 
+    {
+      super(variable);
+    }
+    
+    String get() 
+    {
+      // TODO: Insert quark code to resolve an environment variable. Would love to see this as a built-in or keyword (e.g. env("NAME", "DEFAULT"))
+      return null;
+    }    
+  }
+  
   class EnvironmentVariablePort extends EnvironmentVariableResolver<int> 
   {
     int get() 
@@ -273,7 +342,6 @@ namespace daas {
     String get() 
     {
       // TODO: Quark support for environment variables
-      // TODO: What to do on error case where var is not castable to int?
       return null;
     }
   }
