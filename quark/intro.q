@@ -18,41 +18,58 @@ package discovery 2.0.0;
 
 include util.q;
 
+import util.internal;
 import util.aws;
 import util.google;
 import util.kubernetes;
- 
+
 namespace util 
 {
   
   class Datawire 
   {
+
+    static String TOKEN_VARIABLE_NAME = "DATAWIRE_TOKEN";
   
-    @doc("Returns the Datawire Access Token by inspecting the environment variable DATAWIRE_TOKEN.")
+    @doc("Returns the Datawire Access Token by reading the environment variable DATAWIRE_TOKEN.")
     static String token() 
     {
-      // TODO: Waiting on Quark Environment Variable Implementation
-      return null;
+        String token = EnvironmentVariable(TOKEN_VARIABLE_NAME).get();
+        if (token != null)
+        {
+            return token;
+        }
+        else
+        {
+            Runtime.fail("Environment variable 'DATAWIRE_TOKEN' is not set.");
+            return null;
+        }
     }
   }
 
   class Platform 
   {
-    static String AMAZON_EC2_PLATFORM_TYPE            = "EC2";
-    static String GOOGLE_COMPUTE_ENGINE_PLATFORM_TYPE = "GCE";
-    static String KUBERNETES_PLATFORM_TYPE            = "KUBERNETES";
-  
-    static String DATAWIRE_PROVIDER_TYPE = null; // todo: replace with environment variable lookup
-    
+
+    static String PLATFORM_TYPE                  = EnvironmentVariable("DATAWIRE_PLATFORM_TYPE").get();
+    static String PLATFORM_TYPE_EC2              = "EC2";
+    static String PLATFORM_TYPE_GOOGLE_COMPUTE   = "GoogleCompute";
+    static String PLATFORM_TYPE_GOOGLE_CONTAINER = "GoogleContainer";
+    static String PLATFORM_TYPE_KUBERNETES       = "Kubernetes";
+    static String ROUTABLE_HOST_VARIABLE_NAME    = "DATAWIRE_ROUTABLE_HOST";
+    static String ROUTABLE_PORT_VARIABLE_NAME    = "DATAWIRE_ROUTABLE_PORT";
+
     @doc("Returns the routable hostname or IP for this service instance.")
     @doc("This method always returns the value of the environment variable DATAWIRE_ROUTABLE_HOST if it is defined.")
     static String routableHost() 
     {
-      // TODO: Return value of DATAWIRE_ROUTABLE_HOST if defined.
-    
-      if (DATAWIRE_PROVIDER_TYPE.startsWith(AMAZON_EC2_PLATFORM_TYPE)) 
+      if (EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).isDefined())
       {
-        List<String> parts = DATAWIRE_PROVIDER_TYPE.split(":");
+        return EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).get();
+      }
+    
+      if (PLATFORM_TYPE.startsWith(PLATFORM_TYPE_EC2))
+      {
+        List<String> parts = PLATFORM_TYPE.split(":");
         
         if(parts.size() == 2)
         {
@@ -60,16 +77,16 @@ namespace util
         }
         else 
         {
-          Runtime.fail("Invalid format for DATAWIRE_PROVIDER_TYPE == EC2. Expected EC2:<scope>.");
+          Runtime.fail("Invalid format for DATAWIRE_PLATFORM_TYPE == EC2. Expected EC2:<scope>.");
         }
       }
       
-      if (DATAWIRE_PROVIDER_TYPE == GOOGLE_COMPUTE_ENGINE_PLATFORM_TYPE)
+      if (PLATFORM_TYPE == PLATFORM_TYPE_GOOGLE_COMPUTE)
       {
         return GoogleComputeEngineHost().get();
       }
       
-      if (DATAWIRE_PROVIDER_TYPE == KUBERNETES_PLATFORM_TYPE)
+      if (PLATFORM_TYPE == PLATFORM_TYPE_KUBERNETES || PLATFORM_TYPE == PLATFORM_TYPE_GOOGLE_CONTAINER)
       {
         return KubernetesHost().get();
       }
@@ -81,9 +98,12 @@ namespace util
     @doc("This method always returns the value of the environment variable DATAWIRE_ROUTABLE_PORT if it is defined.")
     static int routablePort(int servicePort) 
     {
-      // TODO: Return value of DATAWIRE_ROUTABLE_PORT if defined.    
-    
-      if (DATAWIRE_PROVIDER_TYPE == KUBERNETES_PLATFORM_TYPE)
+      if (EnvironmentVariable(ROUTABLE_PORT_VARIABLE_NAME).isDefined())
+      {
+        return parseInt(EnvironmentVariable(ROUTABLE_PORT_VARIABLE_NAME).get());
+      }
+
+      if (PLATFORM_TYPE == PLATFORM_TYPE_KUBERNETES)
       {
         return KubernetesPort().get();
       }

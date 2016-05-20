@@ -16,6 +16,8 @@ package discovery 2.0.0;
  * limitations under the License.
  */
 
+import quark.os;
+
 namespace util
 {
   namespace internal
@@ -43,13 +45,46 @@ namespace util
       */
 
     }
+
+    class EnvironmentVariable extends Supplier<String>
+    {
+
+      String variableName;
+
+      EnvironmentVariable(String variableName)
+      {
+        self.variableName = variableName;
+      }
+
+      bool isDefined() {
+        return get() != null;
+      }
+
+      String get()
+      {
+        return Env.get(variableName);
+      }
+
+      // TODO: Remove once Issue #143 --> https://github.com/datawire/quark/issues/143 is resolved.
+      String orElseGet(String alternative) {
+        String result = get();
+        if (result != null)
+        {
+          return result;
+        }
+        else
+        {
+          return alternative;
+        }
+      }
+    }
   }
   
   namespace aws
   {
     class Ec2Host extends internal.Supplier<String>
     {
-      static String METADATA_HOST = "169.254.169.254";
+      static String METADATA_HOST = internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       
       String scope;
 
