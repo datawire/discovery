@@ -32,18 +32,15 @@ namespace util
     static String TOKEN_VARIABLE_NAME = "DATAWIRE_TOKEN";
   
     @doc("Returns the Datawire Access Token by reading the environment variable DATAWIRE_TOKEN.")
-    static String token() 
+    static String getToken()
     {
         String token = EnvironmentVariable(TOKEN_VARIABLE_NAME).get();
-        if (token != null)
-        {
-            return token;
-        }
-        else
+        if (token == null)
         {
             Runtime.fail("Environment variable 'DATAWIRE_TOKEN' is not set.");
-            return null;
         }
+
+        return token;
     }
   }
 
@@ -60,7 +57,7 @@ namespace util
 
     @doc("Returns the routable hostname or IP for this service instance.")
     @doc("This method always returns the value of the environment variable DATAWIRE_ROUTABLE_HOST if it is defined.")
-    static String routableHost() 
+    static String getRoutableHost()
     {
       if (EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).isDefined())
       {
@@ -96,7 +93,7 @@ namespace util
 
     @doc("Returns the routable port number for this service instance or uses the provided port if a value cannot be resolved.")
     @doc("This method always returns the value of the environment variable DATAWIRE_ROUTABLE_PORT if it is defined.")
-    static int routablePort(int servicePort) 
+    static int getRoutablePort(int servicePort)
     {
       if (EnvironmentVariable(ROUTABLE_PORT_VARIABLE_NAME).isDefined())
       {
