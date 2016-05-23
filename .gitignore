@@ -8,3 +8,9 @@ build
 *.tgz
 *.zip
 *.log
+*.qc
+
+quark/test/*/launch-vars.json
+*.tfstate*
+quark/test/*/*.xml
+.cache
