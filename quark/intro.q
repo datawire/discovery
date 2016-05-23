@@ -63,6 +63,11 @@ namespace util
       {
         return EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).get();
       }
+
+      if (PLATFORM_TYPE == null)
+      {
+        Runtime.fail("Environment variable 'DATAWIRE_PLATFORM_TYPE' is not set.");
+      }
     
       if (PLATFORM_TYPE.startsWith(PLATFORM_TYPE_EC2))
       {

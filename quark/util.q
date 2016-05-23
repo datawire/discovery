@@ -28,7 +28,7 @@ namespace util
       @doc("Gets a value")
       T get();
        
-      /* BUG (compiler) -- Issue # --> https:// 
+      /* BUG (compiler) -- Issue # --> https://github.com/datawire/quark/issues/143
       @doc("Gets a value or if null returns the given alternative.")
       T orElseGet(T alternative) 
       {
@@ -84,7 +84,8 @@ namespace util
   {
     class Ec2Host extends internal.Supplier<String>
     {
-      static String METADATA_HOST = internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
+
+      //static String METADATA_HOST = util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       
       String scope;
 
@@ -92,16 +93,20 @@ namespace util
         self.scope = scope;
       }
 
+      static String METADATA_HOST() {
+        return util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
+      }
+
       String get() 
       {
         if (scope == "internal")
         {
-          return url_get("http://" + METADATA_HOST + "/latest/meta-data/local-hostname");
+          return url_get("http://" + METADATA_HOST() + "/latest/meta-data/local-hostname");
         }
         
         if (scope == "public")
         {
-          return url_get("http://" + METADATA_HOST + "/latest/meta-data/hostname");
+          return url_get("http://" + METADATA_HOST() + "/latest/meta-data/hostname");
         }
 
         return null;

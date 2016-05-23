@@ -21,6 +21,6 @@ SSH_REMOTE_HOST="$(terraform output public_ip)"
 
 ssh ${SSH_OPTS} \
     "$SSH_REMOTE_USER@$SSH_REMOTE_HOST" \
-    "py.test /tmp/test_introspection.py --junitxml=/tmp/test_introspection.xml"
+    "DATAWIRE_PLATFORM_HOST=ec2 py.test /tmp/test_introspection.py --junitxml=/tmp/test_introspection.xml"
 
 scp ${SSH_OPTS} "$SSH_REMOTE_USER@$SSH_REMOTE_HOST:/tmp/test_introspection.xml" .
