@@ -1,77 +1,74 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
 
+# Copyright 2015, 2016 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+DEBUG=0
 INTEGRATION="none"
 UUID="$(uuidgen | tr [:upper:] [:lower:])"
+QUARK_SOURCES="intro.q util.q"
+
 TEMP_DIR=/tmp/test-${UUID}
+TEMP_SSH_DIR=${TEMP_DIR}/.ssh
 
-TEMP_KEY_NAME="ssh-$UUID"
-TEMP_PRIVATE_KEY_FILE="$TEMP_DIR/$TEMP_KEY_NAME"
-TEMP_PUBLIC_KEY_FILE="$TEMP_PRIVATE_KEY_FILE.pub"
+SSH_KEY_NAME="ssh-$UUID"
+SSH_PRIVATE_KEY_FILE="$TEMP_SSH_DIR/$SSH_KEY_NAME"
+SSH_PUBLIC_KEY_FILE="$SSH_PRIVATE_KEY_FILE.pub"
 
-SSH_OPTS="-i $TEMP_PRIVATE_KEY_FILE -o StrictHostKeyChecking=no"
+SSH_OPTS="-i $SSH_PRIVATE_KEY_FILE -o StrictHostKeyChecking=no"
 SCP_OPTS=${SSH_OPTS}
 
-msg() {
-  printf "%s\n" "--> ${1:?Message content not set}"
+# --------------------------------------------------------------------------------------------------
+# FUNCTION DEFINITIONS
+# --------------------------------------------------------------------------------------------------
+
+out() {
+  local level="$1"
+  local format="$2"
+  local content="$3"
+  printf -- "$format" "$content"
 }
 
-setup() {
-  msg "Setup test infrastructure..."
-  cd test/${INTEGRATION}
-
-  cat << EOF > "terraform.tfvars"
-{
-  "ssh_key_name": "${1:?SSH key name not set}",
-  "ssh_private_key": "${2:?SSH private key file not set}",
-  "ssh_public_key": "${3:?SSH public key file not set}"
-}
-EOF
-
-  terraform apply
-  cd -
+msgln() {
+  out 1 "%s\n" "--> $1"
 }
 
-compile_quark() {
-  local ssh_username="${1:?Remote host user not set}"
-  local ssh_remote_host="${2:?Remote host address not set}"
-
-  msg "Compiling and installing Quark sources..."
-  ssh ${SSH_OPTS} "$ssh_username@$ssh_remote_host" "cd /tmp; source /home/$ssh_username/.quark/config.sh; quark install --python intro.q"
+step() {
+  out 2 "--> %s\n" "$1"
 }
 
-provision() {
-  msg "Provisioning test system..."
+sub_step() {
+  out 3 "--> %s" "$1"
+}
 
-  local integration="${1:?Integration test suite not set}"
-  local ssh_private_key="${2:?SSH remote private key not set}"
-  local ssh_username="${3:?Remote host user not set}"
-  local ssh_remote_host="${4:?Remote host address not set}"
-
-  if [ -f test/${integration}/provision.sh ]; then
-    #scp -i ${ssh_private_key} -o StrictHostKeyChecking=no test/${integration}/provision.sh "$ssh_username@$ssh_remote_host:/tmp/provision.sh"
-    scp ${SCP_OPTS} test/${integration}/provision.sh "$ssh_username@$ssh_remote_host:/tmp/provision.sh"
-  fi
-
-  tar -cvzf intro.tar.gz intro.q util.q
-  scp ${SCP_OPTS} intro.tar.gz "$ssh_username@$ssh_remote_host:/tmp/intro.tar.gz"
-
-  ssh ${SSH_OPTS} ${ssh_username}@${ssh_remote_host} '/tmp/provision.sh'
-
-  compile_quark "$ssh_username" "$ssh_remote_host"
+ok() {
+  out 3 "%s\n" "OK"
 }
 
 cleanup() {
-  msg "Cleaning up environment..."
-
-  cd test/${INTEGRATION}
-  terraform destroy -force
-  cd -
-
-  rm -rf ${TEMP_DIR}
-  rm -f intro.tar.gz
+  if [[ "$INTEGRATION" != "none" ]]; then
+    msgln "Cleaning up environment"
+    terraform destroy -force -var-file=launch-vars.json
+    rm -rf ${TEMP_DIR}
+    rm -f introspection.tar.gz
+  fi
 }
+
+# --------------------------------------------------------------------------------------------------
+# MAIN SCRIPT
+# --------------------------------------------------------------------------------------------------
 
 while [[ $# > 1 ]]; do
   key="$1"
@@ -87,32 +84,49 @@ while [[ $# > 1 ]]; do
   shift
 done
 
-trap cleanup INT
 trap cleanup EXIT
 
 case "$INTEGRATION" in
   ec2)
     ;;
   *)
-    msg "Unknown integration suite!"
+    msgln "Unknown integration suite!"
     exit 1
     ;;
 esac
 
-msg "Integration Suite = $INTEGRATION"
+msgln "Initializing (run-id: ${UUID})"
 mkdir -p ${TEMP_DIR}
+mkdir -p ${TEMP_SSH_DIR}
 
-msg "Generate a temporary SSH key pair"
+msgln "Generating SSH key pair"
+ssh-keygen -q -b 2048 -t rsa -f "$SSH_PRIVATE_KEY_FILE" -N ""
+chmod 600 "$SSH_PRIVATE_KEY_FILE"
+chmod 600 "$SSH_PUBLIC_KEY_FILE"
+chmod 700 ${TEMP_SSH_DIR}
 
-ssh-keygen -q -b 2048 -t rsa -f "$TEMP_PRIVATE_KEY_FILE" -N ""
-chmod 400 "$TEMP_PRIVATE_KEY_FILE"
-chmod 400 "$TEMP_PRIVATE_KEY_FILE.pub"
+msgln "Assembling Quark Sources"
+tar -cvzf introspection.tar.gz ${QUARK_SOURCES}
+mv introspection.tar.gz ${TEMP_DIR}/
 
-setup "$TEMP_KEY_NAME" "$TEMP_PRIVATE_KEY_FILE" "$TEMP_PUBLIC_KEY_FILE"
+msgln "Launching infrastructure"
+cd test/${INTEGRATION}
 
-SSH_USERNAME="$(terraform output -state=test/${INTEGRATION}/terraform.tfstate ssh_username)"
-SSH_REMOTE_HOST="$(terraform output -state=test/${INTEGRATION}/terraform.tfstate public_ip)"
+cat << EOF > "launch-vars.json"
+{
+  "ssh_key_name"    : "${SSH_KEY_NAME:?SSH key name not set}",
+  "ssh_private_key" : "${SSH_PRIVATE_KEY_FILE:?SSH private key file not set}",
+  "ssh_public_key"  : "${SSH_PUBLIC_KEY_FILE:?SSH public key file not set}"
+}
+EOF
 
-provision ${INTEGRATION} ${TEMP_PRIVATE_KEY_FILE} ${SSH_USERNAME} ${SSH_REMOTE_HOST}
+trap cleanup INT
+trap cleanup EXIT
+chmod +x launch.sh
+./launch.sh
 
-msg "Run tests..."
+msgln "Provisioning infrastructure"
+./provision.sh "$TEMP_DIR" "$SSH_PRIVATE_KEY_FILE"
+
+msgln "Running tests"
+./run.sh "$SSH_PRIVATE_KEY_FILE"
