@@ -16,7 +16,7 @@ set -euo pipefail
 # limitations under the License.
 
 DEBUG=0
-INTEGRATION="none"
+INTEGRATION="common"
 UUID="$(uuidgen | tr [:upper:] [:lower:])"
 QUARK_SOURCES="intro.q util.q"
 
@@ -58,7 +58,7 @@ ok() {
 }
 
 cleanup() {
-  if [[ "$INTEGRATION" != "none" ]]; then
+  if [[ "$INTEGRATION" != "common" ]]; then
     msgln "Cleaning up environment"
     terraform destroy -force -var-file=launch-vars.json
     rm -rf ${TEMP_DIR}
@@ -84,10 +84,8 @@ while [[ $# > 1 ]]; do
   shift
 done
 
-trap cleanup EXIT
-
 case "$INTEGRATION" in
-  ec2)
+  ec2|common)
     ;;
   *)
     msgln "Unknown integration suite!"
@@ -109,10 +107,15 @@ msgln "Assembling Quark Sources"
 tar -cvzf introspection.tar.gz ${QUARK_SOURCES}
 mv introspection.tar.gz ${TEMP_DIR}/
 
-msgln "Launching infrastructure"
-cd test/${INTEGRATION}
+msgln "Compiling Quark Sources..."
+tar -xvzf ${TEMP_DIR}/introspection.tar.gz -C ${TEMP_DIR}/
+quark compile --python ${TEMP_DIR}/intro.q
 
-cat << EOF > "launch-vars.json"
+if [[ "${INTEGRATION}" != "common" ]]; then
+  msgln "Launching infrastructure"
+  cd test/${INTEGRATION}
+
+  cat << EOF > "launch-vars.json"
 {
   "ssh_key_name"    : "${SSH_KEY_NAME:?SSH key name not set}",
   "ssh_private_key" : "${SSH_PRIVATE_KEY_FILE:?SSH private key file not set}",
@@ -120,13 +123,17 @@ cat << EOF > "launch-vars.json"
 }
 EOF
 
-trap cleanup INT
-trap cleanup EXIT
-chmod +x launch.sh
-./launch.sh
+  trap cleanup INT
+  trap cleanup EXIT
 
-msgln "Provisioning infrastructure"
-./provision.sh "$TEMP_DIR" "$SSH_PRIVATE_KEY_FILE"
+  chmod +x launch.sh
+  ./launch.sh
 
-msgln "Running tests"
-./run.sh "$SSH_PRIVATE_KEY_FILE"
+  msgln "Provisioning infrastructure"
+  ./provision.sh "$TEMP_DIR" "$SSH_PRIVATE_KEY_FILE"
+
+  msgln "Running tests"
+  ./run.sh "$SSH_PRIVATE_KEY_FILE"
+else
+  py.test test/common/test_introspection.py
+fi

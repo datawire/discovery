@@ -20,12 +20,25 @@ include util.q;
 
 import util.internal;
 import util.aws;
-import util.google;
 import util.kubernetes;
 
 namespace util 
 {
-  
+
+  macro String toLowerCase(String s)
+      $java{($s).toLowerCase()}
+      $py{($s).lower()}
+      $js{($s)}
+      $rb{($s)}
+      ;
+
+  macro String toUpperCase(String s)
+      $java{($s).toUpperCase()}
+      $py{($s).upper()}
+      $js{($s)}
+      $rb{($s)}
+      ;
+
   class Datawire 
   {
 
@@ -46,54 +59,73 @@ namespace util
 
   class Platform 
   {
+    static Logger logger = new Logger("Platform");
 
-    static String PLATFORM_TYPE                  = EnvironmentVariable("DATAWIRE_PLATFORM_TYPE").get();
+    static String PLATFORM_TYPE_VARIABLE_NAME    = "DATAWIRE_PLATFORM_TYPE";
+
     static String PLATFORM_TYPE_EC2              = "EC2";
-    static String PLATFORM_TYPE_GOOGLE_COMPUTE   = "GoogleCompute";
-    static String PLATFORM_TYPE_GOOGLE_CONTAINER = "GoogleContainer";
+    static String PLATFORM_TYPE_GOOGLE_COMPUTE   = "GOOGLE_COMPUTE";
+    static String PLATFORM_TYPE_GOOGLE_CONTAINER = "GOOGLE_CONTAINER";
     static String PLATFORM_TYPE_KUBERNETES       = "Kubernetes";
     static String ROUTABLE_HOST_VARIABLE_NAME    = "DATAWIRE_ROUTABLE_HOST";
     static String ROUTABLE_PORT_VARIABLE_NAME    = "DATAWIRE_ROUTABLE_PORT";
+
+    static String platformType()
+    {
+      String result = EnvironmentVariable(PLATFORM_TYPE_VARIABLE_NAME).get();
+      if (result != null)
+      {
+        result = toUpperCase(result);
+      }
+
+      return result;
+    }
 
     @doc("Returns the routable hostname or IP for this service instance.")
     @doc("This method always returns the value of the environment variable DATAWIRE_ROUTABLE_HOST if it is defined.")
     static String getRoutableHost()
     {
+      String result = null;
+
       if (EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).isDefined())
       {
-        return EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).get();
+        logger.debug("Using value in environment variable '" + ROUTABLE_HOST_VARIABLE_NAME + "'");
+        result = EnvironmentVariable(ROUTABLE_HOST_VARIABLE_NAME).get();
       }
+      else
+      {
+        if (platformType() == null)
+        {
+          logger.error("Platform type not specified in environment variable '" + PLATFORM_TYPE_VARIABLE_NAME + "'");
+          Runtime.fail("Environment variable 'DATAWIRE_PLATFORM_TYPE' is not set.");
+        }
 
-      if (PLATFORM_TYPE == null)
-      {
-        Runtime.fail("Environment variable 'DATAWIRE_PLATFORM_TYPE' is not set.");
-      }
-    
-      if (PLATFORM_TYPE.startsWith(PLATFORM_TYPE_EC2))
-      {
-        List<String> parts = PLATFORM_TYPE.split(":");
-        
-        if(parts.size() == 2)
+        if (platformType().startsWith(PLATFORM_TYPE_EC2))
         {
-          return Ec2Host(parts[1]).get();
+          logger.debug(PLATFORM_TYPE_VARIABLE_NAME + " = EC2");
+
+          List<String> parts = platformType().split(":");
+          logger.debug("Platform Scope = " + parts[1]);
+
+          if(parts.size() == 2)
+          {
+            return Ec2Host(parts[1]).get();
+          }
+          else
+          {
+            logger.error("Invalid format for '" + PLATFORM_TYPE_VARIABLE_NAME + "' starting with 'ec2'. Expected (ec2:<scope>)");
+            Runtime.fail("Invalid format for DATAWIRE_PLATFORM_TYPE == EC2. Expected EC2:<scope>.");
+          }
         }
-        else 
+
+        if (platformType() == PLATFORM_TYPE_KUBERNETES || platformType() == PLATFORM_TYPE_GOOGLE_CONTAINER)
         {
-          Runtime.fail("Invalid format for DATAWIRE_PLATFORM_TYPE == EC2. Expected EC2:<scope>.");
+          logger.debug(PLATFORM_TYPE_VARIABLE_NAME + " = [" + PLATFORM_TYPE_KUBERNETES  + "|" + PLATFORM_TYPE_GOOGLE_CONTAINER + "]");
+          return KubernetesHost().get();
         }
       }
       
-      if (PLATFORM_TYPE == PLATFORM_TYPE_GOOGLE_COMPUTE)
-      {
-        return GoogleComputeEngineHost().get();
-      }
-      
-      if (PLATFORM_TYPE == PLATFORM_TYPE_KUBERNETES || PLATFORM_TYPE == PLATFORM_TYPE_GOOGLE_CONTAINER)
-      {
-        return KubernetesHost().get();
-      }
-      
-      return null;
+      return result;
     }
 
     @doc("Returns the routable port number for this service instance or uses the provided port if a value cannot be resolved.")
@@ -105,7 +137,7 @@ namespace util
         return parseInt(EnvironmentVariable(ROUTABLE_PORT_VARIABLE_NAME).get());
       }
 
-      if (PLATFORM_TYPE == PLATFORM_TYPE_KUBERNETES)
+      if (platformType() == PLATFORM_TYPE_KUBERNETES)
       {
         return KubernetesPort().get();
       }

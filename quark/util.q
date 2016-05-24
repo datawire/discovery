@@ -90,30 +90,31 @@ namespace util
       String scope;
 
       Ec2Host(String scope) {
-        self.scope = scope;
+        self.scope = toUpperCase(scope);
       }
 
-      static String METADATA_HOST() {
+      static String metadataHost() {
         return util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       }
 
       String get() 
       {
-        if (scope == "internal")
+        if (scope == "INTERNAL")
         {
-          return url_get("http://" + METADATA_HOST() + "/latest/meta-data/local-hostname");
+          return url_get("http://" + metadataHost() + "/latest/meta-data/local-hostname");
         }
         
-        if (scope == "public")
+        if (scope == "PUBLIC")
         {
-          return url_get("http://" + METADATA_HOST() + "/latest/meta-data/hostname");
+          return url_get("http://" + metadataHost() + "/latest/meta-data/public-hostname");
         }
 
         return null;
       }
     }
   }
-  
+
+  /* TODO(plombardi): Implement once we have a ComputeEngine account.
   namespace google
   {
     class GoogleComputeEngineHost extends internal.Supplier<String>
@@ -126,6 +127,7 @@ namespace util
       }
     }
   }
+  */
   
   namespace kubernetes
   {
