@@ -10,14 +10,23 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR COcNDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from util import Platform
+import os
+import pytest
+import urllib2
 
-def test_foo():
-    assert 1 == 1
+
+def test_resolves_public_host_from_ec2_metadata_service():
+    os.environ["DATAWIRE_PLATFORM_TYPE"] = "ec2:public"
+    assert Platform.getRoutableHost() == urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname').read()
+    del os.environ["DATAWIRE_PLATFORM_TYPE"]
 
 
-def test_bar():
-    assert 1 == 2
+def test_resolves_private_host_from_ec2_metadata_service():
+    os.environ["DATAWIRE_PLATFORM_TYPE"] = "ec2:internal"
+    assert Platform.getRoutableHost() == urllib2.urlopen('http://169.254.169.254/latest/meta-data/local-hostname').read()
+    del os.environ["DATAWIRE_PLATFORM_TYPE"]
