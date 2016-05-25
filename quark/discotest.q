@@ -15,10 +15,13 @@ void main(List<String> args) {
 
 class DiscoTest extends ProtocolTest {
 
-    DiscoveryEvent expectDiscoveryEvent(OpenEvent oev, String expectedType) {
-        String msg = oev.expect();
+    /////////////////
+    // Helpers
+
+    DiscoveryEvent expectDiscoveryEvent(SocketEvent sev, String expectedType) {
+        TextMessage msg = sev.expectTextMessage();
         if (msg == null) { return null; }
-        DiscoveryEvent evt = DiscoveryEvent.decode(msg);
+        DiscoveryEvent evt = DiscoveryEvent.decode(msg.text);
         String type = evt.getClass().getName();
         if (check(type == expectedType, "expected " + expectedType + " event, got " + type)) {
             return ?evt;
@@ -27,12 +30,35 @@ class DiscoTest extends ProtocolTest {
         }
     }
 
-    Active expectActive(OpenEvent evt) {
+    Active expectActive(SocketEvent evt) {
         return ?expectDiscoveryEvent(evt, "discovery.protocol.Active");
     }
 
+    void checkEqualNodes(Node expected, Node actual) {
+        checkEqual(expected.service, actual.service);
+        checkEqual(expected.address, actual.address);
+        checkEqual(expected.version, actual.version);
+        checkEqual(expected.properties, actual.properties);
+    }
+
+    SocketEvent startDisco(Discovery disco) {
+        disco.start();
+        self.pump();
+        RequestEvent rev = self.expectRequest(disco.url + "/v2/connect");
+        if (rev == null) { return null; }
+        rev.respond(200, {}, "ws://discoball");
+        self.pump();
+        SocketEvent sev = self.expectSocket("ws://discoball");
+        if (sev == null) { return null; }
+        sev.accept();
+        return sev;
+    }
+
+    /////////////////
+    // Tests
+
     void testStart() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery("http://gateway");
 
         // we should see no events until we tell disco to start
         self.expectNone();
@@ -40,78 +66,105 @@ class DiscoTest extends ProtocolTest {
 
         // now lets tell our mock runtime to pump
         self.pump();
-        RequestEvent rev = self.expectRequest("http://discoball/v2/connect");
+        RequestEvent rev = self.expectRequest("http://gateway/v2/connect");
         if (rev == null) { return; }
         if (disco.token != null) {
             String token = rev.request.getHeader("Authorization");
             checkEqual("Bearer " + disco.token, token);
         }
-        rev.respond(200, {}, "ws://blah");
+        rev.respond(200, {}, "ws://discoball");
         self.pump();
-        OpenEvent oev = self.expectOpen("ws://blah");
-        if (oev == null) { return; }
-
-        // ...
-
-        oev.accept();
-        Active active = new Active();
-
-        active.node = new Node();
-        active.node.service = "svc";
-        active.node.address = "addr0";
-        active.node.version = "1.2.3";
-
-        oev.send(active.encode());
-        print(disco.resolve("svc").toString());
-
-        Node node = new Node();
-        node.service = "provided";
-        node.address = "me";
-        node.version = "3.2.1";
-        disco.register(node);
-
-        Active aev = expectActive(oev);
-        if (aev == null) { return; }
-        checkEqual("provided", aev.node.service);
-        checkEqual("me", aev.node.address);
-        checkEqual("3.2.1", aev.node.version);
-        checkEqual(null, aev.node.properties);
+        SocketEvent sev = self.expectSocket("ws://discoball");
+        if (sev == null) { return; }
     }
 
-    void testResolve() {
-        Discovery disco = new Discovery("http://discoball");
-        Node node = disco.resolve("svc");
+    void testFailedStart() {
+        // ...
+    }
 
+    void testRegisterPreStart() {
+        Discovery disco = new Discovery("http://gateway");
+
+        Node node = new Node();
+        node.service = "svc";
+        node.address = "addr";
+        node.version = "1.2.3";
+        disco.register(node);
+
+        SocketEvent sev = startDisco(disco);
+        if (sev == null) { return; }
+
+        Active active = expectActive(sev);
+        if (active == null) { return; }
+        checkEqualNodes(node, active.node);
+    }
+
+    void testRegisterPostStart() {
+        Discovery disco = new Discovery("http://gateway");
+        SocketEvent sev = startDisco(disco);
+
+        Node node = new Node();
+        node.service = "svc";
+        node.address = "addr";
+        node.version = "1.2.3";
+        disco.register(node);
+
+        Active active = expectActive(sev);
+        if (active == null) { return; }
+        checkEqualNodes(node, active.node);
+    }
+
+    void testResolvePreStart() {
+        Discovery disco = new Discovery("http://discoball");
+
+        Node node = disco.resolve("svc");
         checkEqual("svc", node.service);
         checkEqual(null, node.address);
         checkEqual(null, node.version);
         checkEqual(null, node.properties);
-        //print(node.toString());
+
+        SocketEvent sev = startDisco(disco);
+        if (sev == null) { return; }
 
         Active active = new Active();
-
         active.node = new Node();
         active.node.service = "svc";
-        active.node.address = "addr0";
+        active.node.address = "addr";
         active.node.version = "1.2.3";
-        active.dispatch(disco.client);
+        sev.send(active.encode());
 
+        checkEqualNodes(active.node, node);
+    }
+
+    void testResolvePostStart() {
+        Discovery disco = new Discovery("http://discoball");
+        SocketEvent sev = startDisco(disco);
+
+        Node node = disco.resolve("svc");
         checkEqual("svc", node.service);
-        checkEqual("addr0", node.address);
-        checkEqual("1.2.3", node.version);
+        checkEqual(null, node.address);
+        checkEqual(null, node.version);
         checkEqual(null, node.properties);
-        //print(node.toString());
+
+        Active active = new Active();
+        active.node = new Node();
+        active.node.service = "svc";
+        active.node.address = "addr";
+        active.node.version = "1.2.3";
+        sev.send(active.encode());
+
+        checkEqualNodes(active.node, node);
     }
 
     void testLoadBalancing() {
         Discovery disco = new Discovery("http://discoball");
-        Node node = disco.resolve("svc");
+        SocketEvent sev = startDisco(disco);
 
+        Node node = disco.resolve("svc");
         checkEqual("svc", node.service);
         checkEqual(null, node.address);
         checkEqual(null, node.version);
         checkEqual(null, node.properties);
-        //print(node.toString());
 
         Active active = new Active();
 
@@ -122,7 +175,7 @@ class DiscoTest extends ProtocolTest {
             active.node.service = "svc";
             active.node.address = "addr" + idx.toString();
             active.node.version = "1.2.3";
-            active.dispatch(disco.client);
+            sev.send(active.encode());
             idx = idx + 1;
         }
 
@@ -130,7 +183,6 @@ class DiscoTest extends ProtocolTest {
         while (idx < count*10) {
             node = disco.resolve("svc");
             checkEqual("addr" + (idx % count).toString(), node.address);
-            //print(node.toString());
             idx = idx + 1;
         }
     }

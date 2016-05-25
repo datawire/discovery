@@ -1,5 +1,9 @@
 import quark.test;
 
+/*@doc("""
+Base class for network actions that have been captured by the
+MockRuntime.
+""")*/
 class MockEvent {
 
     String getType();
@@ -11,7 +15,7 @@ class MockEvent {
 
 }
 
-class OpenEvent extends MockEvent {
+class SocketEvent extends MockEvent {
 
     String url;
     WSHandler handler;
@@ -19,13 +23,13 @@ class OpenEvent extends MockEvent {
     bool closed = false;
     int expectIdx = 0;
 
-    OpenEvent(String url, WSHandler handler) {
+    SocketEvent(String url, WSHandler handler) {
         self.url = url;
         self.handler = handler;
     }
 
     String getType() {
-        return "open";
+        return "socket";
     }
 
     List<Object> getArgs() {
@@ -56,13 +60,17 @@ class OpenEvent extends MockEvent {
         }
     }
 
-    String expect() {
+    /*@doc("""
+    Check that a message has been sent on the socket associated with
+    this socket event. The message is returned.
+    """)*/
+    MockMessage expectMessage() {
         if (sock == null) {
             Context.runtime().fail("not accepted");
         }
 
         if (check(expectIdx < sock.messages.size(), "expected a message")) {
-            String msg = sock.messages[expectIdx];
+            MockMessage msg = sock.messages[expectIdx];
             expectIdx = expectIdx + 1;
             return msg;
         }
@@ -70,19 +78,83 @@ class OpenEvent extends MockEvent {
         return null;
     }
 
+    /*@doc("""
+    Check that a text message has been sent on the socket associated with
+    this socket event. The text message is returned.
+    """)*/
+    TextMessage expectTextMessage() {
+        MockMessage msg = expectMessage();
+        if (msg != null && msg.isText()) {
+            return ?msg;
+        } else {
+            return null;
+        }
+    }
+
+    /*@doc("""
+    Check that a binary message has been sent on the socket associated with
+    this socket event. The binary message is returned.
+    """)*/
+    BinaryMessage expectBinaryMessage() {
+        MockMessage msg = expectMessage();
+        if (msg != null && msg.isBinary()) {
+            return ?msg;
+        } else {
+            return null;
+        }
+    }
+
+}
+
+class MockMessage {
+    bool isBinary() {
+        return !isText();
+    }
+    bool isText();
+}
+
+@doc("A text message.")
+class TextMessage extends MockMessage {
+
+    @doc("The message content.")
+    String text;
+
+    TextMessage(String message) {
+        text = message;
+    }
+
+    bool isText() {
+        return true;
+    }
+}
+
+@doc("A binary message.")
+class BinaryMessage extends MockMessage {
+
+    @doc("The message content.")
+    Buffer bytes;
+
+    BinaryMessage(Buffer message) {
+        // XXX: we should probably copy this, but no convenient copy for Buffer right now
+        bytes = message;
+    }
+
+    bool isText() {
+        return false;
+    }
 }
 
 class MockSocket extends WebSocket {
 
-    List<String> messages = [];
+    List<MockMessage> messages = [];
 
     bool send(String message) {
-        messages.add(message);
+        messages.add(new TextMessage(message));
         return true;
     }
 
     bool sendBinary(Buffer bytes) {
-        // ...
+        messages.add(new BinaryMessage(bytes));
         return true;
     }
 
@@ -93,6 +165,10 @@ class MockSocket extends WebSocket {
 
 }
 
+/*@doc("""
+A RequestEvent indicates that an HTTPRequest has been initiated. This
+class can be used to examine the request and mock a response.
+""")*/
 class RequestEvent extends MockEvent {
 
     HTTPRequest request;
@@ -111,6 +187,9 @@ class RequestEvent extends MockEvent {
         return [request, handler];
     }
 
+    /*@doc("""
+    Supply a mock response for the request captured in this RequestEvent.
+    """)*/
     void respond(int code, Map<String,String> headers, String body) {
         MockResponse response = new MockResponse();
         response.code = code;
@@ -150,6 +229,19 @@ class MockTask {
     }
 }
 
+/*@doc("""
+The MockRuntime is intended for testing protocol endpoints written in
+quark. When enabled as the current runtime, the MockRuntime will
+capture any endpoint initiated network actions such as making http
+requests, opening a web socket, sending a message on a web socket,
+etc. In addition, the mock runtime captures scheduled tasks and allows
+them to be executed in a controlled manner.
+
+This allows a normal unit testing framework to drive the API for a
+protocol endpoint, examine all network interactions that occur, mock
+the responses, and step through asynchronous tasks in a controlled
+manner.
+""")*/
 class MockRuntime extends Runtime {
 
     Runtime runtime;
@@ -161,6 +253,7 @@ class MockRuntime extends Runtime {
         self.runtime = runtime;
     }
 
+    @doc("Execute all currently scheduled tasks.")
     void pump() {
         // snapshot the size so that respawning tasks don't loop forever
         int size = tasks.size();
@@ -175,11 +268,13 @@ class MockRuntime extends Runtime {
     }
 
     void open(String url, WSHandler handler) {
-        events.add(new OpenEvent(url, handler));
+        events.add(new SocketEvent(url, handler));
     }
+
     void request(HTTPRequest request, HTTPHandler handler) {
         events.add(new RequestEvent(request, handler));
     }
+
     void schedule(Task handler, float delayInSeconds) {
         tasks.add(new MockTask(handler, delayInSeconds));
     }
@@ -189,32 +284,40 @@ class MockRuntime extends Runtime {
     }
 
     void serveHTTP(String url, HTTPServlet servlet) {
-        // ???
-        runtime.serveHTTP(url, servlet);
+        runtime.fail("Runtime.serveHTTP not yet supported by the MockRuntime");
     }
+
     void serveWS(String url, WSServlet servlet) {
-        // ???
-        runtime.serveWS(url, servlet);
+        runtime.fail("Runtime.serveWS not yet supported by the MockRuntime");
     }
+
     void respond(HTTPRequest request, HTTPResponse response) {
-        // ???
-        runtime.respond(request, response);
+        runtime.fail("Runtime.respond not yet supported by the MockRuntime");
     }
 
     void fail(String message) {
         runtime.fail(message);
     }
+
     Logger logger(String topic) {
         return runtime.logger(topic);
     }
 
 }
 
+/*@doc("""
+The ProtocolTest class provides a base test case that automatically
+installs/uninstall a MockRuntime in setup/teardown respectively. It
+also provides a basic expect-stlye API to check that expected events
+have actually ocurred, and returns those events for inspection, as
+well as for use in mocking fake responses.
+""")*/
 class ProtocolTest {
 
     MockRuntime mock;
     Context old;
     int expectIdx = 0;
+    Map<String,SocketEvent> sockets;
 
     void setup() {
         old = Context.current();
@@ -223,6 +326,7 @@ class ProtocolTest {
         ctx._runtime = mock;
         Context.swap(ctx);
         expectIdx = 0;
+        sockets = {};
     }
 
 
@@ -230,10 +334,15 @@ class ProtocolTest {
         Context.swap(old);
     }
 
+    @doc("Execute any pending asynchronous tasks.")
     void pump() {
         mock.pump();
     }
 
+    /*@doc("""
+    Checks that there are no captured I/O events. The number of actual
+    I/O events are returned.
+    """)*/
     int expectNone() {
         int delta = mock.events.size() - expectIdx;
         check(delta == 0, "expected no events, got " + delta.toString());
@@ -252,23 +361,38 @@ class ProtocolTest {
         return result;
     }
 
+    /*@doc("""
+    Check that the next logged event is a RequestEvent to the expected
+    URL. Passing in a null will match any URL. If a matching event is
+    found it is returned, otherwise null is returned.
+    """)*/
     RequestEvent expectRequest(String expectedUrl) {
         RequestEvent rev = ?expectEvent("request");
         if (rev != null) {
+            if (expectedUrl == null) { return rev; }
             String url = rev.request.getUrl();
-            if (check(url == expectedUrl, "expected request event to url(" + expectedUrl + ")")) {
+            if (check(url == expectedUrl, "expected request event to url(" + expectedUrl + "), got url("
+                      + url + ")")) {
                 return rev;
             }
         }
         return null;
     }
 
-    OpenEvent expectOpen(String expectedUrl) {
-        OpenEvent oev = ?expectEvent("open");
-        if (oev != null) {
-            String url = oev.url;
-            if (check(url == expectedUrl, "expected open event to url(" + expectedUrl + ")")) {
-                return oev;
+    /*@doc("""
+    Check that the next logged event is a SocketEvent with the expected
+    URL. Passing in a null will match any URL. If a matching event is
+    found it is returned, otherwise null is returned.
+    """)*/
+    SocketEvent expectSocket(String expectedUrl) {
+        SocketEvent sev = ?expectEvent("socket");
+        if (sev != null) {
+            sockets[sev.url] = sev;
+            if (expectedUrl == null) { return sev; }
+            String url = sev.url;
+            if (check(url == expectedUrl, "expected socket event to url(" + expectedUrl + "), got url(" +
+                      url + ")")) {
+                return sev;
             }
         }
         return null;
