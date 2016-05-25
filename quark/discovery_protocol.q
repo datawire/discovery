@@ -209,11 +209,18 @@ namespace protocol {
 
     }
 
-    @doc("Advertise a node as being active. This can be used")
-    @doc("to register a new node or to heartbeat an existing node.")
+    /*@doc("""
+    Advertise a node as being active. This can be used to register a
+    new node or to heartbeat an existing node. The receiver must
+    consider the node to be available for the duration of the
+    specified ttl.
+    """)*/
     class Active extends DiscoveryEvent {
 
+        @doc("The advertised node.")
 	Node node;
+        @doc("The ttl of the node in seconds.")
+        float ttl;
 
 	void dispatch(DiscoHandler handler) {
 	    handler.onActive(self);
@@ -230,7 +237,7 @@ namespace protocol {
 	}
     }
 
-    @doc("Clear all nodes.")
+    @doc("Expire all nodes.")
     class Clear extends DiscoveryEvent {
         void dispatch(DiscoHandler handler) {
             handler.onClear(self);

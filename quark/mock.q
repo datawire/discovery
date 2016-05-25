@@ -15,6 +15,11 @@ class MockEvent {
 
 }
 
+/*@doc("""
+A SocketEvent indicates that a web socket open has been initiated. The
+SocketEvent class can be used to inspect the url and simulate remote
+interactions with the socket.
+""")*/
 class SocketEvent extends MockEvent {
 
     String url;
@@ -36,6 +41,9 @@ class SocketEvent extends MockEvent {
         return [url, handler];
     }
 
+    /*@doc("""
+    Simulate the remote peer accepting the socket connect.
+    """)*/
     void accept() {
         if (sock != null) {
             Context.runtime().fail("already accepted");
@@ -46,10 +54,16 @@ class SocketEvent extends MockEvent {
         }
     }
 
+    /*@doc("""
+    Simulate the remote peer sending a text message.
+    """)*/
     void send(String message) {
         handler.onWSMessage(sock, message);
     }
 
+    /*@doc("""
+    Simulate the remote peer closing the socket.
+    """)*/
     void close() {
         if (closed) {
             Context.runtime().fail("already closed");
