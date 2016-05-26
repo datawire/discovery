@@ -1,13 +1,7 @@
-rootProject.name = 'discovery'
+rootProject.name = name
 
-//include('discovery-client')
-//project(':discovery-client').name = 'discovery-client'
+include("${rootProject.name}-common")
+project(":${rootProject.name}-common").name = "${rootProject.name}-common"
 
-include('discovery-common')
-project(':discovery-common').name = 'discovery-common'
-
-include('discovery-server')
-project(':discovery-server').name = 'discovery-server'
-
-include('discovery-gateway')
-project(':discovery-gateway').name = 'discovery-gateway'
+include("${rootProject.name}-server")
+project(":${rootProject.name}-server").name = "${rootProject.name}-server"
