@@ -1,18 +1,11 @@
 apply plugin: 'application'
+apply plugin: 'shadowJar'
 
 ext {
   argparse4jVersion = '0.6.0'
-  assertjVersion = '3.2.0'
   awaitilityVersion = '1.7.0'
-  hazelcastVersion = '3.6'
   jacksonVersion = '2.7.1'
   jacksonKotlinVersion = "${jacksonVersion}-2"
-  junitVersion = '4.12'
-  kotlinVersion = '1.0.0'
-  logbackVersion = '1.1.3'
-  metricsCloudwatch = '0.4.0'
-  slf4jVersion = '1.7.14'
-  vertxVersion = '3.2.1'
 }
 
 repositories {
@@ -26,18 +19,12 @@ configurations {
   all*.exclude group: 'com.hazelcast:hazelcast'
 }
 
-tasks.withType(Tar){
-  compression = Compression.GZIP
-}
-
 dependencies {
   compile(
-      "ch.qos.logback:logback-classic:${logbackVersion}",
+      "ch.qos.logback:logback-classic:${parent.ext.logbackVersion}",
 
-      "com.blacklocus:metrics-cloudwatch:${metricsCloudwatch}",
-
-      "com.hazelcast:hazelcast:${hazelcastVersion}",
-      "com.hazelcast:hazelcast-cloud:${hazelcastVersion}",
+      "com.hazelcast:hazelcast:${parent.ext.hazelcastVersion}",
+      "com.hazelcast:hazelcast-cloud:${parent.ext.hazelcastVersion}",
 
       "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
       "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
@@ -45,26 +32,21 @@ dependencies {
       "io.datawire.commons:datawire-config:0.0.3-SNAPSHOT",
       "io.datawire.commons:datawire-application:0.0.3-SNAPSHOT",
 
-      "io.vertx:vertx-auth-jwt:${vertxVersion}",
-      "io.vertx:vertx-core:${vertxVersion}",
-      "io.vertx:vertx-dropwizard-metrics:${vertxVersion}",
-      "io.vertx:vertx-hazelcast:${vertxVersion}",
-      "io.vertx:vertx-web:${vertxVersion}",
+      "io.vertx:vertx-auth-jwt:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-core:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-dropwizard-metrics:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-hazelcast:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-web:${parent.ext.vertxVersion}",
 
       "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
 
-      "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
-      "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
-
-      "org.slf4j:slf4j-api:${slf4jVersion}",
+      "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
 
       project(":discovery-common")
   )
 
   testCompile(
-      "org.assertj:assertj-core:${assertjVersion}",
-      "junit:junit:${junitVersion}",
-      "io.vertx:vertx-unit:${vertxVersion}",
+      "io.vertx:vertx-unit:${parent.ext.vertxVersion}",
       "com.jayway.awaitility:awaitility:${awaitilityVersion}"
   )
 }

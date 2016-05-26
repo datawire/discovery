@@ -1,21 +1,30 @@
 buildscript {
+  ext.kotlinVersion = '1.0.2'
+
   repositories {
     jcenter()
   }
+
   dependencies {
-    classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0'
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
   }
 }
-
-apply plugin: 'idea'
-
 
 if (!JavaVersion.current().java8Compatible) {
   throw new IllegalArgumentException('''A Haiku:
                                       |  This needs Java 8,
                                       |  You are using something else,
                                       |  Upgrade. Try again.'''.stripMargin())
+}
+
+ext {
+  assertjVersion    = '3.3.0'
+  guavaVersion      = '19.0'
+  hazelcastVersion  = '3.6.2'
+  junitVersion      = '4.12'
+  logbackVersion    = '1.1.7'
+  vertxVersion      = '3.2.1'
 }
 
 allprojects {
@@ -25,13 +34,27 @@ allprojects {
 }
 
 subprojects {
-  apply plugin: 'java'
   apply plugin: 'kotlin'
 
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
+
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    compile     group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
+
+    testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
+    testCompile group: 'junit',       name: 'junit',        version: junitVersion
+  }
+
+  tasks.withType(Tar) {
+    compression = Compression.GZIP
+  }
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.11'
+  gradleVersion = '2.13'
 }
