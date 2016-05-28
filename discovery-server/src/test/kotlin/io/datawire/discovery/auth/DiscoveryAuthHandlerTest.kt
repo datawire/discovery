@@ -1,6 +1,7 @@
 package io.datawire.discovery.auth
 
 import io.datawire.discovery.DiscoveryTest
+import io.datawire.discovery.v2.auth.DiscoveryAuthHandler
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx

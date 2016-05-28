@@ -3,5 +3,13 @@
     "type": "none"
   },
 
-  "tenant": "default"
+  "tenant": "default",
+
+  "corsHandler": {
+    "allowedOrigin": "*",
+    "allowAuth": true,
+    "allowMethods": [],
+    "allowHeaders": [],
+    "path": "/*"
+  }
 }

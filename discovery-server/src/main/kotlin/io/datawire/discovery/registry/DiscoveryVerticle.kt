@@ -3,7 +3,7 @@ package io.datawire.discovery.registry
 import com.fasterxml.jackson.databind.InjectableValues
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.datawire.discovery.auth.DiscoveryAuthHandler
+import io.datawire.discovery.v2.auth.DiscoveryAuthHandler
 import io.datawire.discovery.registry.model.BaseMessage
 import io.datawire.discovery.registry.model.MessageContext
 import io.datawire.discovery.registry.model.RoutesResponse

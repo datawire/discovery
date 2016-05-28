@@ -2,29 +2,27 @@ package io.datawire.discovery.v2
 
 import com.hazelcast.core.Hazelcast
 import com.hazelcast.core.HazelcastInstance
-import discovery.Node
 import discovery.protocol.*
-import io.datawire.discovery.auth.DiscoveryAuthHandler
+import io.datawire.discovery.v2.config.AuthHandlerConfig
+import io.datawire.discovery.v2.config.CorsHandlerConfig
 import io.datawire.discovery.v2.model.ServiceKey
 import io.datawire.discovery.v2.model.ServiceRecord
 import io.datawire.discovery.v2.model.ServiceStore
 import io.datawire.discovery.v2.service.ForwardingServiceStore
 import io.datawire.discovery.v2.service.ReplicatedServiceStore
+import io.datawire.discovery.v2.service.ServicesChangeListener
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
-import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import io.vertx.ext.web.handler.CorsHandler
-import java.util.*
 
 
 class Discovery : AbstractVerticle() {
 
   private val logger    = LoggerFactory.getLogger(Discovery::class.java)
-  private val hazelcast = Hazelcast.newHazelcastInstance()
+  private val hazelcast = initializeHazelcast()
 
   class QuarkBugWorkaround : DiscoHandler {
     override fun onActive(active: Active?) = throw UnsupportedOperationException()
@@ -36,24 +34,24 @@ class Discovery : AbstractVerticle() {
     QuarkBugWorkaround()
   }
 
+  private fun initializeHazelcast(): HazelcastInstance {
+    return Hazelcast.newHazelcastInstance()
+  }
+
   private fun configureAuthHandler(router: Router) {
-    val authConfig = config().getJsonObject("authentication") ?: throw IllegalArgumentException("Authentication config is missing!")
+    val config = AuthHandlerConfig(config().getJsonObject("authHandler", JsonObject()))
 
-    when (authConfig.getString("type", "none")?.toLowerCase()) {
-      "jwt" -> {
-        val protectedPath  = authConfig.getString("path", "/*")
-        val keystoreConfig = authConfig.getJsonObject("keyStore")
-
-        val jwt = JWTAuth.create(vertx, keystoreConfig)
-        val authHandler = DiscoveryAuthHandler(jwt, "/health")
-        router.route(protectedPath).handler(authHandler)
-      }
-      else -> return
+    when (config.type) {
+      "jwt" -> router.route(config.protectPath).handler(config.createJwtAuthHandler(vertx))
+      else  -> return
     }
   }
 
   private fun configureCorsHandler(router: Router) {
-    router.route("/*").handler(CorsHandler.create("*"))
+    val config = CorsHandlerConfig(config().getJsonObject("corsHandler", JsonObject()))
+
+    router.route(config.path)
+          .handler(config.createCorsHandler())
   }
 
   override fun start() {

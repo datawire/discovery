@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.datawire.discovery.auth
+package io.datawire.discovery.v2.auth
 
+import io.vertx.core.http.HttpHeaders
 import io.vertx.ext.auth.AuthProvider
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
@@ -28,13 +29,12 @@ import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
  * @since 1.0
  */
 
-class DiscoveryAuthHandler(authProvider: AuthProvider, skip: String?) : JWTAuthHandlerImpl(authProvider, skip) {
+class DiscoveryAuthHandler(authProvider: AuthProvider,
+                           skip        : String) : JWTAuthHandlerImpl(authProvider, skip) {
 
   override fun handle(context: RoutingContext?) {
     context?.request()?.getParam("token")?.let { token ->
-      context
-          .request()
-          .headers().set("Authorization", "Bearer " + token.trim())
+      context.request().headers().set(HttpHeaders.AUTHORIZATION, "Bearer " + token.trim())
     }
 
     super.handle(context)

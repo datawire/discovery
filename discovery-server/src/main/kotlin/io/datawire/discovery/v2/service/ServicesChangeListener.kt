@@ -1,4 +1,4 @@
-package io.datawire.discovery.v2
+package io.datawire.discovery.v2.service
 
 import com.hazelcast.core.EntryEvent
 import com.hazelcast.core.EntryListener

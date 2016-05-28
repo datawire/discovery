@@ -1,4 +1,4 @@
-package io.datawire.discovery.v2
+package io.datawire.discovery.v2.service
 
 
 interface ServicesStoreListenerManager {
