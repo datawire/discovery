@@ -7,6 +7,7 @@ import discovery.protocol.*
 import io.datawire.discovery.auth.DiscoveryAuthHandler
 import io.datawire.discovery.v2.model.ServiceKey
 import io.datawire.discovery.v2.model.ServiceRecord
+import io.datawire.discovery.v2.model.ServiceStore
 import io.datawire.discovery.v2.service.ForwardingServiceStore
 import io.datawire.discovery.v2.service.ReplicatedServiceStore
 import io.vertx.core.AbstractVerticle
@@ -69,6 +70,8 @@ class Discovery : AbstractVerticle() {
 
   inner class DiscoConnection() : Handler<RoutingContext> {
 
+    lateinit var serviceStore: ServiceStore
+
     override fun handle(ctx: RoutingContext) {
       val request = ctx.request()
       val socket  = request.upgrade()
@@ -79,11 +82,13 @@ class Discovery : AbstractVerticle() {
         ctx.user().principal().getString("aud")
       }
 
+      // TODO: Abstract this bit a bit.
       val replicatedMap = hazelcast.getReplicatedMap<String, ServiceRecord>("discovery.services.$tenant")
-      val serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap))
-      serviceStore.addRecord(ServiceRecord(ServiceKey("foo", "foo-host"), "1.0.0", mapOf()), 20)
-      serviceStore.addRecord(ServiceRecord(ServiceKey("bar", "bar-host"), "1.0.0", mapOf()), 40)
-      serviceStore.addRecord(ServiceRecord(ServiceKey("baz", "baz-host"), "1.0.0", mapOf()), 60)
+      serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap))
+
+//      serviceStore.addRecord(ServiceRecord(ServiceKey("foo", "foo-host"), "1.0.0", mapOf()), 20)
+//      serviceStore.addRecord(ServiceRecord(ServiceKey("bar", "bar-host"), "1.0.0", mapOf()), 40)
+//      serviceStore.addRecord(ServiceRecord(ServiceKey("baz", "baz-host"), "1.0.0", mapOf()), 60)
 
       vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
         if (getCounter.succeeded()) {
@@ -93,8 +98,7 @@ class Discovery : AbstractVerticle() {
               logger.info(
                   "First connected client for tenant on this node. Registering services change listener (node: ${deploymentID()}, tenant: $tenant)")
 
-              val map = hazelcast.getReplicatedMap<String, String>("discovery.services.$tenant")
-              val entryListenerId = map.addEntryListener(ServicesChangeListener())
+              val entryListenerId = replicatedMap.addEntryListener(ServicesChangeListener(vertx.eventBus()))
 
               vertx
                   .sharedData()
@@ -112,28 +116,18 @@ class Discovery : AbstractVerticle() {
 
       val notificationsAddress = "datawire.discovery.$tenant.services.notifications"
       val notificationsHandler = vertx.eventBus().localConsumer<String>(notificationsAddress)
+      notificationsHandler.handler {
+        socket.writeFinalTextFrame(it.body())
+      }
 
       // A discovery.protocol.clear message is always sent upon a connection being established. The clear message is
       // sent just before the server dumps all known Active services to the client.
       socket.writeFinalTextFrame(Clear().encode())
-      vertx.executeBlocking<Void>({ future ->
-
-        for((key, version, props) in serviceStore.getRecords()) {
-          val node = Node()
-          node.address    = key.address
-          node.service    = key.name
-          node.version    = version
-          node.properties = HashMap(props) // TODO: investigate why Quark uses a specific Map implementation
-
-          val active = Active()
-          active.node = node
-          active.ttl  = 0.0 // TODO: Why Double!?
-
-          socket.writeFinalTextFrame(active.encode())
-        }
-
-        future.complete()
-      }, false, { })
+      vertx.executeBlocking<Void>(
+          {
+            future -> serviceStore.getRecords().forEach { socket.writeFinalTextFrame(it.toActive().encode()) }
+            future.complete()
+          }, false, { })
 
 
       socket.handler { buffer ->
@@ -160,17 +154,18 @@ class Discovery : AbstractVerticle() {
     }
 
     fun onActive(tenant: String, active: Active) {
-
+      val key = ServiceKey(active.node.service, active.node.address, tenant)
+      val record = ServiceRecord(key, active.node.version, active.node.properties.mapValues { it.toString() })
+      serviceStore.addRecord(record, active.ttl.toLong())
     }
 
     fun onExpire(tenant: String, expire: Expire) {
-
+      val key = ServiceKey(expire.node.service, expire.node.address, tenant)
+      serviceStore.removeRecord(key)
     }
 
-    fun onClear(tenant: String, reset: Clear) {
-
+    fun onClear(tenant: String, clear: Clear) {
+      throw UnsupportedOperationException("TODO: Check if this needs to be handled.")
     }
-
-
   }
 }
