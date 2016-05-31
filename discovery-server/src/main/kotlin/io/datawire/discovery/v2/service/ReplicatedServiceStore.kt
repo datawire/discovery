@@ -13,16 +13,16 @@ class ReplicatedServiceStore(private val backingMap: ReplicatedMap<String, Servi
   override val size: Int
     get() = backingMap.size
 
-  override fun addRecord(record: ServiceRecord, ttl: Long) {
-    backingMap.put(record.key.toString(), record, ttl, TimeUnit.SECONDS)
+  override fun addRecord(record: ServiceRecord) {
+    backingMap.put(record.key.toString(), record, record.timeToLive, TimeUnit.SECONDS)
   }
 
-  override fun removeRecord(key: ServiceKey) {
-    throw UnsupportedOperationException()
+  override fun removeRecord(key: ServiceKey): Boolean {
+    return backingMap.remove(key.toString()) != null
   }
 
   override fun getRecord(key: ServiceKey): ServiceRecord? {
-    throw UnsupportedOperationException()
+    return backingMap[key.toString()]
   }
 
   override fun getRecords(): Collection<ServiceRecord> {

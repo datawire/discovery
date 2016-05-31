@@ -5,9 +5,9 @@ interface ServiceStore {
 
   val size: Int
 
-  fun addRecord(record: ServiceRecord, ttl: Long)
+  fun addRecord(record: ServiceRecord)
 
-  fun removeRecord(key: ServiceKey)
+  fun removeRecord(key: ServiceKey): Boolean
 
   fun getRecords(): Collection<ServiceRecord>
 

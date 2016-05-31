@@ -7,7 +7,11 @@ import java.io.Serializable
 import java.util.*
 
 
-data class ServiceRecord(val key: ServiceKey, val version: String, val properties: Map<String, String>) : Serializable {
+data class ServiceRecord(val key: ServiceKey, val version: String, val timeToLive: Long, val properties: Map<String, String>) : Serializable {
+
+  val serviceName: String
+    get() = key.name
+
   val tenant: String
     get() = key.tenant
 
@@ -17,7 +21,7 @@ data class ServiceRecord(val key: ServiceKey, val version: String, val propertie
   fun toActive(): Active {
     val result = Active()
     result.node = createNode()
-    result.ttl  = 0.0
+    result.ttl  = timeToLive.toDouble()
     return result
   }
 

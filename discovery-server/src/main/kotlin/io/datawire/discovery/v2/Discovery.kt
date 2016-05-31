@@ -24,23 +24,12 @@ class Discovery : AbstractVerticle() {
   private val logger    = LoggerFactory.getLogger(Discovery::class.java)
   private val hazelcast = initializeHazelcast()
 
-  class QuarkBugWorkaround : DiscoHandler {
-    override fun onActive(active: Active?) = throw UnsupportedOperationException()
-    override fun onExpire(expire: Expire?) = throw UnsupportedOperationException()
-    override fun onClear(reset: Clear?)    = throw UnsupportedOperationException()
-  }
-
-  init {
-    QuarkBugWorkaround()
-  }
-
   private fun initializeHazelcast(): HazelcastInstance {
     return Hazelcast.newHazelcastInstance()
   }
 
   private fun configureAuthHandler(router: Router) {
     val config = AuthHandlerConfig(config().getJsonObject("authHandler", JsonObject()))
-
     when (config.type) {
       "jwt" -> router.route(config.protectPath).handler(config.createJwtAuthHandler(vertx))
       else  -> return
@@ -54,19 +43,29 @@ class Discovery : AbstractVerticle() {
           .handler(config.createCorsHandler())
   }
 
+  private fun getTenant() {
+
+  }
+
   override fun start() {
     val router = Router.router(vertx)
 
     configureAuthHandler(router)
     configureCorsHandler(router)
 
-    router.route("/").handler(DiscoConnection())
+    router.route("/").handler(DiscoveryConnection())
 
     val server = vertx.createHttpServer()
-    server.requestHandler { router.accept(it) }.listen(52689)
+    val requestHandler = server.requestHandler { router.accept(it) }
+
+    val host = config().getString("host", "127.0.0.1")
+    val port = config().getInteger("port", 52689)
+    requestHandler.listen(port, host)
+
+    logger.info("Server running (address: {}:{})", host, port)
   }
 
-  inner class DiscoConnection() : Handler<RoutingContext> {
+  inner class DiscoveryConnection() : Handler<RoutingContext> {
 
     lateinit var serviceStore: ServiceStore
 
@@ -94,7 +93,7 @@ class Discovery : AbstractVerticle() {
 
             if (increment.succeeded() && increment.result() == 1L) {
               logger.info(
-                  "First connected client for tenant on this node. Registering services change listener (node: ${deploymentID()}, tenant: $tenant)")
+                  "First connected client for tenant on this node. Registering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
 
               val entryListenerId = replicatedMap.addEntryListener(ServicesChangeListener(vertx.eventBus()))
 
@@ -127,43 +126,35 @@ class Discovery : AbstractVerticle() {
             future.complete()
           }, false, { })
 
-
-      socket.handler { buffer ->
-        val event = DiscoveryEvent.decode(buffer.toString(Charsets.UTF_8))
-        handle(tenant, event)
-      }
+      socket.handler(DiscoveryMessageHandler(tenant, serviceStore))
 
       socket.closeHandler {
         if (notificationsHandler.isRegistered) {
           logger.debug("Unregistering client service store notification handler")
           notificationsHandler.unregister()
         }
+
+        vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
+          if (getCounter.succeeded()) {
+            getCounter.result().decrementAndGet { decrement ->
+
+              if (decrement.succeeded() && decrement.result() == 0L) {
+                logger.info(
+                    "Last connected client for tenant on this node. Unregistering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
+
+                val entryListenerId = vertx.sharedData()
+                                           .getLocalMap<String, String>("discovery.services.event-listeners")
+                                           .get(tenant)
+
+                replicatedMap.removeEntryListener(entryListenerId)
+
+              } else if(decrement.failed()) {
+                logger.error("Could not decrement tenant connection counter (tenant: $tenant)")
+              }
+            }
+          }
+        }
       }
-    }
-
-    fun handle(tenant: String, event: DiscoveryEvent) {
-      logger.debug("Handling {} event (tenant: {})", event.javaClass.simpleName, tenant)
-      when (event) {
-        is Active -> onActive(tenant, event)
-        is Expire -> onExpire(tenant, event)
-        is Clear  -> onClear(tenant, event)
-        else      -> throw UnsupportedOperationException("TODO: ERROR MESSAGE")
-      }
-    }
-
-    fun onActive(tenant: String, active: Active) {
-      val key = ServiceKey(active.node.service, active.node.address, tenant)
-      val record = ServiceRecord(key, active.node.version, active.node.properties.mapValues { it.toString() })
-      serviceStore.addRecord(record, active.ttl.toLong())
-    }
-
-    fun onExpire(tenant: String, expire: Expire) {
-      val key = ServiceKey(expire.node.service, expire.node.address, tenant)
-      serviceStore.removeRecord(key)
-    }
-
-    fun onClear(tenant: String, clear: Clear) {
-      throw UnsupportedOperationException("TODO: Check if this needs to be handled.")
     }
   }
 }
