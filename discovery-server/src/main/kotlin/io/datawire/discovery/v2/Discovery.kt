@@ -5,7 +5,6 @@ import com.hazelcast.core.HazelcastInstance
 import discovery.protocol.*
 import io.datawire.discovery.v2.config.AuthHandlerConfig
 import io.datawire.discovery.v2.config.CorsHandlerConfig
-import io.datawire.discovery.v2.model.ServiceKey
 import io.datawire.discovery.v2.model.ServiceRecord
 import io.datawire.discovery.v2.model.ServiceStore
 import io.datawire.discovery.v2.service.ForwardingServiceStore
@@ -41,10 +40,6 @@ class Discovery : AbstractVerticle() {
 
     router.route(config.path)
           .handler(config.createCorsHandler())
-  }
-
-  private fun getTenant() {
-
   }
 
   override fun start() {
