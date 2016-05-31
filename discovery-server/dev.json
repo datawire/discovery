@@ -1,4 +1,7 @@
 {
+  "address": "localhost",
+  "port": 52689,
+
   "authentication": {
     "type": "none"
   },
