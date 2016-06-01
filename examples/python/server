@@ -24,16 +24,20 @@ def hello():
 if __name__ == "__main__":
 
     # Start discovery related changes.
-    from discovery import Discovery, Node
     from util import Platform, Datawire
+    host = Platform.getRoutableHost()
+    port = Platform.getRoutablePort(8080)
+
+    from discovery import Discovery, Node
     disco = Discovery("http://disco.datawire.io")
     disco.token = Datawire.getToken()
     disco.start()
+
     node = Node()
     node.service = "hello-flask"
-    node.address = "http://%s:%s" % (Platform.getRoutableHost(), Platform.getRoutablePort())
+    node.address = "http://%s:%s" % (host, port)
     node.version = "1.2.3"
     disco.register(node)
     # End discovery related changes.
 
-    app.run()
+    app.run(host=host, port=port)

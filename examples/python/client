@@ -22,7 +22,7 @@ from util import Datawire
 disco = Discovery("http://disco.datawire.io")
 disco.token = Datawire.getToken()
 disco.start()
-url = disco.resolve('hello-flask')
+url = disco.resolve('hello-flask').address
 # End discovery related changes.
 
 r = requests.get(url)
