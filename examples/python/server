@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+# This is the default flask hello world modified to work with datawire
+# service discovery. There is a point to using the default flask hello
+# world as our example. We want our stuff to be easy to work with
+# stuff people already know how to use and are familiar with. We
+# aren't telling people how to write web services, they already know
+# this. We are showing people how what they already know can fit into
+# a microservices architecture.
+
+# The changes to add in discovery are shown below. Currently the API
+# is being used in "long form" mode, we can/will streamline/add
+# convenience for common scenarios, but first and most important we
+# need to get the end-to-end scenario working so we can identify any
+# sleeping dragons.
+
+from flask import Flask
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    return "Hello World!"
+
+if __name__ == "__main__":
+
+    # Start discovery related changes.
+    from discovery import Discovery, Node
+    from util import Platform, Datawire
+    disco = Discovery("http://disco.datawire.io")
+    disco.token = Datawire.getToken()
+    disco.start()
+    node = Node()
+    node.service = "hello-flask"
+    node.address = "http://%s:%s" % (Platform.getRoutableHost(), Platform.getRoutablePort())
+    node.version = "1.2.3"
+    disco.register(node)
+    # End discovery related changes.
+
+    app.run()
