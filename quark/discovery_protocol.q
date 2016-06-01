@@ -39,7 +39,12 @@ namespace protocol {
             // nothing because the full set of nodes will be
             // resent when we connect/reconnect.
 
-            // ...
+            if (isConnected()) {
+                Active active = new Active();
+                active.node = node;
+                active.ttl = 30.0;
+                sock.send(active.encode());
+            }
         }
 
         void resolve(Node node) {
@@ -147,7 +152,19 @@ namespace protocol {
 	    // Whenever we (re)connect, notify the server of any
 	    // nodes we have registered.
 
-	    // ...
+            sock = socket;
+
+            List<String> services = disco.registered.keys();
+            int idx = 0;
+            while (idx < services.size()) {
+                int jdx = 0;
+                List<Node> nodes = disco.registered[services[idx]].nodes;
+                while (jdx < nodes.size()) {
+                    register(nodes[jdx]);
+                    jdx = jdx + 1;
+                }
+                idx = idx + 1;
+            }
 	}
         void onWSMessage(WebSocket socket, String message) {
 	    // Decode and dispatch incoming messages.
