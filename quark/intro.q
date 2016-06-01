@@ -118,11 +118,17 @@ namespace util
           }
         }
 
+        /* [ !!! ] This code isn't really useful because Kubernetes doesn't inject any specific information into the container
+           that can be used easily. K8s users should expect to do it through the DATAWIRE_ROUTABLE_HOST and
+           DATAWIRE_ROUTABLE_PORT environment variables.
+
         if (platformType() == PLATFORM_TYPE_KUBERNETES || platformType() == PLATFORM_TYPE_GOOGLE_CONTAINER)
         {
           logger.debug(PLATFORM_TYPE_VARIABLE_NAME + " = [" + PLATFORM_TYPE_KUBERNETES  + "|" + PLATFORM_TYPE_GOOGLE_CONTAINER + "]");
           return KubernetesHost().get();
         }
+
+*/
       }
       
       return result;
