@@ -1,0 +1,119 @@
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+ext {
+  argparse4jVersion = '0.6.0'
+  awaitilityVersion = '1.7.0'
+  jacksonVersion = '2.7.1'
+  jacksonKotlinVersion = "${jacksonVersion}-2"
+}
+
+clean {
+  delete "src/generated"
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Quark -> Java source code generation... this sucks; a lot.
+// ---------------------------------------------------------------------------------------------------------------------
+
+file("${buildDir}/generated/quark").mkdirs()
+file("${projectDir}/src/generated").mkdirs()
+
+task compileQuarkSources(type: Exec) {
+  description "Compile Quark (.q) source files into Java"
+  executable  "quark"
+  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "discovery-${project.version}.q".toString()
+  workingDir  "../quark"
+}
+
+task copyQuarkSources(type: Copy) {
+  description "Copies quark "
+  from "${buildDir}/generated/quark"
+  into "${projectDir}/src/generated"
+  include '**/*.java'
+  eachFile { details ->
+    def targetPath = details.path.replaceFirst(/java\/[\w.-]*\/src\/main\/java/, "")
+    details.path = targetPath
+  }
+}
+
+task removeQuarkJunk(type: Delete) {
+  delete "${projectDir}/src/generated/java"
+}
+
+copyQuarkSources.dependsOn compileQuarkSources
+removeQuarkJunk.dependsOn copyQuarkSources
+
+tasks.withType(JavaCompile) {
+  compileTask -> compileTask.dependsOn removeQuarkJunk
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir "${projectDir}/src/generated"
+    }
+  }
+}
+
+repositories {
+  mavenCentral()
+  maven {
+    url "https://oss.sonatype.org/content/repositories/snapshots"
+  }
+}
+
+configurations {
+  all*.exclude group: 'com.hazelcast:hazelcast'
+}
+
+dependencies {
+  compile(
+      "ch.qos.logback:logback-classic:${parent.ext.logbackVersion}",
+
+      "com.hazelcast:hazelcast:${parent.ext.hazelcastVersion}",
+      "com.hazelcast:hazelcast-cloud:${parent.ext.hazelcastVersion}",
+
+      "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
+      "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
+      "com.fasterxml.jackson.jr:jackson-jr-objects:$jacksonVersion",
+
+      "io.vertx:vertx-auth-jwt:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-core:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-dropwizard-metrics:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-hazelcast:${parent.ext.vertxVersion}",
+      "io.vertx:vertx-web:${parent.ext.vertxVersion}",
+
+      "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
+
+      "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
+
+      project(":discovery-core")
+  )
+
+  testCompile(
+      "io.vertx:vertx-unit:${parent.ext.vertxVersion}",
+      "com.jayway.awaitility:awaitility:${awaitilityVersion}"
+  )
+}
+
+mainClassName = 'io.vertx.core.Launcher'
+
+applicationDistribution.from(parent.projectDir) {
+  include 'LICENSE'
+  include 'NOTICE'
+  include 'README.md'
+  into ''
+}
+
+shadowJar {
+  classifier = 'fat'
+  manifest {
+    attributes 'Main-Verticle': 'io.datawire.discovery.Discovery'
+  }
+  mergeServiceFiles {
+    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+  }
+}
+
+

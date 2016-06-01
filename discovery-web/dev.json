@@ -1,0 +1,18 @@
+{
+  "address": "localhost",
+  "port": 52689,
+
+  "authentication": {
+    "type": "none"
+  },
+
+  "tenant": "default",
+
+  "corsHandler": {
+    "allowedOrigin": "*",
+    "allowAuth": true,
+    "allowMethods": [],
+    "allowHeaders": [],
+    "path": "/*"
+  }
+}
