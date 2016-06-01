@@ -48,7 +48,6 @@ namespace util
 
     class EnvironmentVariable extends Supplier<String>
     {
-
       String variableName;
 
       EnvironmentVariable(String variableName)
@@ -56,17 +55,19 @@ namespace util
         self.variableName = variableName;
       }
 
-      bool isDefined() {
+      bool isDefined()
+      {
         return get() != null;
       }
 
       String get()
       {
-        return Env.get(variableName);
+        return Environment.getEnvironment()[variableName];
       }
 
       // TODO: Remove once Issue #143 --> https://github.com/datawire/quark/issues/143 is resolved.
-      String orElseGet(String alternative) {
+      String orElseGet(String alternative)
+      {
         String result = get();
         if (result != null)
         {

@@ -13,6 +13,7 @@ build
 quark/test/*/launch-vars.json
 *.tfstate*
 quark/test/*/*.xml
+quark/output
 .cache
 
 **/src/generated
