@@ -14,4 +14,4 @@ RUN apk add --update bash && \
 COPY discovery-web/build/libs/discovery-web-*-fat.jar /opt/discovery/
 RUN  ln -s /opt/discovery/discovery-web-*-fat.jar /opt/discovery/discovery-web.jar
 
-ENTRYPOINT ["java", "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory", "-jar", "/opt/discovery/discovery-web.jar", "-conf", "dev.json"]
+ENTRYPOINT ["java", "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory", "-jar", "/opt/discovery/discovery-web.jar", "-conf", "/opt/discovery/config/dev.json"]

@@ -45,9 +45,10 @@ task generateJavaFromQuark(dependsOn: [compileQuarkSources, copyQuarkSources]) {
   delete "${parent.projectDir}/quark/generated"
 }
 
-compileJava {
+compileKotlin {
   dependsOn generateJavaFromQuark
-  classpath = configurations.compile
+  //classpath = configurations.compile
+  source "${projectDir}/src/generated/java"
 }
 
 clean {
@@ -89,6 +90,8 @@ dependencies {
       "io.vertx:vertx-dropwizard-metrics:${parent.ext.vertxVersion}",
       "io.vertx:vertx-hazelcast:${parent.ext.vertxVersion}",
       "io.vertx:vertx-web:${parent.ext.vertxVersion}",
+
+      "io.netty:netty-all:4.0.33.Final",
 
       "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
 
