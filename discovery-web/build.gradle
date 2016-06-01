@@ -8,8 +8,14 @@ ext {
   jacksonKotlinVersion = "${jacksonVersion}-2"
 }
 
-clean {
-  delete "src/generated"
+// ---------------------------------------------------------------------------------------------------------------------
+// Docker
+// ---------------------------------------------------------------------------------------------------------------------
+
+task buildDockerImage(type: Exec, dependsOn: shadowJar) {
+  workingDir parent.projectDir
+  executable 'docker'
+  args "build", "-t", "datawire/discovery:${version}".toString(), "."
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -20,16 +26,14 @@ file("${buildDir}/generated/quark").mkdirs()
 file("${projectDir}/src/generated").mkdirs()
 
 task compileQuarkSources(type: Exec) {
-  description "Compile Quark (.q) source files into Java"
   executable  "quark"
   args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "discovery-${project.version}.q".toString()
   workingDir  "../quark"
 }
 
 task copyQuarkSources(type: Copy) {
-  description "Copies quark "
   from "${buildDir}/generated/quark"
-  into "${projectDir}/src/generated"
+  into "${projectDir}/src/generated/java"
   include '**/*.java'
   eachFile { details ->
     def targetPath = details.path.replaceFirst(/java\/[\w.-]*\/src\/main\/java/, "")
@@ -37,21 +41,23 @@ task copyQuarkSources(type: Copy) {
   }
 }
 
-task removeQuarkJunk(type: Delete) {
-  delete "${projectDir}/src/generated/java"
+task generateJavaFromQuark(dependsOn: [compileQuarkSources, copyQuarkSources]) {
+  delete "${parent.projectDir}/quark/generated"
 }
 
-copyQuarkSources.dependsOn compileQuarkSources
-removeQuarkJunk.dependsOn copyQuarkSources
+compileJava {
+  dependsOn generateJavaFromQuark
+  classpath = configurations.compile
+}
 
-tasks.withType(JavaCompile) {
-  compileTask -> compileTask.dependsOn removeQuarkJunk
+clean {
+  delete "src/generated"
 }
 
 sourceSets {
   main {
     java {
-      srcDir "${projectDir}/src/generated"
+      srcDir 'src/generated/java'
     }
   }
 }
@@ -115,5 +121,3 @@ shadowJar {
     include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
   }
 }
-
-

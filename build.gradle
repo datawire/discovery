@@ -1,5 +1,7 @@
 buildscript {
   ext.kotlinVersion = '1.0.2'
+  ext.shadowPluginVersion = '1.2.3'
+  ext.dockerPluginVersion = '1.2'
 
   repositories {
     jcenter()
@@ -7,7 +9,8 @@ buildscript {
 
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    classpath "com.github.jengelman.gradle.plugins:shadow:${shadowPluginVersion}"
+    classpath "se.transmode.gradle:gradle-docker:${dockerPluginVersion}"
   }
 }
 

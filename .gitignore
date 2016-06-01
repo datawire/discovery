@@ -16,3 +16,4 @@ quark/test/*/*.xml
 .cache
 
 **/src/generated
+quark/generated
