@@ -161,6 +161,7 @@ namespace discovery {
 
         String url;
         String token;
+        bool gateway = true;
 
         // Nodes we advertise to the disco service.
         Map<String,Cluster> registered = new Map<String,Cluster>();

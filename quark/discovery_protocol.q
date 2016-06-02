@@ -9,7 +9,9 @@ namespace protocol {
         static Logger log = new Logger("discovery");
 
         Discovery disco;
-        float restartDelay = 0.1;
+        float firstDelay = 1.0;
+        float maxDelay = 16.0;
+        float reconnectDelay = firstDelay;
         WebSocket sock = null;
         bool authenticating = false;
 
@@ -34,6 +36,14 @@ namespace protocol {
 
         void schedule(float time) {
             Context.runtime().schedule(self, time);
+        }
+
+        void scheduleReconnect() {
+            schedule(reconnectDelay);
+            reconnectDelay = 2.0*reconnectDelay;
+            if (reconnectDelay > maxDelay) {
+                reconnectDelay = maxDelay;
+            }
         }
 
         void register(Node node) {
@@ -119,8 +129,12 @@ namespace protocol {
                 }
             } else {
                 if (!authenticating) {
-                    authRequest();
-                    authenticating = true;
+                    if (disco.gateway) {
+                        authRequest();
+                        authenticating = true;
+                    } else {
+                        Context.runtime().open(disco.url, self);
+                    }
                 }
             }
         }
@@ -141,19 +155,25 @@ namespace protocol {
                 Context.runtime().open(url, self);
             } else {
                 log.error(request.getUrl() + ": " + response.getBody());
+                scheduleReconnect();
             }
         }
         void onHTTPError(HTTPRequest request, String message) {
             // Any non-transient errors should be reported back to the
             // user via any Nodes they have requested.
+            log.error(request.getUrl() + ": " + message);
+            scheduleReconnect();
         }
-        void onHTTPFinal(HTTPRequest request) { /* unused */ }
+        void onHTTPFinal(HTTPRequest request) {
+            authenticating = false;
+        }
 
         void onWSInit(WebSocket socket) { /* unused */ }
         void onWSConnected(WebSocket socket) {
             // Whenever we (re)connect, notify the server of any
             // nodes we have registered.
 
+            reconnectDelay = firstDelay;
             sock = socket;
 
             List<String> services = disco.registered.keys();
@@ -189,7 +209,7 @@ namespace protocol {
         void onWSFinal(WebSocket socket) {
             disco.mutex.acquire();
             if (disco.started) {
-                schedule(restartDelay);
+                scheduleReconnect();
             }
             disco.mutex.release();
         }
