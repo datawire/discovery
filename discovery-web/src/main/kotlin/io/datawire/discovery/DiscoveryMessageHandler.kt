@@ -30,7 +30,7 @@ class DiscoveryMessageHandler(private val tenant      : String,
     val record = ServiceRecord(key,
                                active.node.version,
                                active.ttl.toLong(),
-                               active.node.properties.mapValues { it.toString() })
+                               active.node.properties?.mapValues { it.toString() } ?: hashMapOf<String,String>())
 
 
     serviceStore.addRecord(record)
