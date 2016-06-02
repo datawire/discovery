@@ -14,6 +14,9 @@
 # need to get the end-to-end scenario working so we can identify any
 # sleeping dragons.
 
+import logging
+logging.basicConfig()
+
 from flask import Flask
 app = Flask(__name__)
 

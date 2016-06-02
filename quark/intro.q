@@ -50,7 +50,7 @@ namespace util
         String token = EnvironmentVariable(TOKEN_VARIABLE_NAME).get();
         if (token == null)
         {
-            Runtime.fail("Environment variable 'DATAWIRE_TOKEN' is not set.");
+            concurrent.Context.runtime().fail("Environment variable 'DATAWIRE_TOKEN' is not set.");
         }
 
         return token;
@@ -97,7 +97,7 @@ namespace util
         if (platformType() == null)
         {
           logger.error("Platform type not specified in environment variable '" + PLATFORM_TYPE_VARIABLE_NAME + "'");
-          Runtime.fail("Environment variable 'DATAWIRE_PLATFORM_TYPE' is not set.");
+          concurrent.Context.runtime().fail("Environment variable 'DATAWIRE_PLATFORM_TYPE' is not set.");
         }
 
         if (platformType().startsWith(PLATFORM_TYPE_EC2))
@@ -114,7 +114,7 @@ namespace util
           else
           {
             logger.error("Invalid format for '" + PLATFORM_TYPE_VARIABLE_NAME + "' starting with 'ec2'. Expected (ec2:<scope>)");
-            Runtime.fail("Invalid format for DATAWIRE_PLATFORM_TYPE == EC2. Expected EC2:<scope>.");
+            concurrent.Context.runtime().fail("Invalid format for DATAWIRE_PLATFORM_TYPE == EC2. Expected EC2:<scope>.");
           }
         }
 

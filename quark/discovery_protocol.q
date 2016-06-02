@@ -6,8 +6,10 @@ namespace protocol {
     @doc("The protocol machinery that wires together the public disco API to a server.")
     class DiscoClient extends DiscoHandler, HTTPHandler, WSHandler, Task {
 
+        static Logger log = new Logger("discovery");
+
         Discovery disco;
-	float restartDelay = 0.1;
+        float restartDelay = 0.1;
         WebSocket sock = null;
         bool authenticating = false;
 
@@ -54,40 +56,40 @@ namespace protocol {
             // points we are interested in resolving and communicate
             // as this changes.
 
-	    // Hmm, maybe we actually need to do something to deal
-	    // with timeouts.
+            // Hmm, maybe we actually need to do something to deal
+            // with timeouts.
         }
 
-	void onActive(Active active) {
-	    // Stick the node in the available set.
+        void onActive(Active active) {
+            // Stick the node in the available set.
 
-	    Node node = active.node;
-	    String service = node.service;
+            Node node = active.node;
+            String service = node.service;
 
-	    if (!disco.services.contains(service)) {
-		disco.services[service] = new Cluster();
-	    }
+            if (!disco.services.contains(service)) {
+                disco.services[service] = new Cluster();
+            }
 
             Cluster cluster = disco.services[service];
             cluster.add(node);
-	}
+        }
 
-	void onExpire(Expire expire) {
-	    // Remove the node from our available set.
+        void onExpire(Expire expire) {
+            // Remove the node from our available set.
 
-	    // hmm, we could make all Node objects we hand out be
-	    // continually updated until they expire...
+            // hmm, we could make all Node objects we hand out be
+            // continually updated until they expire...
 
-	    Node node = expire.node;
-	    String service = node.service;
+            Node node = expire.node;
+            String service = node.service;
 
-	    if (disco.services.contains(service)) {
-		// XXX: no way to remove from List or Map
-		// ...
-	    }
+            if (disco.services.contains(service)) {
+                // XXX: no way to remove from List or Map
+                // ...
+            }
 
-	    // ...
-	}
+            // ...
+        }
 
         void onClear(Clear reset) {
             // ???
@@ -99,14 +101,14 @@ namespace protocol {
               the desired state held by disco against our actual
               state and taking any measures necessary to address the
               difference:
-	      
+              
               
                - Disco.started holds the desired connectedness
                  state. The isConnected() accessor holds the actual
                  connectedness state. If these differ then do what is
                  necessry to make the desired state actual.
               
-	       - If we haven't sent a heartbeat recently enough, then
+               - If we haven't sent a heartbeat recently enough, then
                  do that.
             */
 
@@ -138,19 +140,19 @@ namespace protocol {
                 String url = response.getBody();
                 Context.runtime().open(url, self);
             } else {
-                // ...
+                log.error(request.getUrl() + ": " + response.getBody());
             }
-	}
+        }
         void onHTTPError(HTTPRequest request, String message) {
-	    // Any non-transient errors should be reported back to the
-	    // user via any Nodes they have requested.
-	}
+            // Any non-transient errors should be reported back to the
+            // user via any Nodes they have requested.
+        }
         void onHTTPFinal(HTTPRequest request) { /* unused */ }
 
         void onWSInit(WebSocket socket) { /* unused */ }
         void onWSConnected(WebSocket socket) {
-	    // Whenever we (re)connect, notify the server of any
-	    // nodes we have registered.
+            // Whenever we (re)connect, notify the server of any
+            // nodes we have registered.
 
             sock = socket;
 
@@ -165,40 +167,40 @@ namespace protocol {
                 }
                 idx = idx + 1;
             }
-	}
+        }
         void onWSMessage(WebSocket socket, String message) {
-	    // Decode and dispatch incoming messages.
-	    DiscoveryEvent event = DiscoveryEvent.decode(message);
-	    disco.mutex.acquire();
-	    event.dispatch(self);
-	    disco.mutex.release();
-	}
+            // Decode and dispatch incoming messages.
+            DiscoveryEvent event = DiscoveryEvent.decode(message);
+            disco.mutex.acquire();
+            event.dispatch(self);
+            disco.mutex.release();
+        }
         void onWSBinary(WebSocket socket, Buffer message) { /* unused */ }
 
         void onWSClosed(WebSocket socket) { /* unused */ }
 
         void onWSError(WebSocket socket) {
-	    // XXX: Should log the error here.
+            // XXX: Should log the error here.
 
             // Any non-transient errors should be reported back to the
             // user via any Nodes they have requested.
-	}
+        }
 
         void onWSFinal(WebSocket socket) {
-	    disco.mutex.acquire();
-	    if (disco.started) {
-		schedule(restartDelay);
-	    }
-	    disco.mutex.release();
-	}
+            disco.mutex.acquire();
+            if (disco.started) {
+                schedule(restartDelay);
+            }
+            disco.mutex.release();
+        }
 
     }
 
     interface DiscoHandler {
 
-	void onActive(Active active);
+        void onActive(Active active);
 
-	void onExpire(Expire expire);
+        void onExpire(Expire expire);
 
         void onClear(Clear reset);
 
@@ -206,14 +208,14 @@ namespace protocol {
 
     class DiscoveryEvent {
 
-	static DiscoveryEvent decode(String message) {
-	    JSONObject json = message.parseJSON();
-	    String type = json["type"];
-	    Class clazz = Class.get(type);
-	    DiscoveryEvent event = ?clazz.construct([]);
-	    fromJSON(clazz, event, json);
-	    return event;
-	}
+        static DiscoveryEvent decode(String message) {
+            JSONObject json = message.parseJSON();
+            String type = json["type"];
+            Class clazz = Class.get(type);
+            DiscoveryEvent event = ?clazz.construct([]);
+            fromJSON(clazz, event, json);
+            return event;
+        }
 
         String encode() {
             Class clazz = self.getClass();
@@ -222,7 +224,7 @@ namespace protocol {
             return json.toString();
         }
 
-	void dispatch(DiscoHandler handler);
+        void dispatch(DiscoHandler handler);
 
     }
 
@@ -235,23 +237,23 @@ namespace protocol {
     class Active extends DiscoveryEvent {
 
         @doc("The advertised node.")
-	Node node;
+        Node node;
         @doc("The ttl of the node in seconds.")
         float ttl;
 
-	void dispatch(DiscoHandler handler) {
-	    handler.onActive(self);
-	}
+        void dispatch(DiscoHandler handler) {
+            handler.onActive(self);
+        }
     }
 
     @doc("Expire a node.")
     class Expire extends DiscoveryEvent {
 
-	Node node;
+        Node node;
 
-	void dispatch(DiscoHandler handler) {
-	    handler.onExpire(self);
-	}
+        void dispatch(DiscoHandler handler) {
+            handler.onExpire(self);
+        }
     }
 
     @doc("Expire all nodes.")
