@@ -1,14 +1,14 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger{0} -- %m%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger -- %m%n</pattern>
         </encoder>
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/datawire/discovery.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger{0} -- %m%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger -- %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
@@ -22,4 +22,8 @@
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
+
+    <logger name="io.netty" level="error" />
+    <logger name="com.hazelcast.cluster" level="info" />
+    <logger name="com.hazelcast" level="error" />
 </configuration>

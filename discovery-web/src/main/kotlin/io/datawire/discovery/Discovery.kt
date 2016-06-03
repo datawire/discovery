@@ -23,26 +23,36 @@ class Discovery : AbstractVerticle() {
   private val logger    = LoggerFactory.getLogger(Discovery::class.java)
   private val hazelcast = initializeHazelcast()
 
-  private fun initializeHazelcast(): HazelcastInstance {
-    return Hazelcast.newHazelcastInstance()
-  }
+  private fun initializeHazelcast(): HazelcastInstance = Hazelcast.newHazelcastInstance()
 
   private fun configureAuthHandler(router: Router) {
     val config = AuthHandlerConfig(config().getJsonObject("authHandler", JsonObject()))
     when (config.type) {
       "jwt" -> router.route(config.protectPath).handler(config.createJwtAuthHandler(vertx))
-      else  -> return
+      else  -> {
+        logger.warn("Not using authentication!")
+      }
     }
   }
 
   private fun configureCorsHandler(router: Router) {
     val config = CorsHandlerConfig(config().getJsonObject("corsHandler", JsonObject()))
-
     router.route(config.path)
           .handler(config.createCorsHandler())
   }
 
   override fun start() {
+    logger.info("Discovery starting...")
+
+    if (config().isEmpty) {
+      logger.error("Could not load Discovery configuration or configuration is empty.")
+
+      // todo(plombardi): Vert.x Shutdown
+      //
+      // Need to figure out the Vert.x way to abort. #close(), #undeploy(deploymentID()) and System.exit(1)
+      // all fail.
+    }
+
     val router = Router.router(vertx)
 
     configureAuthHandler(router)
@@ -57,7 +67,7 @@ class Discovery : AbstractVerticle() {
     val port = config().getInteger("port", 52689)
     requestHandler.listen(port, host)
 
-    logger.info("Server running (address: {}:{})", host, port)
+    logger.info("Discovery running (address: {}:{})", host, port)
   }
 
   inner class DiscoveryConnection() : Handler<RoutingContext> {
@@ -68,7 +78,7 @@ class Discovery : AbstractVerticle() {
       val request = ctx.request()
       val socket  = request.upgrade()
 
-      val tenant = if (config().getJsonObject("authentication").getString("type", "none") == "none") {
+      val tenant = if (config().getJsonObject("authHandler").getString("type", "none") == "none") {
         "default"
       } else {
         ctx.user().principal().getString("aud")
@@ -77,10 +87,6 @@ class Discovery : AbstractVerticle() {
       // TODO: Abstract this bit a bit.
       val replicatedMap = hazelcast.getReplicatedMap<String, ServiceRecord>("discovery.services.$tenant")
       serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap))
-
-//      serviceStore.addRecord(ServiceRecord(ServiceKey("foo", "foo-host"), "1.0.0", mapOf()), 20)
-//      serviceStore.addRecord(ServiceRecord(ServiceKey("bar", "bar-host"), "1.0.0", mapOf()), 40)
-//      serviceStore.addRecord(ServiceRecord(ServiceKey("baz", "baz-host"), "1.0.0", mapOf()), 60)
 
       vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
         if (getCounter.succeeded()) {

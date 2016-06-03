@@ -1,6 +1,6 @@
-FROM alpine:3.3
+FROM alpine:3.4
 MAINTAINER Philip Lombardi <plombardi@datawire.io>
-
+EXPOSE 52689
 LABEL DESCRIPTION="Datawire Discovery"
 LABEL VENDOR="Datawire"
 
@@ -14,4 +14,9 @@ RUN apk add --update bash && \
 COPY discovery-web/build/libs/discovery-web-*-fat.jar /opt/discovery/
 RUN  ln -s /opt/discovery/discovery-web-*-fat.jar /opt/discovery/discovery-web.jar
 
-ENTRYPOINT ["java", "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory", "-jar", "/opt/discovery/discovery-web.jar", "-conf", "/opt/discovery/config/dev.json"]
+ENTRYPOINT ["java", \
+            "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory", \
+            "-Dhazelcast.logging.type=slf4j", \
+            "-jar", "/opt/discovery/discovery-web.jar", \
+            "-conf", \
+            "/opt/discovery/config/discovery.json"]
