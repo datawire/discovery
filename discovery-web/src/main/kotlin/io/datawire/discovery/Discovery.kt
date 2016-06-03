@@ -127,7 +127,7 @@ class Discovery : AbstractVerticle() {
             future.complete()
           }, false, { })
 
-      socket.handler(DiscoveryMessageHandler(tenant, serviceStore))
+      socket.handler(DiscoveryMessageHandler(tenant, socket, serviceStore))
 
       socket.closeHandler {
         if (notificationsHandler.isRegistered) {

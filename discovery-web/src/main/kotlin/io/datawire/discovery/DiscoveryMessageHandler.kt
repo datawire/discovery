@@ -6,22 +6,30 @@ import io.datawire.discovery.model.ServiceRecord
 import io.datawire.discovery.model.ServiceStore
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
 
 
 class DiscoveryMessageHandler(private val tenant      : String,
+                              private val socket      : ServerWebSocket,
                               private val serviceStore: ServiceStore) : DiscoHandler, Handler<Buffer> {
 
   private val logger = LoggerFactory.getLogger(javaClass)
 
   override fun handle(buffer: Buffer) {
-    val event = DiscoveryEvent.decode(buffer.toString(Charsets.UTF_8))
-    logger.debug("Handling {} event (tenant: {})", event.javaClass.simpleName, tenant)
-    when (event) {
-      is Active -> onActive(event)
-      is Expire -> onExpire(event)
-      is Clear -> onClear(event)
-      else      -> throw UnsupportedOperationException("TODO: ERROR MESSAGE")
+    try {
+      val event = DiscoveryEvent.decode(buffer.toString(Charsets.UTF_8))
+      logger.debug("Handling {} event (tenant: {})", event.javaClass.simpleName, tenant)
+      when (event) {
+        is Active -> onActive(event)
+        is Expire -> onExpire(event)
+        is Clear  -> onClear(event)
+        else      -> throw UnsupportedOperationException("TODO: ERROR MESSAGE")
+      }
+    } catch (th: Throwable) {
+      // TODO(plombardi): Send an error message
+      logger.error("Error handling client message", th)
+      socket.close()
     }
   }
 
