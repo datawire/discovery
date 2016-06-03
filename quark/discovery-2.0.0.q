@@ -1,3 +1,5 @@
+quark 0.7;
+
 package datawire_discovery 2.0.0;
 
 include discovery_protocol.q;
@@ -126,6 +128,7 @@ namespace discovery {
 	    version = node.version;
 	    address = node.address;
 	    properties = node.properties;
+            self.finish(null);
 	}
 
         String toString() {

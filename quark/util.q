@@ -1,5 +1,3 @@
-package discovery 2.0.0;
-
 /* 
  * Copyright 2016 Datawire. All rights reserved.
  *

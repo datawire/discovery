@@ -1,3 +1,5 @@
+quark 0.7;
+
 package discotest 2.0.0;
 
 use discovery-2.0.0.q;
@@ -28,6 +30,10 @@ class DiscoTest extends ProtocolTest {
         } else {
             return null;
         }
+    }
+
+    Open expectOpen(SocketEvent evt) {
+        return ?expectDiscoveryEvent(evt, "discovery.protocol.Open");
     }
 
     Active expectActive(SocketEvent evt) {
@@ -94,6 +100,9 @@ class DiscoTest extends ProtocolTest {
         SocketEvent sev = startDisco(disco);
         if (sev == null) { return; }
 
+        Open open = expectOpen(sev);
+        if (open == null) { return; }
+
         Active active = expectActive(sev);
         if (active == null) { return; }
         checkEqualNodes(node, active.node);
@@ -109,6 +118,8 @@ class DiscoTest extends ProtocolTest {
         node.version = "1.2.3";
         disco.register(node);
 
+        Open open = expectOpen(sev);
+        if (open == null) { return; }
         Active active = expectActive(sev);
         if (active == null) { return; }
         checkEqualNodes(node, active.node);

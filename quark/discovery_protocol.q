@@ -12,8 +12,11 @@ namespace protocol {
         float firstDelay = 1.0;
         float maxDelay = 16.0;
         float reconnectDelay = firstDelay;
+        float ttl = 30.0;
+
         WebSocket sock = null;
         bool authenticating = false;
+        long lastHeartbeat = 0;
 
         DiscoClient(Discovery discovery) {
             disco = discovery;
@@ -28,10 +31,7 @@ namespace protocol {
         }
 
         void stop() {
-            // We've been asked to stop, so cancel the request/close
-            // the web socket if it is open.
-
-            // ...
+            schedule(0.0);
         }
 
         void schedule(float time) {
@@ -48,26 +48,28 @@ namespace protocol {
 
         void register(Node node) {
             // Trigger send of delta if we are connected, otherwise do
-            // nothing because the full set of nodes will be
-            // resent when we connect/reconnect.
+            // nothing because the full set of nodes will be resent
+            // when we connect/reconnect.
 
             if (isConnected()) {
-                Active active = new Active();
-                active.node = node;
-                active.ttl = 30.0;
-                sock.send(active.encode());
+                active(node);
             }
+        }
+
+        void active(Node node) {
+            Active active = new Active();
+            active.node = node;
+            active.ttl = ttl;
+            sock.send(active.encode());
+            log.info("active " + node.toString());
         }
 
         void resolve(Node node) {
             // Right now the disco protocol will notify about any
             // node, so we don't need to do anything here, if we
             // wanted to change this, we'd have to track the set of
-            // points we are interested in resolving and communicate
-            // as this changes.
-
-            // Hmm, maybe we actually need to do something to deal
-            // with timeouts.
+            // nodes we are interested in resolving and communicate as
+            // this changes.
         }
 
         void onActive(Active active) {
@@ -123,7 +125,13 @@ namespace protocol {
             */
 
             if (isConnected()) {
-                if (!disco.started) {
+                if (disco.started) {
+                    long interval = ((ttl/2.0)*1000.0).round();
+                    long rightNow = now();
+                    if (rightNow - lastHeartbeat >= interval) {
+                        heartbeat();
+                    }
+                } else {
                     sock.close();
                     sock = null;
                 }
@@ -133,10 +141,12 @@ namespace protocol {
                         authRequest();
                         authenticating = true;
                     } else {
-                        Context.runtime().open(disco.url, self);
+                        open(disco.url);
                     }
                 }
             }
+
+            schedule(ttl/2.0);
         }
 
         void authRequest() {
@@ -146,13 +156,14 @@ namespace protocol {
                 request.setHeader("Authorization", "Bearer " + disco.token);
             }
             Context.runtime().request(request, self);
+            log.info("gateway request " + request.getUrl());
         }
 
         void onHTTPInit(HTTPRequest request) { /* unused */ }
         void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
             if (response.getCode() == 200) {
                 String url = response.getBody();
-                Context.runtime().open(url, self);
+                open(url);
             } else {
                 log.error(request.getUrl() + ": " + response.getBody());
                 scheduleReconnect();
@@ -172,22 +183,37 @@ namespace protocol {
         void onWSConnected(WebSocket socket) {
             // Whenever we (re)connect, notify the server of any
             // nodes we have registered.
+            log.info("connectd to " + disco.url);
 
             reconnectDelay = firstDelay;
             sock = socket;
 
+            sock.send(new Open().encode());
+
+            heartbeat();
+        }
+
+        void open(String url) {
+            log.info("opening " + url);
+            Context.runtime().open(url, self);
+        }
+
+        void heartbeat() {
             List<String> services = disco.registered.keys();
             int idx = 0;
             while (idx < services.size()) {
                 int jdx = 0;
                 List<Node> nodes = disco.registered[services[idx]].nodes;
                 while (jdx < nodes.size()) {
-                    register(nodes[jdx]);
+                    active(nodes[jdx]);
                     jdx = jdx + 1;
                 }
                 idx = idx + 1;
             }
+
+            lastHeartbeat = now();
         }
+
         void onWSMessage(WebSocket socket, String message) {
             // Decode and dispatch incoming messages.
             DiscoveryEvent event = DiscoveryEvent.decode(message);
@@ -195,6 +221,7 @@ namespace protocol {
             event.dispatch(self);
             disco.mutex.release();
         }
+
         void onWSBinary(WebSocket socket, Buffer message) { /* unused */ }
 
         void onWSClosed(WebSocket socket) { /* unused */ }
@@ -207,6 +234,8 @@ namespace protocol {
         }
 
         void onWSFinal(WebSocket socket) {
+            log.info("closed " + disco.url);
+            sock = null;
             disco.mutex.acquire();
             if (disco.started) {
                 scheduleReconnect();
@@ -218,11 +247,15 @@ namespace protocol {
 
     interface DiscoHandler {
 
+        void onOpen(Open open);
+
         void onActive(Active active);
 
         void onExpire(Expire expire);
 
         void onClear(Clear reset);
+
+        void onClose(Close close);
 
     }
 
@@ -246,6 +279,15 @@ namespace protocol {
 
         void dispatch(DiscoHandler handler);
 
+    }
+
+    class Open extends DiscoveryEvent {
+
+        String version = "2.0.0";
+
+        void dispatch(DiscoHandler handler) {
+            handler.onOpen(self);
+        }
     }
 
     /*@doc("""
@@ -280,6 +322,34 @@ namespace protocol {
     class Clear extends DiscoveryEvent {
         void dispatch(DiscoHandler handler) {
             handler.onClear(self);
+        }
+    }
+
+    // XXX: this should probably go somewhere in the library
+    @doc("A value class for sending error informationto a remote peer.")
+    class Error {
+
+        @doc("Symbolic error code, alphanumerics and underscores only.")
+        String code;
+
+        @doc("Human readable short description.")
+        String title;
+
+        @doc("A detailed description.")
+        String detail;
+
+        @doc("A unique identifier for this particular occurrence of the problem.")
+        String id;
+
+    }
+
+    @doc("Close the event stream.")
+    class Close extends DiscoveryEvent {
+
+        Error error;
+
+        void dispatch(DiscoHandler handler) {
+            handler.onClose(self);
         }
     }
 

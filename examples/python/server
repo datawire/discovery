@@ -15,7 +15,7 @@
 # sleeping dragons.
 
 import logging
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 
 from flask import Flask
 app = Flask(__name__)
@@ -29,10 +29,11 @@ if __name__ == "__main__":
     # Start discovery related changes.
     from util import Platform, Datawire
     host = Platform.getRoutableHost()
-    port = Platform.getRoutablePort(8080)
+    port = Platform.getRoutablePort(5000)
 
     from discovery import Discovery, Node
-    disco = Discovery("http://disco.datawire.io")
+    disco = Discovery("ws://localhost:52689")
+    disco.gateway = False
     disco.token = Datawire.getToken()
     disco.start()
 
