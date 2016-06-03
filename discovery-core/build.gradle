@@ -17,12 +17,6 @@ repositories {
 
 dependencies {
   compile(
-      "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
-      "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
-
-      "io.datawire.commons:datawire-config:${datawireCommonsVersion}",
-      "io.datawire.commons:datawire-util:${datawireCommonsVersion}",
-
       "io.vertx:vertx-auth-jwt:${vertxVersion}",
       "io.vertx:vertx-web:${vertxVersion}",
 

@@ -81,8 +81,6 @@ dependencies {
       "com.hazelcast:hazelcast:${parent.ext.hazelcastVersion}",
       "com.hazelcast:hazelcast-cloud:${parent.ext.hazelcastVersion}",
 
-      "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}",
-      "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonKotlinVersion}",
       "com.fasterxml.jackson.jr:jackson-jr-objects:$jacksonVersion",
 
       "io.vertx:vertx-auth-jwt:${parent.ext.vertxVersion}",
@@ -92,8 +90,6 @@ dependencies {
       "io.vertx:vertx-web:${parent.ext.vertxVersion}",
 
       "io.netty:netty-all:4.0.33.Final",
-
-      "net.sourceforge.argparse4j:argparse4j:${argparse4jVersion}",
 
       "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
 

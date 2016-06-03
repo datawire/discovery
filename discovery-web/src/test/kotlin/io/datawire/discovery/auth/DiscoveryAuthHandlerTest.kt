@@ -1,5 +1,6 @@
 package io.datawire.discovery.auth
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
@@ -146,6 +147,7 @@ class DiscoveryAuthHandlerTest : io.datawire.discovery.DiscoveryTest() {
     val (header, claims, signature) = validJsonWebToken.split(".")
     val decodedClaims = Base64.getUrlDecoder().decode(claims)
 
+    val objectMapper = ObjectMapper()
     val typeFactory = objectMapper.typeFactory
     val mapType = typeFactory.constructMapType(HashMap::class.java, String::class.java, String::class.java)
     val claimsMap = objectMapper.readValue<HashMap<String, String>>(decodedClaims, mapType)
