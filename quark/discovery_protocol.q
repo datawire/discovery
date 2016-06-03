@@ -139,7 +139,6 @@ namespace protocol {
                     if (rightNow - lastHeartbeat >= interval) {
                         heartbeat();
                     }
-                    schedule(ttl/2.0);
                 } else {
                     sock.close();
                     sock = null;
@@ -219,6 +218,7 @@ namespace protocol {
             }
 
             lastHeartbeat = now();
+            schedule(ttl/2.0);
         }
 
         void onWSMessage(WebSocket socket, String message) {
