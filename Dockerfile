@@ -2,6 +2,7 @@ FROM alpine:3.4
 MAINTAINER Philip Lombardi <plombardi@datawire.io>
 EXPOSE 52689
 LABEL DESCRIPTION="Datawire Discovery"
+LABEL LICENSE="Apache 2.0"
 LABEL VENDOR="Datawire"
 
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm
