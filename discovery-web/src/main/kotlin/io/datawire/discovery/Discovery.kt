@@ -120,6 +120,8 @@ class Discovery : AbstractVerticle() {
 
       // A discovery.protocol.clear message is always sent upon a connection being established. The clear message is
       // sent just before the server dumps all known Active services to the client.
+      val openMessage = Open()
+      socket.writeFinalTextFrame(openMessage.encode())
       socket.writeFinalTextFrame(Clear().encode())
       vertx.executeBlocking<Void>(
           {
@@ -127,7 +129,7 @@ class Discovery : AbstractVerticle() {
             future.complete()
           }, false, { })
 
-      socket.handler(DiscoveryMessageHandler(tenant, socket, serviceStore))
+      socket.handler(DiscoveryMessageHandler(tenant, openMessage.version, socket, serviceStore))
 
       socket.closeHandler {
         if (notificationsHandler.isRegistered) {

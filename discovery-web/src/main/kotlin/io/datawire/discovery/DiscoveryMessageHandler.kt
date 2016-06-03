@@ -8,11 +8,13 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
+import java.util.*
 
 
-class DiscoveryMessageHandler(private val tenant      : String,
-                              private val socket      : ServerWebSocket,
-                              private val serviceStore: ServiceStore) : DiscoHandler, Handler<Buffer> {
+class DiscoveryMessageHandler(private val tenant         : String,
+                              private val messageVersion : String,
+                              private val socket         : ServerWebSocket,
+                              private val serviceStore   : ServiceStore) : DiscoHandler, Handler<Buffer> {
 
   private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -24,6 +26,8 @@ class DiscoveryMessageHandler(private val tenant      : String,
         is Active -> onActive(event)
         is Expire -> onExpire(event)
         is Clear  -> onClear(event)
+        is Open   -> onOpen(event)
+        is Close  -> onClose(event)
         else      -> throw UnsupportedOperationException("TODO: ERROR MESSAGE")
       }
     } catch (th: Throwable) {
@@ -31,6 +35,29 @@ class DiscoveryMessageHandler(private val tenant      : String,
       logger.error("Error handling client message", th)
       socket.close()
     }
+  }
+
+  override fun onOpen(open: Open?) {
+    val clientVersion = open?.version
+    if (messageVersion != clientVersion) {
+      val errorId = UUID.randomUUID().toString()
+      logger.error("Protocol version mismatch (tenant: {}, id: {}, server: {}, client: {})",
+                   tenant, errorId, messageVersion, clientVersion)
+
+      val close = Close()
+      val error = Error()
+      error.code  = "1"
+      error.title = "VERSION_MISMATCH"
+      error.id    = errorId
+      close.error = error
+      socket.writeFinalTextFrame(close.encode())
+      socket.close()
+    }
+  }
+
+  override fun onClose(close: Close?) {
+    socket.writeFinalTextFrame(Close().encode())
+    socket.close()
   }
 
   override fun onActive(active: Active) {
