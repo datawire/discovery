@@ -16,7 +16,7 @@ namespace protocol {
 
         WebSocket sock = null;
         bool authenticating = false;
-        long lastHeartbeat = 0;
+        long lastHeartbeat = 0L;
 
         DiscoClient(Discovery discovery) {
             disco = discovery;
@@ -72,6 +72,10 @@ namespace protocol {
             // this changes.
         }
 
+        void onOpen(Open open) {
+            // Should assert version here ...
+        }
+
         void onActive(Active active) {
             // Stick the node in the available set.
 
@@ -107,6 +111,10 @@ namespace protocol {
             // ???
         }
 
+        void onClose(Close close) {
+            // ???
+        }
+
         void onExecute(Runtime runtime) {
             /*
               Do our periodic chores here, this will involve checking
@@ -131,6 +139,7 @@ namespace protocol {
                     if (rightNow - lastHeartbeat >= interval) {
                         heartbeat();
                     }
+                    schedule(ttl/2.0);
                 } else {
                     sock.close();
                     sock = null;
@@ -145,8 +154,6 @@ namespace protocol {
                     }
                 }
             }
-
-            schedule(ttl/2.0);
         }
 
         void authRequest() {
