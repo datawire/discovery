@@ -49,3 +49,4 @@ fi
 
 ./gradlew clean build :discovery-web:shadowJar
 bin/build-deb.sh
+deb-s3 upload --bucket d6e-debian-pkg-repository --arch amd64 --codename xenial --preserve-versions true build/distributions/deb/discovery_*.deb
