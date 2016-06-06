@@ -58,6 +58,10 @@ subprojects {
   }
 }
 
+task version << {
+  println version
+}
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.13'
 }
