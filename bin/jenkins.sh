@@ -41,7 +41,7 @@ if ! command -v quark >/dev/null 2>&1; then
 
     msg "Install Datawire Quark"
     curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
-    . ${BUILD_ROOT}/quark/bin/config.sh
+    . ${BUILD_ROOT}/quark/config.sh
 fi
 
 ./gradlew clean build :discovery-web:shadowJar
