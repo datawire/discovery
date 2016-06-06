@@ -5,7 +5,7 @@ One of the foundational building blocks of Datawire Connect is "discovery as a s
 
 - The **Discovery Service** (the _discoball_) handles tracking which services are running.
     - There will always be more than one discoball instance.
-    - The discoball instances share a distributed map of which services are registered.
+    - The discoball instances share a replicated map of which services are registered.
     - Discoballs are _not_ strongly consistent; they offer eventual consistency.
 - A **Discovery Client** (a _disco client_) connects to the discoball to exchange information about running services.
     - disco clients will generally use a Datawire-supplied library to manage communications with the discoball and client-side load balancing
