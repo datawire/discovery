@@ -1,5 +1,5 @@
-Datawire Connect: Discovery Design Overview
-===========================================
+The Politics of Dancing: Discovery Design Overview
+==================================================
 
 One of the foundational building blocks of Datawire Connect is "discovery as a service": an easy way for providers to register that they exist, and for consumers to find providers for the services they need. Discovery as a service comprises several things all working together:
 
@@ -32,6 +32,29 @@ In many systems, the discoball would contain most of the complexity and the disc
 - A disco client mustn't assume that the discoball's data are always perfect.
 
 Some of these are clearly contradictory. Sadly, this is the nature of disco.
+
+Protocol Overview
+-----------------
+
+The discoball and disco clients talk to each other via websockets. A given client will have a connection to exactly one discoball; a given discoball will (usually) have connections from a great many clients. When all is going well, all parties involved - the discoball and all the disco clients - have an identical view of the _routing table_ that describes where to find running services. 
+
+In order to manage this shared routing table, all parties speak exactly the same protocol, which is a set of _messages_ describing changes to the routing table that have been made by one party and must therefore be replicated by all other parties.
+
+A detailed description of each message is below, but in brief:
+
+- Messages are not requests. They are commands.
+  - There is **no provision** for someone to deny a change: the message states that a change _has already happened_. The recipient of the message MUST update its internal view of the routing table.
+- Connections are always between the discoball and a disco client.
+  - Disco clients do not talk directly to other disco clients.
+  - Instead, changes are relayed through the discoball.
+    - This implies that it will always take non-zero time for a change made by one disco client to be visible to other disco clients.
+    - This is OK. The routing table is eventually consistent, _not_ strongly consistent.
+    - Clients MUST NOT rely on instantaneous updates.
+- As soon as a connection is established, both sides of the connection MUST send the `OPEN` message.
+- When the connection is closed, the side initiating the close MUST send the `CLOSE` message.
+- When a client sends a routing message (`ACTIVE` or `CLEAR`), the discoball MUST relay it to all clients.
+  - Note "all clients", not "all other clients". The client that originally sent the message will get a copy of its own message from the discoball, and it MUST be prepared for that.
+  - Clients MUST NOT send `EXPIRE`.
 
 Normal Operations
 -----------------
