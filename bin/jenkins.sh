@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Copyright 2015, 2016 Datawire. All rights reserved.
 #
@@ -13,7 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -euo pipefail
+
+BIN_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+source ${BIN_PATH}/common.sh
 
 BUILD_ROOT="${WORKSPACE:?Jenkins WORKSPACE environment variable is not set}/build"
 
@@ -45,3 +48,4 @@ if ! command -v quark >/dev/null 2>&1; then
 fi
 
 ./gradlew clean build :discovery-web:shadowJar
+bin/build-deb.sh
