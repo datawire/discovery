@@ -57,7 +57,7 @@ fpm -C ${DIST_ASSEMBLY_DIR} \
     --depends "$PACKAGE_DEPENDENCIES" \
     --exclude pkg-bin \
     --exclude *.deb \
-    --iteration 1 \
+    --iteration ${PACKAGE_RELEASE} \
     --name ${PACKAGE_NAME} \
     --package ${DIST_ASSEMBLY_DIR} \
     -s dir \

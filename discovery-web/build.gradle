@@ -125,5 +125,5 @@ tasks.build.doLast {
   def (String version, String revision) = version.toString().split('-').toList()
 
   file(project.buildDir.toString() + "/version").write(version)
-  file(project.buildDir.toString() + "/revision").write(revision)
+  file(project.buildDir.toString() + "/release").write(revision)
 }
