@@ -2,12 +2,14 @@ quark 0.7;
 
 package datawire_discovery 2.0.0;
 
+include util.q;
 include discovery_protocol.q;
 
 import quark.concurrent;
 import quark.reflect;
 
 import discovery.protocol;
+import util.internal;
 
 /*
   Context:
@@ -173,7 +175,7 @@ namespace discovery {
   class Discovery {
     String url;
     String token;
-    bool gateway = true;
+    bool gateway = false;
 
     // Nodes we advertise to the disco service.
     Map<String,Cluster> registered = new Map<String,Cluster>();
@@ -187,9 +189,29 @@ namespace discovery {
     DiscoClient client;
 
     @doc("The url parameter points to the discovery service.")
+    @doc("")
+    @doc("If the URL is null, look for DATAWIRE_DISCOVERY_URL in the environment.")
+    @doc("If that still comes up with nothing, use 'disco.datawire.io'.")
     Discovery(String url) {
+      if (url == null) {
+        url = EnvironmentVariable("DATAWIRE_DISCOVERY_URL").get();
+
+        if (url == null) {
+          url = "ws://disco.datawire.io/";
+        }
+      }
+
       self.url = url;
       client = new DiscoClient(self);
+    }
+
+    @doc("Open a connection to the default discoball.")
+    static Discovery defaultDiscoball(String token) {
+      Discovery disco = Discovery(null);
+      disco.token = token;
+      disco.start();
+
+      return disco;
     }
 
     @doc("Start the uplink to the discovery service.")

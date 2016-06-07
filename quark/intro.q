@@ -27,20 +27,6 @@ import util.kubernetes;
 namespace util 
 {
 
-  macro String toLowerCase(String s)
-      $java{($s).toLowerCase()}
-      $py{($s).lower()}
-      $js{($s)}
-      $rb{($s)}
-      ;
-
-  macro String toUpperCase(String s)
-      $java{($s).toUpperCase()}
-      $py{($s).upper()}
-      $js{($s)}
-      $rb{($s)}
-      ;
-
   class Datawire 
   {
 
@@ -77,7 +63,7 @@ namespace util
       String result = EnvironmentVariable(PLATFORM_TYPE_VARIABLE_NAME).get();
       if (result != null)
       {
-        result = toUpperCase(result);
+        result = result.toUpper();
       }
 
       return result;

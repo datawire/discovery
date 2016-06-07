@@ -89,7 +89,7 @@ namespace util
       String scope;
 
       Ec2Host(String scope) {
-        self.scope = toUpperCase(scope);
+        self.scope = scope.toUpper();
       }
 
       static String metadataHost() {
