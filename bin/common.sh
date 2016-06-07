@@ -19,24 +19,6 @@ PROJECT_PROPERTIES_FILE=gradle.properties
 VERBOSITY=3
 
 # configure colors
-if [[ -t 1 ]]; then
-    color_support=$(tput colors)
-    if [ -n "$color_support" ] && [ ${color_support} -ge 8 ]; then
-             bold="$(tput bold)"
-        underline="$(tput smul)"
-         standout="$(tput smso)"
-           normal="$(tput sgr0)"
-            black="$(tput setaf 0)"
-              red="$(tput setaf 1)"
-            green="$(tput setaf 2)"
-           yellow="$(tput setaf 3)"
-             blue="$(tput setaf 4)"
-          magenta="$(tput setaf 5)"
-             cyan="$(tput setaf 6)"
-            white="$(tput setaf 7)"
-    fi
-fi
-
 read_prop() {
   local prop_name=${1:?Property name not specified}
 
@@ -87,7 +69,7 @@ nl()  { printf "\n"; }
 
 header() {
     nl
-    msg "*** ${bold}$1${normal} ***"
+    msg "*** $1 ***"
     nl
 }
 
@@ -99,15 +81,15 @@ sub_step () {
 }
 
 ok() {
-    output 3 "%s\n" "${green}OK${normal}"
+    output 3 "%s\n" "OK"
 }
 
 pass() {
-    output 3 "%s\n" "${yellow}OK${normal}"
+    output 3 "%s\n" "OK"
 }
 
 die() {
-    printf "${red}FAIL${normal}"
+    printf "FAIL"
     printf "\n\n        "
     printf "${1:?''}"
     printf "\n\n"
