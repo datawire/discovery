@@ -17,10 +17,7 @@ These instructions are a WIP. Use a recent version of Docker before attempting t
 2. Run the container
 
 ```bash
-docker run --name disco -p 52689:52689 -v $(pwd)/discovery-web:/opt/discovery/config datawire/discovery:2.0.0
-```
-
-[
+docker run --name disco -p 52689:52689 -v $(pwd)/discovery-web/config:/opt/discovery/config datawire/discovery:2.0.0`
 ```
 
 # License
