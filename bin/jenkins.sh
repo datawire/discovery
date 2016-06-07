@@ -18,7 +18,32 @@ set -euo pipefail
 BIN_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 source ${BIN_PATH}/common.sh
 
-BUILD_ROOT="${WORKSPACE:?Jenkins WORKSPACE environment variable is not set}/build"
+# Command line option parsing
+DEBIAN=no
+DOCKER=no
+RPM=no
+
+while [[ $# > 1 ]]; do
+    key="$1"
+    case ${key} in
+        --deb)
+        DEBIAN=yes
+        shift
+        ;;
+        --docker)
+        DOCKER=yes
+        shift
+        ;;
+        *)
+        ;;
+    esac
+shift
+done
+
+# Update this to indicate what programs are required before the script can successfully run.
+REQUIRED_PROGRAMS=(fpm deb-s3)
+
+BUILD_ROOT="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}/build"
 
 QUARK_INSTALL_URL="https://raw.githubusercontent.com/datawire/quark/master/install.sh"
 QUARK_INSTALL_ARGS="-qqq -t ${BUILD_ROOT}/quark"
@@ -28,11 +53,9 @@ QUARK_EXEC="${QUARK_ROOT}/bin/quark"
 
 VIRTUALENV="${BUILD_ROOT}/virtualenv"
 
-msg() {
-    printf "%s\n" "--> ${1:?Message content not set}"
-}
+sanity_check "${REQUIRED_PROGRAMS[@]}"
 
-msg "Create and configure virtualenv"
+header "Setup Python virtualenv"
 set +u
 virtualenv ${VIRTUALENV}
 . ${VIRTUALENV}/bin/activate
@@ -42,11 +65,19 @@ if ! command -v quark >/dev/null 2>&1; then
     # TODO(FEATURE, Quark Installer):
     # The Quark installer should be modified so the $PATH test can be disabled if installing to a specific location.
 
-    msg "Install Datawire Quark"
+    header "Setup Datawire Quark"
     curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
     . ${BUILD_ROOT}/quark/config.sh
 fi
 
+header "Build JAR"
 ./gradlew clean build :discovery-web:shadowJar
-bin/build-deb.sh
-deb-s3 upload --bucket d6e-debian-pkg-repository --arch amd64 --codename xenial --preserve-versions true build/distributions/deb/discovery_*.deb
+
+header "Build OS packages and Docker images"
+
+if [[ "$DEBIAN" = "yes" ]]; then
+    bin/build-deb.sh
+fi
+
+header "Publishing packages and images"
+deb-s3 upload --bucket "$(read_prop deb_codename)" --arch amd64 --codename "$(read_prop deb_codename)" --preserve-versions true build/distributions/deb/*.deb

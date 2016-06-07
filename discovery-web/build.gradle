@@ -27,7 +27,7 @@ file("${projectDir}/src/generated").mkdirs()
 
 task compileQuarkSources(type: Exec) {
   executable  "quark"
-  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "discovery-${project.version}.q".toString()
+  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "discovery-2.0.0.q".toString()
   workingDir  "../quark"
 }
 
@@ -119,4 +119,11 @@ shadowJar {
   mergeServiceFiles {
     include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
   }
+}
+
+tasks.build.doLast {
+  def (String version, String revision) = version.toString().split('-').toList()
+
+  file(project.buildDir.toString() + "/version").write(version)
+  file(project.buildDir.toString() + "/revision").write(revision)
 }

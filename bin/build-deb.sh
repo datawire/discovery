@@ -14,15 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -euo pipefail
-set -x
 
 BIN_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 source ${BIN_PATH}/common.sh
 
 PACKAGE_DEPENDENCIES="$(read_prop deb_dependencies)"
-PACKAGE_VERSION=2.0.0
+PACKAGE_VERSION="$(cat ${PACKAGE_PROJECT_MODULE}/build/version)"
+PACKAGE_RELEASE="$(cat ${PACKAGE_PROJECT_MODULE}/build/release)"
 
 DIST_ASSEMBLY_DIR=build/distributions/deb
+
+step "Building Debian Image"
 
 # Copy the build output artifact into the assembly directory.
 mkdir -p ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}

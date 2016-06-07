@@ -1,3 +1,7 @@
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 buildscript {
   ext.kotlinVersion = '1.0.2'
   ext.shadowPluginVersion = '1.2.3'
@@ -31,6 +35,8 @@ ext {
 }
 
 allprojects {
+  version = version + "-${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuuMMddHHmmss"))}"
+
   repositories {
     jcenter()
   }
