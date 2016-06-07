@@ -73,7 +73,7 @@ if ! command -v quark >/dev/null 2>&1; then
 fi
 
 header "Build JAR"
-#./gradlew clean build :discovery-web:shadowJar
+./gradlew clean build :discovery-web:shadowJar
 
 header "Build OS packages and Docker images"
 
