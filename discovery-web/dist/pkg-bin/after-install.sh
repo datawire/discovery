@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eu
 
 # Copyright 2015, 2016 Datawire. All rights reserved.
 #
