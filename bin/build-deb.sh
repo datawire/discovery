@@ -19,8 +19,8 @@ BIN_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 source ${BIN_PATH}/common.sh
 
 PACKAGE_DEPENDENCIES="$(read_prop deb_dependencies)"
-PACKAGE_VERSION="$(cat ${PACKAGE_PROJECT_MODULE}/build/version)"
-PACKAGE_RELEASE="$(cat ${PACKAGE_PROJECT_MODULE}/build/release)"
+PACKAGE_VERSION="$(cat $PACKAGE_PROJECT_MODULE/build/version)"
+PACKAGE_RELEASE="$(cat $PACKAGE_PROJECT_MODULE/build/release)"
 
 DIST_ASSEMBLY_DIR=build/distributions/deb
 
@@ -28,7 +28,7 @@ step "Building Debian Image"
 
 # Copy the build output artifact into the assembly directory.
 mkdir -p ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}
-cp ${ROOT_PROJECT_NAME}-web/build/libs/${ROOT_PROJECT_NAME}-web-${PACKAGE_VERSION}-fat.jar ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}/
+cp ${ROOT_PROJECT_NAME}-web/build/libs/${ROOT_PROJECT_NAME}-web-${PACKAGE_VERSION}-*-fat.jar ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}/
 
 # The pkg-bin directory is where the various before/after install/uninstall scripts for a Debian package are stored.
 mkdir -p ${DIST_ASSEMBLY_DIR}/pkg-bin
@@ -57,7 +57,7 @@ fpm -C ${DIST_ASSEMBLY_DIR} \
     --depends "$PACKAGE_DEPENDENCIES" \
     --exclude pkg-bin \
     --exclude *.deb \
-    --iteration 1 \
+    --iteration ${PACKAGE_RELEASE} \
     --name ${PACKAGE_NAME} \
     --package ${DIST_ASSEMBLY_DIR} \
     -s dir \

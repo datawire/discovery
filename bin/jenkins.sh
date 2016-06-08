@@ -19,26 +19,28 @@ BIN_PATH="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 source ${BIN_PATH}/common.sh
 
 # Command line option parsing
-DEBIAN=no
-DOCKER=no
-RPM=no
 
-while [[ $# > 1 ]]; do
-    key="$1"
-    case ${key} in
-        --deb)
-        DEBIAN=yes
-        shift
-        ;;
-        --docker)
-        DOCKER=yes
-        shift
-        ;;
-        *)
-        ;;
-    esac
-shift
+FLAG_DEBIAN=no
+FLAG_DOCKER=no
+
+for i in "$@"; do
+case "$i" in
+#    -a=*|--arg=*)
+#    ARG="${i#*=}"
+#    ;;
+    --deb)
+    FLAG_DEBIAN=yes
+    ;;
+    --docker)
+    FLAG_DOCKER=yes
+    ;;
+    *)
+
+    ;;
+esac
 done
+
+printf "$FLAG_DEBIAN"
 
 # Update this to indicate what programs are required before the script can successfully run.
 REQUIRED_PROGRAMS=(fpm deb-s3)
@@ -75,9 +77,9 @@ header "Build JAR"
 
 header "Build OS packages and Docker images"
 
-if [[ "$DEBIAN" = "yes" ]]; then
+if [[ "$FLAG_DEBIAN" = "yes" ]]; then
     bin/build-deb.sh
 fi
 
 header "Publishing packages and images"
-deb-s3 upload --bucket "$(read_prop deb_codename)" --arch amd64 --codename "$(read_prop deb_codename)" --preserve-versions true build/distributions/deb/*.deb
+deb-s3 upload --bucket d6e-debian-pkg-repository --arch amd64 --codename xenial --preserve-versions true build/distributions/deb/*.deb
