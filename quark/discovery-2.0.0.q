@@ -286,6 +286,7 @@ namespace discovery {
 
     @doc("Register info about a service node with the discovery service. You must")
     @doc("usually start the uplink before this will do much; see start().")
+    Discovery register(Node node) {
       self._lock();
 
       String service = node.service;
@@ -298,6 +299,7 @@ namespace discovery {
       client.register(node);
 
       self._release();
+      return self;
     }
 
     @doc("Resolve a service name into an available service node. You must")
