@@ -12,5 +12,5 @@ discoball:
 	docker run --name disco -p 52689:52689 \
 		-v $$(pwd)/discovery-web/config:/opt/discovery/config datawire/discovery:2.0.0
 
-clobber:
-	-find . -name '*.qc' -print0 | xargs -0 rm -f
+clean:
+	./gradlew clean

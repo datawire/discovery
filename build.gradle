@@ -35,6 +35,8 @@ ext {
 }
 
 allprojects {
+  apply plugin: 'base'
+
   version = version + "-${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuuMMddHHmmss"))}"
 
   repositories {
@@ -62,6 +64,13 @@ subprojects {
   tasks.withType(Tar) {
     compression = Compression.GZIP
   }
+}
+
+clean {
+  delete fileTree('quark') {
+    include '**/*.qc'
+  }
+  delete("quark/output")
 }
 
 task version << {
