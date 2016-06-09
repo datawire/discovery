@@ -45,9 +45,14 @@ cp ${PACKAGE_PROJECT_MODULE}/dist/systemd-${ROOT_PROJECT_NAME}.service ${DIST_AS
 cp ${PACKAGE_PROJECT_MODULE}/dist/nginx-${ROOT_PROJECT_NAME}.conf      ${DIST_ASSEMBLY_DIR}/etc/nginx/sites-available/${PACKAGE_NAME}.conf
 cp ${PACKAGE_PROJECT_MODULE}/dist/cloudwatch-${ROOT_PROJECT_NAME}.conf ${DIST_ASSEMBLY_DIR}/var/awslogs/etc/config/${PACKAGE_NAME}.conf
 
+# Runnable script
+mkdir -p ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}/bin
+cp ${PACKAGE_PROJECT_MODULE}/dist/${ROOT_PROJECT_NAME}.sh ${DIST_ASSEMBLY_DIR}/opt/${PACKAGE_NAME}/bin/${PACKAGE_NAME}.sh
+
 # Run FPM in the distribution assembly directory (-C)
 fpm -C ${DIST_ASSEMBLY_DIR} \
     --force \
+    --after-install  ${DIST_ASSEMBLY_DIR}/pkg-bin/after-install.sh \
     --after-remove   ${DIST_ASSEMBLY_DIR}/pkg-bin/after-uninstall.sh \
     --before-install ${DIST_ASSEMBLY_DIR}/pkg-bin/before-install.sh \
     --config-files   /var/awslogs/etc/config/${PACKAGE_NAME}.conf \

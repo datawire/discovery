@@ -8,7 +8,7 @@ AssertFileIsExecutable=/opt/discovery/bin/discovery.sh
 
 [Service]
 Type=simple
-EnvironmentFile=/run/discovery/discovery.env
+EnvironmentFile=/etc/discovery/discovery.env
 ExecStart=/opt/discovery/bin/discovery.sh
 
 [Install]
