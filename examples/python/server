@@ -14,6 +14,8 @@
 # need to get the end-to-end scenario working so we can identify any
 # sleeping dragons.
 
+import sys
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,11 +27,15 @@ def hello():
     return "Hello World!"
 
 if __name__ == "__main__":
+    port_num = 5000
+
+    if len(sys.argv) > 1:
+        port_num = int(sys.argv[1])
 
     # Start discovery related changes.
     from util import Platform, Datawire
     host = Platform.getRoutableHost()
-    port = Platform.getRoutablePort(5000)
+    port = Platform.getRoutablePort(port_num)
 
     from discovery import Discovery, Node
     disco = Discovery().connect().withToken(Datawire.getToken()).start()
