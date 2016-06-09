@@ -15,7 +15,7 @@
 # sleeping dragons.
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 from flask import Flask
 app = Flask(__name__)
@@ -32,10 +32,7 @@ if __name__ == "__main__":
     port = Platform.getRoutablePort(5000)
 
     from discovery import Discovery, Node
-    disco = Discovery("ws://localhost:52689")
-    disco.gateway = False
-    disco.token = Datawire.getToken()
-    disco.start()
+    disco = Discovery().connect().withToken(Datawire.getToken()).start()
 
     node = Node()
     node.service = "hello-flask"
