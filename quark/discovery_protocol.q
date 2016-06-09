@@ -1,6 +1,5 @@
-use ./discovery-2.0.0.q;
-
-import discovery;
+import quark.concurrent;
+import quark.reflect;
 
 namespace discovery {
   namespace protocol {

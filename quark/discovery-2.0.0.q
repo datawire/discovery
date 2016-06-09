@@ -3,7 +3,7 @@ quark 0.7;
 package datawire_discovery 2.0.0;
 
 use ./util.q;
-use ./discovery_protocol.q;
+include ./discovery_protocol.q;
 
 import quark.concurrent;
 import quark.reflect;
