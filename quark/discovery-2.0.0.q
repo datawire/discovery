@@ -101,6 +101,29 @@ namespace discovery {
       nodes.add(node);
     }
 
+    @doc("Remove a node from the cluster, if it's present. If it's not present, remove")
+    @doc("is a no-op.")
+    void remove(Node node) {
+      int idx = 0;
+
+      while (idx < nodes.size()) {
+        Node ep = nodes[idx];
+      
+        if (ep.address == null || ep.address == node.address) {
+          nodes.remove(idx);
+          return;
+        }
+
+        idx = idx + 1;
+      }
+
+      // XXX: should this be an error? as it is, we silently ignore it.
+    }
+
+    bool isEmpty() {
+      return (nodes.size() <= 0);
+    }
+
     // XXX: toString() is a disaster for large clusters.
     String toString() {
       String result = "Cluster(";
@@ -321,6 +344,46 @@ namespace discovery {
 
       self._release();
       return result;
+    }
+
+    @doc("Add a given node.")
+    void active(Node node) {
+      self._lock();
+
+      String service = node.service;
+
+      logger.info("adding " + node.toString());
+
+      if (!services.contains(service)) {
+        services[service] = new Cluster();
+      }
+
+      Cluster cluster = services[service];
+      cluster.add(node);
+
+      self._release();
+    }
+
+    @doc("Expire a given node.")
+    void expire(Node node) {
+      self._lock();
+
+      String service = node.service;
+
+      if (services.contains(service)) {
+        Cluster cluster = services[service];
+
+        logger.info("removing " + node.toString() + " from cluster");
+
+        cluster.remove(node);
+
+        if (cluster.isEmpty()) {
+          logger.info("removing empty cluster for " + node.toString());
+          services.remove(service);
+        }
+      }
+
+      self._release();
     }
   }
 }

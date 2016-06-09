@@ -82,14 +82,8 @@ namespace discovery {
         // Stick the node in the available set.
 
         Node node = active.node;
-        String service = node.service;
 
-        if (!disco.services.contains(service)) {
-          disco.services[service] = new Cluster();
-        }
-
-        Cluster cluster = disco.services[service];
-        cluster.add(node);
+        disco.active(node);
       }
 
       void onExpire(Expire expire) {
@@ -99,14 +93,8 @@ namespace discovery {
         // continually updated until they expire...
 
         Node node = expire.node;
-        String service = node.service;
 
-        if (disco.services.contains(service)) {
-          // XXX: no way to remove from List or Map
-          // ...
-        }
-
-        // ...
+        disco.expire(node);
       }
 
       void onClear(Clear reset) {
@@ -242,9 +230,9 @@ namespace discovery {
       void onWSMessage(WebSocket socket, String message) {
         // Decode and dispatch incoming messages.
         DiscoveryEvent event = DiscoveryEvent.decode(message);
-        disco.mutex.acquire();
+        // disco.mutex.acquire();
         event.dispatch(self);
-        disco.mutex.release();
+        // disco.mutex.release();
       }
 
       void onWSBinary(WebSocket socket, Buffer message) { /* unused */ }
