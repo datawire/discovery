@@ -1,4 +1,4 @@
-quark 0.7;
+quark 0.7.6;
 
 package datawire_discovery 2.0.0;
 
@@ -54,7 +54,6 @@ import util.internal;
 
 /*
   TODO:
-    - rename Cluster to something reasonable, e.g. ServiceInfo
     - disco.lookup -> Cluster (renamed)
     - disco.resolve -> is convenience for disco.lookup("<service>").choose()
     - disco.register -> Cluster (renamed), use to communicate error info on registry.
@@ -69,6 +68,8 @@ namespace discovery {
     List<Node> nodes = [];
     int idx = 0;
 
+    @doc("Choose a node from the cluster to talk to. At present this is a simple")
+    @doc("round robin.")
     Node choose() {
       if (nodes.size() > 0) {
         int choice = idx % nodes.size();
@@ -80,6 +81,9 @@ namespace discovery {
       }
     }
 
+    @doc("Add a node to the cluster (or, if it's already present in the cluster,")
+    @doc("update its properties). At present this involves a linear search, so, uh,")
+    @doc("adding ten million nodes is probably not a great idea.")
     void add(Node node) {
       int idx = 0;
 
@@ -97,6 +101,7 @@ namespace discovery {
       nodes.add(node);
     }
 
+    // XXX: toString() is a disaster for large clusters.
     String toString() {
       String result = "Cluster(";
 
@@ -128,6 +133,7 @@ namespace discovery {
     @doc("Additional metadata associated with this service instance.")
     Map<String,Object> properties;
 
+    @doc("Copy properties from some other Node to this one, and finish this Node.")
     void update(Node node) {
       service = node.service;
       version = node.version;
@@ -179,19 +185,19 @@ namespace discovery {
 
     static Logger logger = new Logger("discovery");
 
-    // Nodes we advertise to the disco service.
-    Map<String,Cluster> registered = new Map<String,Cluster>();
+    // Clusters we advertise to the disco service.
+    Map<String, Cluster> registered = new Map<String, Cluster>();
 
-    // Nodes the disco says are available, as well as nodes for
+    // Clusters the disco says are available, as well as clusters for
     // which we are awaiting resolution.
-    Map<String,Cluster> services = new Map<String,Cluster>();
+    Map<String, Cluster> services = new Map<String, Cluster>();
 
     bool started = false;
     Lock mutex = new Lock();
     DiscoClient client;
 
     @doc("Construct a Discovery object. You must connect the object to a")
-    @doc("discovery server before you can do anything; see connect() and")
+    @doc("discovery server before you can do anything else; see connect() and")
     @doc("connectTo()")
     Discovery() {
       logger.info("hello");
@@ -278,8 +284,8 @@ namespace discovery {
       return self;
     }
 
-    @doc("Register info about a service node with the discovery service.")
-    void register(Node node) {
+    @doc("Register info about a service node with the discovery service. You must")
+    @doc("usually start the uplink before this will do much; see start().")
       self._lock();
 
       String service = node.service;
@@ -294,7 +300,8 @@ namespace discovery {
       self._release();
     }
 
-    @doc("Resolve a service name into an available service node.")
+    @doc("Resolve a service name into an available service node. You must")
+    @doc("usually start the uplink before this will do much; see start().")
     Node resolve(String service) {
       Node result;
       self._lock();
