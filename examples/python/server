@@ -32,7 +32,7 @@ if __name__ == "__main__":
     port = Platform.getRoutablePort(5000)
 
     from discovery import Discovery, Node
-    disco = Discovery().connect().withToken(Datawire.getToken())
+    disco = Discovery().connect().withToken(Datawire.getToken()).start()
 
     node = Node()
     node.service = "hello-flask"

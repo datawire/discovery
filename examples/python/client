@@ -23,7 +23,7 @@ import requests
 from discovery import Discovery, Node
 from util import Datawire
 
-disco = Discovery().connect().withToken(Datawire.getToken())
+disco = Discovery().connect().withToken(Datawire.getToken()).start()
 
 node = disco.resolve('hello-flask')
 node.await(10.0)
