@@ -26,6 +26,9 @@ chown -R ${APP_USER}:${APP_USER} /var/log/${APP_NAME}
 mkdir -p /etc/${APP_NAME}
 chown -R ${APP_USER}:${APP_USER} /etc/${APP_NAME}
 
+touch /etc/${APP_NAME}/discovery.env
+chown -R ${APP_USER}:${APP_USER} /etc/${APP_NAME}/${APP_NAME}.env
+
 mkdir -p /run/discovery
 chown -R ${APP_USER}:${APP_USER} /run/${APP_NAME}
 
@@ -33,7 +36,7 @@ ln -s /etc/nginx/sites-available/${APP_NAME}.conf /etc/nginx/sites-enabled/${APP
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 
-chmod +x /opt/${APP_NAME}/bin/discovery.sh
+chmod +x /opt/${APP_NAME}/bin/${APP_NAME}.sh
 
 systemctl daemon-reload
 systemctl restart nginx
