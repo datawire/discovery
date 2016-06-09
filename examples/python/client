@@ -15,7 +15,7 @@
 # sleeping dragons.
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 import requests
 
@@ -23,7 +23,7 @@ import requests
 from discovery import Discovery, Node
 from util import Datawire
 
-disco = Discovery.defaultDiscoball(Datawire.getToken())
+disco = Discovery().connect().withToken(Datawire.getToken())
 
 node = disco.resolve('hello-flask')
 node.await(10.0)

@@ -1,3 +1,5 @@
+use ./discovery-2.0.0.q;
+
 import discovery;
 
 namespace discovery {

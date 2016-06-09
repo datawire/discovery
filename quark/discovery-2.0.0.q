@@ -2,8 +2,8 @@ quark 0.7;
 
 package datawire_discovery 2.0.0;
 
-include util.q;
-include discovery_protocol.q;
+use ./util.q;
+use ./discovery_protocol.q;
 
 import quark.concurrent;
 import quark.reflect;
@@ -177,6 +177,8 @@ namespace discovery {
     String token;
     bool gateway = false;
 
+    static Logger logger = new Logger("discovery");
+
     // Nodes we advertise to the disco service.
     Map<String,Cluster> registered = new Map<String,Cluster>();
 
@@ -188,59 +190,97 @@ namespace discovery {
     Lock mutex = new Lock();
     DiscoClient client;
 
-    @doc("The url parameter points to the discovery service.")
-    @doc("")
-    @doc("If the URL is null, look for DATAWIRE_DISCOVERY_URL in the environment.")
-    @doc("If that still comes up with nothing, use 'disco.datawire.io'.")
-    Discovery(String url) {
-      if (url == null) {
-        url = EnvironmentVariable("DATAWIRE_DISCOVERY_URL").get();
-
-        if (url == null) {
-          url = "ws://disco.datawire.io/";
-        }
-      }
-
-      self.url = url;
-      client = new DiscoClient(self);
+    @doc("Construct a Discovery object. You must connect the object to a")
+    @doc("discovery server before you can do anything; see connect() and")
+    @doc("connectTo()")
+    Discovery() {
+      logger.info("hello");
     }
 
-    @doc("Open a connection to the default discoball.")
-    static Discovery defaultDiscoball(String token) {
-      Discovery disco = Discovery(null);
-      disco.token = token;
-      disco.start();
+    @doc("Lock and make sure we have a client established.")
+    void _lock() {
+      mutex.acquire();
 
-      return disco;
+      logger.info("locked");
+
+      if (client == null) {
+        client = new DiscoClient(self);
+        logger.info("client ho!");
+      }
+    }
+
+    @doc("Release the lock")
+    void _release() {
+      mutex.release();
+      logger.info("released");
+    }
+
+    @doc("Connect to a specific discovery server. Most callers will just want")
+    @doc("connect().")
+    Discovery connectTo(String url) {
+      // Don't use self._lock() here -- manage the lock by hand since we're
+      // messing with the client by hand.
+      mutex.acquire();
+
+      logger.info("will connect to " + url);
+
+      self.url = url;
+      self.client = null;
+
+      mutex.release();
+
+      return self;
+    }
+
+    @doc("Connect to the default discovery server. If DATAWIRE_DISCOVERY_URL")
+    @doc("is in the environment, it specifies the default; if not, we'll talk to")
+    @doc("disco.datawire.io.")
+    Discovery connect() {
+      EnvironmentVariable ddu = EnvironmentVariable("DATAWIRE_DISCOVERY_URL");
+      String url = ddu.orElseGet("disco.datawire.io");
+
+      return self.connectTo(url);
+    }
+
+    @doc("Set the token we'll use to talk to the server.")
+    Discovery withToken(String token) {
+      self._lock();
+      logger.info("using token " + token);
+      self.token = token;
+      self._release();
+
+      return self;
     }
 
     @doc("Start the uplink to the discovery service.")
-    void start() {
-      mutex.acquire();
+    Discovery start() {
+      self._lock();
 
       if (!started) {
         started = true;
         client.start();
       }
 
-      mutex.release();
+      self._release();
+      return self;
     }
 
     @doc("Stop the uplink to the discovery service.")
-    void stop() {
-      mutex.acquire();
+    Discovery stop() {
+      self._lock();
 
       if (started) {
         started = false;
         client.stop();
       }
 
-      mutex.release();
+      self._release();
+      return self;
     }
 
     @doc("Register info about a service node with the discovery service.")
     void register(Node node) {
-      mutex.acquire();
+      self._lock();
 
       String service = node.service;
 
@@ -251,13 +291,13 @@ namespace discovery {
       registered[service].add(node);
       client.register(node);
 
-      mutex.release();
+      self._release();
     }
 
     @doc("Resolve a service name into an available service node.")
     Node resolve(String service) {
       Node result;
-      mutex.acquire();
+      self._lock();
 
       if (services.contains(service)) {
         result = services[service].choose();
@@ -270,7 +310,7 @@ namespace discovery {
         client.resolve(result);
       }
 
-      mutex.release();
+      self._release();
       return result;
     }
   }

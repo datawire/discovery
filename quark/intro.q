@@ -18,7 +18,7 @@ package discovery 2.0.0;
  * limitations under the License.
  */
 
-include util.q;
+use ./util.q;
 
 import util.internal;
 import util.aws;
