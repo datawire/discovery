@@ -46,16 +46,18 @@ printf "$FLAG_DEBIAN"
 REQUIRED_PROGRAMS=(fpm deb-s3)
 
 WORKSPACE_DIR="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}"
+BUILD_TOOLS_DIR="${WORKSPACE_DIR}/build-tools"
 
 QUARK_INSTALL_URL="https://raw.githubusercontent.com/datawire/quark/master/install.sh"
-QUARK_INSTALL_ARGS="-qqq -t ${WORKSPACE_DIR}/quark"
 QUARK_BRANCH="master"
-QUARK_INSTALL_DIR="${WORKSPACE_DIR}/quark"
+QUARK_INSTALL_DIR="${BUILD_TOOLS_DIR}/quark"
+QUARK_INSTALL_ARGS="-qqq -t ${QUARK_INSTALL_DIR}"
 QUARK_EXEC="${QUARK_INSTALL_DIR}/bin/quark"
 
-VIRTUALENV="${WORKSPACE_DIR}/virtualenv"
+VIRTUALENV="${BUILD_TOOLS_DIR}/virtualenv"
 
 sanity_check "${REQUIRED_PROGRAMS[@]}"
+mkdir -p ${BUILD_TOOLS_DIR}
 
 header "Setup Python virtualenv"
 set +u
@@ -69,12 +71,12 @@ if ! command -v quark >/dev/null 2>&1; then
 
     header "Setup Datawire Quark"
     curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
-    . ${WORKSPACE_DIR}/quark/config.sh
+    . ${QUARK_INSTALL_DIR}/config.sh
     quark --version
 fi
 
 header "Build JAR"
-./gradlew clean build :discovery-web:shadowJar --debug
+./gradlew clean build :discovery-web:shadowJar
 
 header "Build OS packages and Docker images"
 

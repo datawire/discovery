@@ -18,3 +18,7 @@ quark/output
 
 **/src/generated
 quark/generated
+
+venv
+virtualenv
+build-tools
