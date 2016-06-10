@@ -60,6 +60,8 @@ class Discovery : AbstractVerticle() {
 
     router.route("/").handler(DiscoveryConnection())
 
+    router.get("/health").handler { rc -> rc.response().setStatusCode(200).end() }
+
     val server = vertx.createHttpServer()
     val requestHandler = server.requestHandler { router.accept(it) }
 
