@@ -70,6 +70,7 @@ if ! command -v quark >/dev/null 2>&1; then
     header "Setup Datawire Quark"
     curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
     . ${BUILD_ROOT}/quark/config.sh
+    quark --version
 fi
 
 header "Build JAR"
