@@ -67,10 +67,9 @@ subprojects {
 }
 
 clean {
-  delete fileTree('quark') {
+  delete fileTree("${projectDir}/quark") {
     include '**/*.qc'
   }
-  delete("quark/output")
 }
 
 task version << {

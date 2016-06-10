@@ -45,15 +45,15 @@ printf "$FLAG_DEBIAN"
 # Update this to indicate what programs are required before the script can successfully run.
 REQUIRED_PROGRAMS=(fpm deb-s3)
 
-BUILD_ROOT="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}/build"
+WORKSPACE_DIR="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}"
 
 QUARK_INSTALL_URL="https://raw.githubusercontent.com/datawire/quark/master/install.sh"
-QUARK_INSTALL_ARGS="-qqq -t ${BUILD_ROOT}/quark"
+QUARK_INSTALL_ARGS="-qqq -t ${WORKSPACE_DIR}/quark"
 QUARK_BRANCH="master"
-QUARK_ROOT="${BUILD_ROOT}/quark"
-QUARK_EXEC="${QUARK_ROOT}/bin/quark"
+QUARK_INSTALL_DIR="${WORKSPACE_DIR}/quark"
+QUARK_EXEC="${QUARK_INSTALL_DIR}/bin/quark"
 
-VIRTUALENV="${BUILD_ROOT}/virtualenv"
+VIRTUALENV="${WORKSPACE_DIR}/virtualenv"
 
 sanity_check "${REQUIRED_PROGRAMS[@]}"
 
@@ -69,7 +69,7 @@ if ! command -v quark >/dev/null 2>&1; then
 
     header "Setup Datawire Quark"
     curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
-    . ${BUILD_ROOT}/quark/config.sh
+    . ${WORKSPACE_DIR}/quark/config.sh
     quark --version
 fi
 
