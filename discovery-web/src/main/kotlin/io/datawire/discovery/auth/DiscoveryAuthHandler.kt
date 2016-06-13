@@ -29,11 +29,26 @@ import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
  * @since 1.0
  */
 
-class DiscoveryAuthHandler(authProvider: AuthProvider,
-                           skip        : String?) : JWTAuthHandlerImpl(authProvider, skip) {
+class DiscoveryAuthHandler(authProvider     : AuthProvider,
+                           private val skip : String?) : JWTAuthHandlerImpl(authProvider, skip) {
 
-  override fun handle(context: RoutingContext?) {
-    context?.request()?.getParam("token")?.let { token ->
+  override fun handle(context: RoutingContext) {
+
+    // Filed an improvement request with vertx-auth -- https://github.com/vert-x3/vertx-auth/issues/69
+    //
+    // The skip behavior in parent class is sort of funky in the sense that it checks if skip contains the request path.
+    // If the request path is '/' then it will always match. That is too eager. I think the correct behavior is to see
+    // if the request path starts with skip and if it does then skip. Some additional code here could check different
+    // situations like */${skip} or ${skip}/* but for now this is good enough.
+
+    /* temporarily disabled for team dev reasons; moved health handler up in priority
+    if (skip != null && context.request().path().startsWith(skip, true)) {
+      context.next()
+      return
+    }
+    */
+
+    context.request()?.getParam("token")?.let { token ->
       context.request().headers().set(HttpHeaders.AUTHORIZATION, "Bearer " + token.trim())
     }
 

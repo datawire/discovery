@@ -10,6 +10,7 @@ import io.datawire.discovery.model.ServiceStore
 import io.datawire.discovery.service.ForwardingServiceStore
 import io.datawire.discovery.service.ReplicatedServiceStore
 import io.datawire.discovery.service.ServicesChangeListener
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
 import io.vertx.core.json.JsonObject
@@ -55,12 +56,12 @@ class Discovery : AbstractVerticle() {
 
     val router = Router.router(vertx)
 
+    router.get("/health").handler { rc -> rc.response().setStatusCode(HttpResponseStatus.OK.code()).end() }
+
     configureAuthHandler(router)
     configureCorsHandler(router)
 
     router.route("/").handler(DiscoveryConnection())
-
-    router.get("/health").handler { rc -> rc.response().setStatusCode(200).end() }
 
     val server = vertx.createHttpServer()
     val requestHandler = server.requestHandler { router.accept(it) }

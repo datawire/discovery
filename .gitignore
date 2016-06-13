@@ -22,3 +22,11 @@ quark/generated
 venv
 virtualenv
 build-tools
+
+# Keys and Credentials
+*.key
+*.pem
+*.p12
+*.pkcs12
+*.jks
+*.jceks

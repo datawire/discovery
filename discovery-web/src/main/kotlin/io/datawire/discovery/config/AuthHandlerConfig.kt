@@ -14,12 +14,11 @@ class AuthHandlerConfig(private val json: JsonObject) {
 
   val type        = json.getString("type", "none").toLowerCase()
   val protectPath = json.getString("protectPath", "/*")
-  val skipPath    = json.getString("skipPath", "/health")
+  val skipPath    = json.getString("skipPath", null)
 
   fun createJwtAuthHandler(vertx: Vertx): AuthHandler {
     logger.info("Using JWT authentication (protects: {})", protectPath)
-    val keystoreConfig = json.getJsonObject("keyStore")
-    val jwt = JWTAuth.create(vertx, keystoreConfig)
+    val jwt = JWTAuth.create(vertx, json)
     return DiscoveryAuthHandler(jwt, skipPath).setIgnoreExpiration(true)
   }
 }
