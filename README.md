@@ -11,13 +11,19 @@ These instructions are a WIP. Use a recent version of Docker before attempting t
 1. Build the Docker Image
 
 ```bash
-./gradlew clean build :discovery-web:buildDockerImage
+make discoball
 ```
 
 2. Run the container
 
 ```bash
-docker run --name disco -p 52689:52689 -v $(pwd)/discovery-web/config:/opt/discovery/config datawire/discovery:2.0.0`
+make discostart
+```
+
+3. To shut down the container before running a new build:
+
+```bash
+make discostop
 ```
 
 # License
