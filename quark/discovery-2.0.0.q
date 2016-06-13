@@ -266,7 +266,7 @@ namespace discovery {
     @doc("disco.datawire.io.")
     Discovery connect() {
       EnvironmentVariable ddu = EnvironmentVariable("DATAWIRE_DISCOVERY_URL");
-      String url = ddu.orElseGet("disco.datawire.io");
+      String url = ddu.orElseGet("wss://discovery-beta.datawire.io/");
 
       return self.connectTo(url);
     }
