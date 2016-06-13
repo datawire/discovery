@@ -49,9 +49,9 @@ WORKSPACE_DIR="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}
 BUILD_TOOLS_DIR="${WORKSPACE_DIR}/build-tools"
 
 QUARK_INSTALL_URL="https://raw.githubusercontent.com/datawire/quark/master/install.sh"
-QUARK_BRANCH="master"
+QUARK_BRANCH="rel/0.7.6"
 QUARK_INSTALL_DIR="${BUILD_TOOLS_DIR}/quark"
-QUARK_INSTALL_ARGS="-qqq -t ${QUARK_INSTALL_DIR}"
+QUARK_INSTALL_ARGS="-qqq -t ${QUARK_INSTALL_DIR} ${QUARK_BRANCH}"
 QUARK_EXEC="${QUARK_INSTALL_DIR}/bin/quark"
 
 VIRTUALENV="${BUILD_TOOLS_DIR}/virtualenv"
@@ -70,7 +70,7 @@ if ! command -v quark >/dev/null 2>&1; then
     # The Quark installer should be modified so the $PATH test can be disabled if installing to a specific location.
 
     header "Setup Datawire Quark"
-    curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS} ${QUARK_BRANCH}
+    curl -sL "$QUARK_INSTALL_URL" | bash -s -- ${QUARK_INSTALL_ARGS}
     . ${QUARK_INSTALL_DIR}/config.sh
     quark --version
 fi
