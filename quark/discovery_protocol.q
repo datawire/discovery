@@ -138,27 +138,29 @@ namespace discovery {
         }
         else {
           if (!authenticating) {
-            if (disco.gateway) {
-              authRequest();
-              authenticating = true;
-            }
-            else {
-              open(disco.url);
-            }
+            authRequest();
+            authenticating = true;
+          }
+          else {
+            // WTF is this for? presumably if we're authenticating already,
+            // we shouldn't try to open a new connection.
+            open(disco.url);
           }
         }
       }
 
       void authRequest() {
-        HTTPRequest request = new HTTPRequest(disco.url + "/v2/connect");
-        request.setMethod("POST");
+        String url = disco.url;
 
         if (disco.token != null) {
-          request.setHeader("Authorization", "Bearer " + disco.token);
+          url = url + "/?token=" + token;
         }
 
+        log.info("authenticating via " + url);
+
+        HTTPRequest request = new HTTPRequest(url);
+
         Context.runtime().request(request, self);
-        log.info("gateway request " + request.getUrl());
       }
 
       void onHTTPInit(HTTPRequest request) { /* unused */ }
@@ -190,7 +192,7 @@ namespace discovery {
       void onWSConnected(WebSocket socket) {
         // Whenever we (re)connect, notify the server of any
         // nodes we have registered.
-        log.info("connectd to " + disco.url);
+        log.info("connected to " + disco.url);
 
         reconnectDelay = firstDelay;
         sock = socket;

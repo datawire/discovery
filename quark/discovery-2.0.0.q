@@ -204,7 +204,6 @@ namespace discovery {
   class Discovery {
     String url;
     String token;
-    bool gateway = false;
 
     static Logger logger = new Logger("discovery");
 
