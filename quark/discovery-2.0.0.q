@@ -263,7 +263,7 @@ namespace discovery {
 
     @doc("Connect to the default discovery server. If DATAWIRE_DISCOVERY_URL")
     @doc("is in the environment, it specifies the default; if not, we'll talk to")
-    @doc("disco.datawire.io.")
+    @doc("wss://discovery-beta.datawire.io/")
     Discovery connect() {
       EnvironmentVariable ddu = EnvironmentVariable("DATAWIRE_DISCOVERY_URL");
       String url = ddu.orElseGet("wss://discovery-beta.datawire.io/");
