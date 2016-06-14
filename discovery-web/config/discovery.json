@@ -3,7 +3,12 @@
   "port": 52689,
 
   "authHandler": {
-    "type": "none"
+    "type": "jwt",
+    "keyStore": {
+      "type": "jceks",
+      "path": "${DISCOVERY_KEYSTORE}",
+      "password": "${DISCOVERY_KEYSTORE_PASSWORD}"
+    }
   },
 
   "corsHandler": {
