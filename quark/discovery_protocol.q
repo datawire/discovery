@@ -137,71 +137,17 @@ namespace discovery {
           }
         }
         else {
-          if (!authenticating) {
-            if (disco.gateway) {
-              authRequest();
-              authenticating = true;
-            }
-            else {
-              open(disco.url);
-            }
-          }
+          open(disco.url);
         }
-      }
-
-      void authRequest() {
-        HTTPRequest request = new HTTPRequest(disco.url + "/v2/connect");
-        request.setMethod("POST");
-
-        if (disco.token != null) {
-          request.setHeader("Authorization", "Bearer " + disco.token);
-        }
-
-        Context.runtime().request(request, self);
-        log.info("gateway request " + request.getUrl());
-      }
-
-      void onHTTPInit(HTTPRequest request) { /* unused */ }
-
-      void onHTTPResponse(HTTPRequest request, HTTPResponse response) {
-        if (response.getCode() == 200) {
-          String url = response.getBody();
-          open(url);
-        }
-        else {
-          log.error(request.getUrl() + ": " + response.getBody());
-          scheduleReconnect();
-        }
-      }
-
-      void onHTTPError(HTTPRequest request, String message) {
-        // Any non-transient errors should be reported back to the
-        // user via any Nodes they have requested.
-        log.error(request.getUrl() + ": " + message);
-        scheduleReconnect();
-      }
-
-      void onHTTPFinal(HTTPRequest request) {
-        authenticating = false;
-      }
-
-      void onWSInit(WebSocket socket) { /* unused */ }
-
-      void onWSConnected(WebSocket socket) {
-        // Whenever we (re)connect, notify the server of any
-        // nodes we have registered.
-        log.info("connectd to " + disco.url);
-
-        reconnectDelay = firstDelay;
-        sock = socket;
-
-        sock.send(new Open().encode());
-
-        heartbeat();
       }
 
       void open(String url) {
+        if (disco.token != null) {
+          url = url + "/?token=" + disco.token;
+        }
+
         log.info("opening " + url);
+
         Context.runtime().open(url, self);
       }
 
@@ -225,6 +171,21 @@ namespace discovery {
 
         lastHeartbeat = now();
         schedule(ttl/2.0);
+      }
+
+      void onWSInit(WebSocket socket) {/* unused */ }
+
+      void onWSConnected(WebSocket socket) {
+        // Whenever we (re)connect, notify the server of any
+        // nodes we have registered.
+        log.info("connected to " + disco.url);
+
+        reconnectDelay = firstDelay;
+        sock = socket;
+
+        sock.send(new Open().encode());
+
+        heartbeat();
       }
 
       void onWSMessage(WebSocket socket, String message) {
