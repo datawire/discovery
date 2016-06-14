@@ -29,4 +29,4 @@ scp ${SSH_OPTS} test_introspection.py            "$SSH_REMOTE_USER@$SSH_REMOTE_H
 ssh ${SSH_OPTS} "$SSH_REMOTE_USER@$SSH_REMOTE_HOST" 'chmod +x /tmp/provision_ec2.sh; /tmp/provision_ec2.sh'
 ssh ${SSH_OPTS} \
     "$SSH_REMOTE_USER@$SSH_REMOTE_HOST" \
-    "cd /tmp; source /home/$SSH_REMOTE_USER/.quark/config.sh; quark install --python intro.q"
+    "cd /tmp; source /home/$SSH_REMOTE_USER/.quark/config.sh; quark install --python datawire_introspection.q"

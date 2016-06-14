@@ -18,7 +18,7 @@ set -euo pipefail
 DEBUG=0
 INTEGRATION="common"
 UUID="$(uuidgen | tr [:upper:] [:lower:])"
-QUARK_SOURCES="intro.q util.q"
+QUARK_SOURCES="datawire_introspection.q datawire_introspection_internals.q discovery_util.q"
 
 TEMP_DIR=/tmp/test-${UUID}
 TEMP_SSH_DIR=${TEMP_DIR}/.ssh
@@ -109,7 +109,7 @@ mv introspection.tar.gz ${TEMP_DIR}/
 
 msgln "Compiling Quark Sources..."
 tar -xvzf ${TEMP_DIR}/introspection.tar.gz -C ${TEMP_DIR}/
-quark compile --python ${TEMP_DIR}/intro.q
+quark compile --python ${TEMP_DIR}/datawire_introspection.q
 
 if [[ "${INTEGRATION}" != "common" ]]; then
   msgln "Launching infrastructure"
