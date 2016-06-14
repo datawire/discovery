@@ -3,7 +3,7 @@ all: quark
 .ALWAYS:
 
 quark: .ALWAYS
-	quark install --python quark/discovery-2.0.0.q quark/intro.q
+	quark install --python quark/discovery-2.0.0.q quark/datawire_introspection.q
 
 discoball:
 	./gradlew clean build :discovery-web:buildDockerImage

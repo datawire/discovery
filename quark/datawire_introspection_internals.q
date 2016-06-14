@@ -16,72 +16,15 @@
 
 import quark.os;
 
-namespace util
+use ./discovery_util.q;
+import discovery.util;  // bring in EnvironmentVariable
+
+namespace datawire_introspection
 {
-  namespace internal
-  {
-    interface Supplier<T> 
-    {
-      
-      @doc("Gets a value")
-      T get();
-       
-      /* BUG (compiler) -- Issue # --> https://github.com/datawire/quark/issues/143
-      @doc("Gets a value or if null returns the given alternative.")
-      T orElseGet(T alternative) 
-      {
-        T result = get();
-        if (result != null) 
-        {
-          return result;
-        }
-        else
-        {
-          return alternative;
-        }
-      }
-      */
-
-    }
-
-    class EnvironmentVariable extends Supplier<String>
-    {
-      String variableName;
-
-      EnvironmentVariable(String variableName)
-      {
-        self.variableName = variableName;
-      }
-
-      bool isDefined()
-      {
-        return get() != null;
-      }
-
-      String get()
-      {
-        return Environment.getEnvironment()[variableName];
-      }
-
-      // TODO: Remove once Issue #143 --> https://github.com/datawire/quark/issues/143 is resolved.
-      String orElseGet(String alternative)
-      {
-        String result = get();
-        if (result != null)
-        {
-          return result;
-        }
-        else
-        {
-          return alternative;
-        }
-      }
-    }
-  }
   
   namespace aws
   {
-    class Ec2Host extends internal.Supplier<String>
+    class Ec2Host extends Supplier<String>
     {
 
       //static String METADATA_HOST = util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
@@ -93,7 +36,7 @@ namespace util
       }
 
       static String metadataHost() {
-        return util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
+        return util.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       }
 
       String get() 
@@ -130,7 +73,7 @@ namespace util
   
   namespace kubernetes
   {
-    class KubernetesHost extends internal.Supplier<String>
+    class KubernetesHost extends Supplier<String>
     {
       String get()
       {
@@ -138,7 +81,7 @@ namespace util
       }
     }
     
-    class KubernetesPort extends internal.Supplier<int>
+    class KubernetesPort extends Supplier<int>
     {
       int get()
       {

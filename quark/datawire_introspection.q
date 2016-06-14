@@ -1,6 +1,6 @@
 quark 0.7;
 
-package discovery 2.0.0;
+package datawire_introspection 2.0.0;
 
 /* 
  * Copyright 2016 Datawire. All rights reserved.
@@ -18,16 +18,16 @@ package discovery 2.0.0;
  * limitations under the License.
  */
 
-use ./util.q;
+use ./discovery_util.q;
+include ./datawire_introspection_internals.q;
 
-import util.internal;
-import util.aws;
-import util.kubernetes;
+import discovery.util;  // bring in EnvironmentVariable
 
-namespace util 
+namespace datawire_introspection 
 {
 
-  class Datawire 
+  // XXX: How should this relate to Datawire Connect's DatawireState class?
+  class DatawireToken
   {
 
     static String TOKEN_VARIABLE_NAME = "DATAWIRE_TOKEN";
@@ -97,7 +97,7 @@ namespace util
 
           if(parts.size() == 2)
           {
-            return Ec2Host(parts[1]).get();
+            return aws.Ec2Host(parts[1]).get();
           }
           else
           {
@@ -133,7 +133,7 @@ namespace util
 
       if (platformType() == PLATFORM_TYPE_KUBERNETES)
       {
-        return KubernetesPort().get();
+        return kubernetes.KubernetesPort().get();
       }
       
       return servicePort;

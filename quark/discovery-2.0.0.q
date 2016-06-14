@@ -2,14 +2,14 @@ quark 0.7.6;
 
 package datawire_discovery 2.0.0;
 
-use ./util.q;
+use ./discovery_util.q;
 include ./discovery_protocol.q;
 
 import quark.concurrent;
 import quark.reflect;
 
 import discovery.protocol;
-import util.internal;
+import discovery.util;  // bring in EnvironmentVariable
 
 /*
   Context:
@@ -62,7 +62,6 @@ import util.internal;
 */
 
 namespace discovery {
-
   @doc("The Cluster class holds a set of nodes associated with the same service.")
   class Cluster {
     List<Node> nodes = [];
@@ -263,7 +262,7 @@ namespace discovery {
 
     @doc("Connect to the default discovery server. If DATAWIRE_DISCOVERY_URL")
     @doc("is in the environment, it specifies the default; if not, we'll talk to")
-    @doc("disco.datawire.io.")
+    @doc("wss://discovery-beta.datawire.io/")
     Discovery connect() {
       EnvironmentVariable ddu = EnvironmentVariable("DATAWIRE_DISCOVERY_URL");
       String url = ddu.orElseGet("wss://discovery-beta.datawire.io/");
