@@ -1,29 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Copyright 2016 Datawire. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!-- Standard logging configuration used for Datawire Discovery -->
+
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger -- %m%n</pattern>
-        </encoder>
-    </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/datawire/discovery.log</file>
+        <append>true</append>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} |%-5level| %thread %logger -- %m%n</pattern>
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} %level [%thread] %logger{5} - %m%n</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- rollover daily -->
-            <fileNamePattern>/var/log/datawire/discovery-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>/var/log/datawire/discovery-%d{yyyy-MM-dd, UTC}.%i.log</fileNamePattern>
+            <maxFileSize>500MB</maxFileSize>
+            <maxHistory>2</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
         </rollingPolicy>
     </appender>
 
-    <root level="debug">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} %level [%thread] %logger{5} - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="STDOUT" />
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="ASYNC_FILE" />
+        <appender-ref ref="ASYNC_STDOUT" />
     </root>
 
-    <logger name="io.netty" level="error" />
-    <logger name="com.hazelcast.cluster" level="info" />
-    <logger name="com.hazelcast" level="error" />
+    <logger name="io.netty" level="WARN" />
+    <logger name="com.hazelcast.cluster" level="INFO" />
+    <logger name="com.hazelcast" level="WARN" />
+
 </configuration>

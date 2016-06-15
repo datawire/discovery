@@ -1,7 +1,7 @@
 ---
 clusterManager:
   type: hazelcast
-  configPath: src/main/resources/hazelcast-local.xml
+  configPath: src/main/resources/cluster.xml
 
 discovery:
   type: shared-hazelcast

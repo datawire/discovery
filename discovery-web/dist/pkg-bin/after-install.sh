@@ -20,8 +20,8 @@ APP_USER="$APP_NAME"
 
 ln -s /opt/discovery/discovery-web-*-fat.jar /opt/discovery/discovery-web.jar
 
-mkdir -p /var/log/discovery
-chown -R ${APP_USER}:${APP_USER} /var/log/${APP_NAME}
+mkdir -p /var/log/datawire
+chown -R ${APP_USER}:${APP_USER} /var/log/datawire
 
 mkdir -p /etc/${APP_NAME}
 chown -R ${APP_USER}:${APP_USER} /etc/${APP_NAME}

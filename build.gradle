@@ -72,6 +72,14 @@ clean {
   }
 }
 
+task dockerize(type: Exec, dependsOn: [':discovery-web:clean', ':discovery-web:shadowJar']) {
+  description 'Creates a runnable Docker image containing Discovery'
+
+  workingDir project.projectDir
+  executable 'docker'
+  args "build", "-t", "datawire/discovery:${version}".toString(), "."
+}
+
 task version << {
   println version
 }

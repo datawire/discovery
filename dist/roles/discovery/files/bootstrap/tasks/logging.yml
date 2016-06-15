@@ -1,7 +1,0 @@
----
-# file: discovery_bootstrap/tasks/logging.yml
-
-- name: ensure logging configuration is installed
-  template:
-    src: discovery_logs.conf
-    dest: /var/awslogs/etc/config/discovery_logs.conf

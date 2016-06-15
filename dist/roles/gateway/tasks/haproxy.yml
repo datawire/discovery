@@ -1,7 +1,0 @@
----
-# file: gateway/tasks/haproxy.yml
-
-- name: configure haproxy
-  copy:
-    src: haproxy.cfg
-    dest: /etc/haproxy/haproxy.cfg
