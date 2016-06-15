@@ -17,7 +17,7 @@
 sudo -s dnf -y install unzip python2 python-pip python-virtualenv
 yes | sudo -s pip install --upgrade pip
 yes | sudo -s pip install --upgrade wheel pytest
-curl -L https://raw.githubusercontent.com/datawire/quark/master/install.sh | bash -s
+curl -L https://raw.githubusercontent.com/datawire/quark/master/install.sh | bash -s -- rel/0.7.6
 
 cd /tmp
 tar -xvzf introspection.tar.gz

@@ -28,22 +28,26 @@ def hello():
 
 if __name__ == "__main__":
     port_num = 5000
+    version = "1.0.0"
 
     if len(sys.argv) > 1:
         port_num = int(sys.argv[1])
 
+        if len(sys.argv) > 2:
+            version = sys.argv[2]
+
     # Start discovery related changes.
-    from util import Platform, Datawire
+    from datawire_introspection import Platform, DatawireToken
     host = Platform.getRoutableHost()
     port = Platform.getRoutablePort(port_num)
 
     from discovery import Discovery, Node
-    disco = Discovery().connect().withToken(Datawire.getToken()).start()
+    disco = Discovery().withToken(DatawireToken.getToken()).connect().start()
 
     node = Node()
     node.service = "hello-flask"
     node.address = "http://%s:%s" % (host, port)
-    node.version = "1.2.3"
+    node.version = version
     disco.register(node)
     # End discovery related changes.
 
