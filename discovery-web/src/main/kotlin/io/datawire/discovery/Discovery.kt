@@ -24,7 +24,20 @@ class Discovery : AbstractVerticle() {
   private val logger    = LoggerFactory.getLogger(Discovery::class.java)
   private val hazelcast = initializeHazelcast()
 
-  private fun initializeHazelcast(): HazelcastInstance = Hazelcast.newHazelcastInstance()
+  // TODO(plombardi): This isn't really ideal because we're relying on the Vert.x ClusterManager to be configured.
+  //
+  // The big problems with this approach:
+  //
+  // 1. Hazelcast is a Vert.x impl detail
+  // 2. Requires the server be started with -cluster parameter.
+  //
+  // The solution:
+  //
+  // 1. Expose config options to configure hazelcast properly.
+  //
+  private fun initializeHazelcast(): HazelcastInstance {
+    return Hazelcast.getAllHazelcastInstances().first()
+  }
 
   private fun configureAuthHandler(router: Router) {
     val config = AuthHandlerConfig(config().getJsonObject("authHandler", JsonObject()))
