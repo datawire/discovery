@@ -17,7 +17,7 @@
 import quark.os;
 
 use ./discovery_util.q;
-import discovery.util;  // bring in EnvironmentVariable
+import discovery_util;  // bring in EnvironmentVariable
 
 namespace datawire_introspection
 {
@@ -27,7 +27,7 @@ namespace datawire_introspection
     class Ec2Host extends Supplier<String>
     {
 
-      //static String METADATA_HOST = util.internal.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
+      //static String METADATA_HOST = EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       
       String scope;
 
@@ -36,7 +36,7 @@ namespace datawire_introspection
       }
 
       static String metadataHost() {
-        return util.EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
+        return EnvironmentVariable("DATAWIRE_METADATA_HOST_OVERRIDE").orElseGet("169.254.169.254");
       }
 
       String get() 

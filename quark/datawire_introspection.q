@@ -21,7 +21,7 @@ package datawire_introspection 2.0.0;
 use ./discovery_util.q;
 include ./datawire_introspection_internals.q;
 
-import discovery.util;  // bring in EnvironmentVariable
+import discovery_util;  // bring in EnvironmentVariable
 
 namespace datawire_introspection 
 {

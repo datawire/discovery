@@ -9,7 +9,7 @@ import quark.concurrent;
 import quark.reflect;
 
 import discovery.protocol;
-import discovery.util;  // bring in EnvironmentVariable
+import discovery_util;  // bring in EnvironmentVariable
 
 /*
   Context:

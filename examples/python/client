@@ -21,9 +21,9 @@ import requests
 
 # Start discovery related changes.
 from discovery import Discovery, Node
-from util import Datawire
+from datawire_introspection import DatawireToken
 
-disco = Discovery().connect().withToken(Datawire.getToken()).start()
+disco = Discovery().withToken(DatawireToken.getToken()).connect().start()
 
 node = disco.resolve('hello-flask')
 node.await(10.0)
