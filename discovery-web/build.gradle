@@ -60,6 +60,9 @@ sourceSets {
     java {
       srcDir 'src/generated/java'
     }
+    resources {
+      srcDir 'config'
+    }
   }
 }
 

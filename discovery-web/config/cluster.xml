@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Copyright 2016 Datawire. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 <hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.6.xsd"
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -12,9 +29,10 @@
     </properties>
 
     <group>
-        <name>dev</name>
-        <password>dev-pass</password>
+        <name>discovery</name>
+        <password>discovery</password>
     </group>
+
     <network>
         <port auto-increment="true" port-count="10000">5701</port>
         <outbound-ports>
@@ -25,11 +43,15 @@
             <ports>0</ports>
         </outbound-ports>
         <join>
-            <!-- Developers should use multicast -->
-            <multicast enabled="true">
-                <multicast-group>224.2.2.3</multicast-group>
-                <multicast-port>54327</multicast-port>
-            </multicast>
+            <multicast enabled="false" />
+            <tcp-ip enabled="false" />
+
+            <!-- TODO(plombardi) AWS needs to be configured before deployment. -->
+            <aws enabled="true">
+                <iam-role>cloud-simple</iam-role>
+                <region>us-east-1</region>
+                <security-group-name>discovery-test</security-group-name>
+            </aws>
         </join>
         <ssl enabled="false"/>
         <socket-interceptor enabled="false"/>

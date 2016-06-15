@@ -80,6 +80,14 @@ task dockerize(type: Exec, dependsOn: [':discovery-web:clean', ':discovery-web:s
   args "build", "-t", "datawire/discovery:${version}".toString(), "."
 }
 
+task runDockerizedDiscovery(type: Exec, dependsOn: dockerize) {
+  description 'Runs Discovery inside a Docker container'
+
+  workingDir project.projectDir
+  executable 'docker'
+  args "run --rm=true --name disco -p 52689:52689 -v ${projectDir}/discovery-web/config:/opt/discovery/config datawire/discovery:2.0.0".split(' ') as List
+}
+
 task version << {
   println version
 }

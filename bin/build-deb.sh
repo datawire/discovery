@@ -44,6 +44,7 @@ mkdir -p ${DIST_ASSEMBLY_DIR}/etc/nginx/sites-available
 mkdir -p ${DIST_ASSEMBLY_DIR}/var/awslogs/etc/config
 
 cp ${PACKAGE_PROJECT_MODULE}/config/${ROOT_PROJECT_NAME}.json          ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/
+cp ${PACKAGE_PROJECT_MODULE}/config/cluster.xml                        ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/
 
 # copy the keystore into place
 cp ${discovery_keystore}                                               ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/hmac.jceks
