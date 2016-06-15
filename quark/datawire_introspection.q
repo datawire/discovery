@@ -18,8 +18,8 @@ package datawire_introspection 2.0.0;
  * limitations under the License.
  */
 
-use ./discovery_util.q;
-include ./datawire_introspection_internals.q;
+use discovery_util.q;
+include datawire_introspection_internals.q;
 
 import discovery_util;  // bring in EnvironmentVariable
 

@@ -16,7 +16,7 @@
 
 import quark.os;
 
-use ./discovery_util.q;
+use discovery_util.q;
 import discovery_util;  // bring in EnvironmentVariable
 
 namespace datawire_introspection
