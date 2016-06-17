@@ -62,13 +62,14 @@ import discovery_util;  // bring in EnvironmentVariable
 */
 
 namespace discovery {
-  @doc("The Cluster class holds a set of nodes associated with the same service.")
+  @doc("A Cluster is a group of providers of (possibly different versions of)")
+  @doc("a single service. Each service provider is represented by a Node.")
   class Cluster {
     List<Node> nodes = [];
     int idx = 0;
 
-    @doc("Choose a node from the cluster to talk to. At present this is a simple")
-    @doc("round robin.")
+    @doc("Choose a single Node to talk to. At present this is a simple round")
+    @doc("robin.")
     Node choose() {
       if (nodes.size() > 0) {
         int choice = idx % nodes.size();
@@ -80,9 +81,9 @@ namespace discovery {
       }
     }
 
-    @doc("Add a node to the cluster (or, if it's already present in the cluster,")
-    @doc("update its properties). At present this involves a linear search, so, uh,")
-    @doc("adding ten million nodes is probably not a great idea.")
+    @doc("Add a Node to the cluster (or, if it's already present in the cluster,")
+    @doc("update its properties).  At present, this involves a linear search, so")
+    @doc("very large Clusters are unlikely to perform well.")
     void add(Node node) {
       int idx = 0;
 
@@ -100,8 +101,9 @@ namespace discovery {
       nodes.add(node);
     }
 
-    @doc("Remove a node from the cluster, if it's present. If it's not present, remove")
-    @doc("is a no-op.")
+    @doc("Remove a Node from the cluster, if it's present. If it's not present, do")
+    @doc("nothing. Note that it is possible to remove all the Nodes and be left with")
+    @doc("an empty cluster.")
     void remove(Node node) {
       int idx = 0;
 
@@ -119,11 +121,16 @@ namespace discovery {
       // XXX: should this be an error? as it is, we silently ignore it.
     }
 
+    @doc("Returns true if and only if this Cluster contains no Nodes.")
     bool isEmpty() {
       return (nodes.size() <= 0);
     }
 
     // XXX: toString() is a disaster for large clusters.
+    @doc("Return a string representation of the Cluster.")
+    @doc("")
+    @doc("WARNING: every Node is represented in the string. Large Clusters will")
+    @doc("produce unusably large strings.")
     String toString() {
       String result = "Cluster(";
 
@@ -144,13 +151,16 @@ namespace discovery {
   }
 
   @doc("The Node class captures address and metadata information about a")
-  @doc("server functioning as a service instance.")
+  @doc("server functioning as a service instance. Node extends Future, since")
+  @doc("some operations involving Nodes can take awhile -- this means that")
+  @doc("you must be sure that a given Node has been finished before using")
+  @doc("its values. The Quark documentation for Future has more.")
   class Node extends Future {
     @doc("The service name.")
     String service;
-    @doc("The service version.")
+    @doc("The service version (e.g. '1.2.3')")
     String version;
-    @doc("The address from which clients can reach the server.")
+    @doc("The address at which clients can reach the server.")
     String address;
     @doc("Additional metadata associated with this service instance.")
     Map<String,Object> properties;
@@ -164,6 +174,7 @@ namespace discovery {
       self.finish(null);
     }
 
+    @doc("Return a string representation of the Node.")
     String toString() {
       // XXX: this doesn't get mapped into __str__, etc in targets
       String result = "Node(";
@@ -199,7 +210,9 @@ namespace discovery {
   }
 
   @doc("The Discovery class functions as a conduit to the discovery service.")
-  @doc("Using it, an application can register and/or lookup service instances.")
+  @doc("Using it, a provider can register itself as providing a particular service")
+  @doc("(see the register method) and a consumer can locate a provider for a")
+  @doc("particular service (see the resolve method).")
   class Discovery {
     String url;
     String token;
@@ -217,13 +230,13 @@ namespace discovery {
     Lock mutex = new Lock();
     DiscoClient client;
 
-    @doc("Construct a Discovery object. You must connect the object to a")
-    @doc("discovery server before you can do anything else; see connect() and")
-    @doc("connectTo()")
+    @doc("Construct a Discovery object. You must set the token before doing")
+    @doc("anything else; see the withToken() method.")
     Discovery() {
-      logger.info("hello");
+      logger.info("Discovery created!");
     }
 
+    // XXX PRIVATE API.
     @doc("Lock and make sure we have a client established.")
     void _lock() {
       mutex.acquire();
@@ -236,14 +249,16 @@ namespace discovery {
       }
     }
 
-    @doc("Release the lock")
+    // XXX PRIVATE API.
+    // @doc("Release the lock")
     void _release() {
       mutex.release();
       logger.info("released");
     }
 
     @doc("Connect to a specific discovery server. Most callers will just want")
-    @doc("connect().")
+    @doc("connect(). After connecting, you must start the uplink with the start()")
+    @doc("method.")
     Discovery connectTo(String url) {
       // Don't use self._lock() here -- manage the lock by hand since we're
       // messing with the client by hand.
@@ -261,15 +276,20 @@ namespace discovery {
 
     @doc("Connect to the default discovery server. If DATAWIRE_DISCOVERY_URL")
     @doc("is in the environment, it specifies the default; if not, we'll talk to")
+    @doc("")
     @doc("wss://discovery-beta.datawire.io/")
+    @doc("")
+    @doc("After connecting, you must start the uplink with the start() method.")
     Discovery connect() {
       EnvironmentVariable ddu = EnvironmentVariable("DATAWIRE_DISCOVERY_URL");
-      String url = ddu.orElseGet("wss://discovery-beta.datawire.io/");
+      String url = ddu.orElseGet("wss://discovery-beta.datawire.io");
 
       return self.connectTo(url);
     }
 
-    @doc("Set the token we'll use to talk to the server.")
+    @doc("Set the token we'll use to talk to the server. After doing this,")
+    @doc("you must tell Discovery which discovery service to talk to using")
+    @doc("either connect() or connectTo().")
     Discovery withToken(String token) {
       self._lock();
       logger.info("using token " + token);
@@ -325,6 +345,7 @@ namespace discovery {
 
     @doc("Resolve a service name into an available service node. You must")
     @doc("usually start the uplink before this will do much; see start().")
+    @doc("")
     Node resolve(String service) {
       Node result;
       self._lock();
@@ -344,7 +365,8 @@ namespace discovery {
       return result;
     }
 
-    @doc("Add a given node.")
+    // XXX PRIVATE API -- needs to not be here.
+    // @doc("Add a given node.")
     void active(Node node) {
       self._lock();
 
@@ -362,7 +384,8 @@ namespace discovery {
       self._release();
     }
 
-    @doc("Expire a given node.")
+    // XXX PRIVATE API -- needs to not be here.
+    // @doc("Expire a given node.")
     void expire(Node node) {
       self._lock();
 
