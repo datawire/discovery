@@ -1,8 +1,9 @@
-quark 0.7;
+quark 1.0;
 
 package discotest 2.0.0;
 
 use discovery-2.0.0.q;
+// We can switch to quark.mock whenever we switch to Quark > 1.0.133.
 include mock.q;
 
 import quark.test;
@@ -64,7 +65,7 @@ class DiscoTest extends ProtocolTest {
     // Tests
 
     void testStart() {
-        Discovery disco = new Discovery("http://gateway");
+        Discovery disco = new Discovery().connect();
 
         // we should see no events until we tell disco to start
         self.expectNone();
@@ -89,7 +90,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testRegisterPreStart() {
-        Discovery disco = new Discovery("http://gateway");
+        Discovery disco = new Discovery().connect();
 
         Node node = new Node();
         node.service = "svc";
@@ -109,7 +110,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testRegisterPostStart() {
-        Discovery disco = new Discovery("http://gateway");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = new Node();
@@ -126,7 +127,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testResolvePreStart() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
 
         Node node = disco.resolve("svc");
         checkEqual("svc", node.service);
@@ -148,7 +149,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testResolvePostStart() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = disco.resolve("svc");
@@ -168,7 +169,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testLoadBalancing() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = disco.resolve("svc");

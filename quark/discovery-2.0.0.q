@@ -1,4 +1,4 @@
-quark 0.7.6;
+quark 1.0;
 
 package datawire_discovery 2.0.0;
 
