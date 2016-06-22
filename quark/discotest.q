@@ -1,8 +1,9 @@
-quark 0.7;
+quark 1.0;
 
 package discotest 2.0.0;
 
 use discovery-2.0.0.q;
+// We can switch to quark.mock whenever we switch to Quark > 1.0.133.
 include mock.q;
 
 import quark.test;
@@ -50,11 +51,7 @@ class DiscoTest extends ProtocolTest {
     SocketEvent startDisco(Discovery disco) {
         disco.start();
         self.pump();
-        RequestEvent rev = self.expectRequest(disco.url + "/v2/connect");
-        if (rev == null) { return null; }
-        rev.respond(200, {}, "ws://discoball");
-        self.pump();
-        SocketEvent sev = self.expectSocket("ws://discoball");
+        SocketEvent sev = self.expectSocket(disco.url);
         if (sev == null) { return null; }
         sev.accept();
         return sev;
@@ -64,23 +61,8 @@ class DiscoTest extends ProtocolTest {
     // Tests
 
     void testStart() {
-        Discovery disco = new Discovery("http://gateway");
-
-        // we should see no events until we tell disco to start
-        self.expectNone();
-        disco.start();
-
-        // now lets tell our mock runtime to pump
-        self.pump();
-        RequestEvent rev = self.expectRequest("http://gateway/v2/connect");
-        if (rev == null) { return; }
-        if (disco.token != null) {
-            String token = rev.request.getHeader("Authorization");
-            checkEqual("Bearer " + disco.token, token);
-        }
-        rev.respond(200, {}, "ws://discoball");
-        self.pump();
-        SocketEvent sev = self.expectSocket("ws://discoball");
+        Discovery disco = new Discovery().connect();
+        SocketEvent sev = startDisco(disco);
         if (sev == null) { return; }
     }
 
@@ -89,7 +71,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testRegisterPreStart() {
-        Discovery disco = new Discovery("http://gateway");
+        Discovery disco = new Discovery().connect();
 
         Node node = new Node();
         node.service = "svc";
@@ -109,7 +91,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testRegisterPostStart() {
-        Discovery disco = new Discovery("http://gateway");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = new Node();
@@ -126,7 +108,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testResolvePreStart() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
 
         Node node = disco.resolve("svc");
         checkEqual("svc", node.service);
@@ -148,7 +130,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testResolvePostStart() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = disco.resolve("svc");
@@ -168,7 +150,7 @@ class DiscoTest extends ProtocolTest {
     }
 
     void testLoadBalancing() {
-        Discovery disco = new Discovery("http://discoball");
+        Discovery disco = new Discovery().connect();
         SocketEvent sev = startDisco(disco);
 
         Node node = disco.resolve("svc");

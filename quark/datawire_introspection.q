@@ -1,4 +1,4 @@
-quark 0.7;
+quark 1.0;
 
 package datawire_introspection 2.0.0;
 
