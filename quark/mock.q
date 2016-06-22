@@ -1,4 +1,9 @@
+quark 1.0;
+
 import quark.test;
+
+// THIS CAN BE REPLACED WITH quark.mock AS SOON AS WE UPGRADE TO QUARK > 1.0.133!
+// DELETE THIS FILE!
 
 /*@doc("""
 Base class for network actions that have been captured by the

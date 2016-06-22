@@ -1,3 +1,5 @@
+quark 1.0;
+
 import quark.concurrent;
 import quark.reflect;
 
@@ -200,9 +202,8 @@ namespace discovery {
 
       void onWSClosed(WebSocket socket) { /* unused */ }
 
-      void onWSError(WebSocket socket) {
-        // XXX: Should log the error here.
-
+      void onWSError(WebSocket socket, WSError error) {
+          log.error(error.toString());
         // Any non-transient errors should be reported back to the
         // user via any Nodes they have requested.
       }
