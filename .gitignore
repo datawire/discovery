@@ -9,6 +9,7 @@ build
 *.zip
 *.log
 *.qc
+*.pyc
 
 quark/test/*/launch-vars.json
 *.tfstate*
