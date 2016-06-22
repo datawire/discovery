@@ -84,6 +84,7 @@ namespace discovery {
         // Stick the node in the available set.
 
         Node node = active.node;
+        node.finish(null);
 
         disco.active(node);
       }
