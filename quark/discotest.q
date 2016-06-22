@@ -51,11 +51,7 @@ class DiscoTest extends ProtocolTest {
     SocketEvent startDisco(Discovery disco) {
         disco.start();
         self.pump();
-        RequestEvent rev = self.expectRequest(disco.url + "/v2/connect");
-        if (rev == null) { return null; }
-        rev.respond(200, {}, "ws://discoball");
-        self.pump();
-        SocketEvent sev = self.expectSocket("ws://discoball");
+        SocketEvent sev = self.expectSocket(disco.url);
         if (sev == null) { return null; }
         sev.accept();
         return sev;
@@ -66,22 +62,7 @@ class DiscoTest extends ProtocolTest {
 
     void testStart() {
         Discovery disco = new Discovery().connect();
-
-        // we should see no events until we tell disco to start
-        self.expectNone();
-        disco.start();
-
-        // now lets tell our mock runtime to pump
-        self.pump();
-        RequestEvent rev = self.expectRequest("http://gateway/v2/connect");
-        if (rev == null) { return; }
-        if (disco.token != null) {
-            String token = rev.request.getHeader("Authorization");
-            checkEqual("Bearer " + disco.token, token);
-        }
-        rev.respond(200, {}, "ws://discoball");
-        self.pump();
-        SocketEvent sev = self.expectSocket("ws://discoball");
+        SocketEvent sev = startDisco(disco);
         if (sev == null) { return; }
     }
 
