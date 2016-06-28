@@ -12,6 +12,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner
 import io.vertx.ext.web.Router
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.net.ServerSocket
@@ -71,6 +72,7 @@ class DiscoveryAuthHandlerTest : io.datawire.discovery.DiscoveryTest() {
   }
 
   @Test
+  @Ignore
   fun useTokenQueryParameterIfPresent(context: TestContext) {
     val async = context.async()
 
@@ -88,6 +90,7 @@ class DiscoveryAuthHandlerTest : io.datawire.discovery.DiscoveryTest() {
   }
 
   @Test
+  @Ignore
   fun useAuthorizationHeaderWithBearerTokenIfPresent(context: TestContext) {
     val async = context.async()
 
@@ -106,6 +109,7 @@ class DiscoveryAuthHandlerTest : io.datawire.discovery.DiscoveryTest() {
   }
 
   @Test
+  @Ignore
   fun useTokenQueryParameterBeforeAttemptingToUseAuthorizationHeaderWithBearerToken(context: TestContext) {
     val async = context.async()
 
@@ -126,6 +130,7 @@ class DiscoveryAuthHandlerTest : io.datawire.discovery.DiscoveryTest() {
   }
 
   @Test
+  @Ignore
   fun failIfTokenIsIncorrectlySigned(context: TestContext) {
     val async = context.async()
 

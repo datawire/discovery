@@ -9,16 +9,6 @@ ext {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Docker
-// ---------------------------------------------------------------------------------------------------------------------
-
-task buildDockerImage(type: Exec, dependsOn: shadowJar) {
-  workingDir parent.projectDir
-  executable 'docker'
-  args "build", "-t", "datawire/discovery:${version}".toString(), "."
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
 // Quark -> Java source code generation... this sucks; a lot.
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -60,9 +50,6 @@ sourceSets {
     java {
       srcDir 'src/generated/java'
     }
-    resources {
-      srcDir 'config'
-    }
   }
 }
 
@@ -92,7 +79,7 @@ dependencies {
       "io.vertx:vertx-hazelcast:${parent.ext.vertxVersion}",
       "io.vertx:vertx-web:${parent.ext.vertxVersion}",
 
-      "io.netty:netty-all:4.0.33.Final",
+      "io.netty:netty-all:4.1.1.Final",
 
       "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
 

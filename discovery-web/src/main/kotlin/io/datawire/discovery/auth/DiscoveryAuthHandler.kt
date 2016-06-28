@@ -17,7 +17,7 @@
 package io.datawire.discovery.auth
 
 import io.vertx.core.http.HttpHeaders
-import io.vertx.ext.auth.AuthProvider
+import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
 
@@ -29,7 +29,7 @@ import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl
  * @since 1.0
  */
 
-class DiscoveryAuthHandler(authProvider     : AuthProvider,
+class DiscoveryAuthHandler(authProvider     : JWTAuth,
                            private val skip : String?) : JWTAuthHandlerImpl(authProvider, skip) {
 
   override fun handle(context: RoutingContext) {

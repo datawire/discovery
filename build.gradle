@@ -31,7 +31,7 @@ ext {
   hazelcastVersion  = '3.6.2'
   junitVersion      = '4.12'
   logbackVersion    = '1.1.7'
-  vertxVersion      = '3.2.1'
+  vertxVersion      = '3.3.0'
 }
 
 allprojects {
@@ -77,15 +77,15 @@ task dockerize(type: Exec, dependsOn: [':discovery-web:clean', ':discovery-web:s
 
   workingDir project.projectDir
   executable 'docker'
-  args "build", "-t", "datawire/discovery:${version}".toString(), "."
+  args "build", "-t", "datawire/discovery:${version}".toString(), "-t", "datawire/discovery:${version.split("-")[0]}", "."
 }
 
-task runDockerizedDiscovery(type: Exec, dependsOn: dockerize) {
+task runDockerized(type: Exec) {
   description 'Runs Discovery inside a Docker container'
 
   workingDir project.projectDir
   executable 'docker'
-  args "run --rm=true --name disco -p 52689:52689 -v ${projectDir}/discovery-web/config:/etc/discovery/config datawire/discovery:2.0.0".split(' ') as List
+  args "run --rm=true --name disco -p 52689:52689 -v ${projectDir}/discovery-web/config:/etc/discovery datawire/discovery:${version.split("-")[0]}".split(' ') as List
 }
 
 task version << {
