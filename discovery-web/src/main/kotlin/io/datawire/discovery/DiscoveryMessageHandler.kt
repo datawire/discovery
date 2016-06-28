@@ -8,6 +8,9 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
+import mdk.protocol.Close
+import mdk.protocol.Open
+import mdk.protocol.ProtocolError
 import java.util.*
 
 
@@ -45,7 +48,7 @@ class DiscoveryMessageHandler(private val tenant         : String,
                    tenant, errorId, messageVersion, clientVersion)
 
       val close = Close()
-      val error = Error()
+      val error = ProtocolError()
       error.code  = "1"
       error.title = "VERSION_MISMATCH"
       error.id    = errorId

@@ -20,4 +20,4 @@ ENTRYPOINT ["java", \
             "-Dhazelcast.logging.type=slf4j", \
             "-jar", "/opt/discovery/discovery-web.jar", \
             "-conf", \
-            "/opt/discovery/config/discovery.json"]
+            "/etc/discovery/config/discovery.json"]

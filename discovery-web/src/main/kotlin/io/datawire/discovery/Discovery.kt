@@ -17,6 +17,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import mdk.protocol.Open
 
 
 class Discovery : AbstractVerticle() {

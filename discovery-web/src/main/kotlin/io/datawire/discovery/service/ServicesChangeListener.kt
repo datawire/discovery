@@ -29,7 +29,7 @@ class ServicesChangeListener(private val eventBus: EventBus) : EntryListener<Str
   }
 
   override fun entryRemoved(event: EntryEvent<String, ServiceRecord>?) {
-    val record  = event!!.value
+    val record  = event!!.oldValue
     val message = record.toExpire()
 
     logger.debug("Entry removed (key: {})", record.key)
