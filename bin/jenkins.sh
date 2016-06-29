@@ -49,7 +49,7 @@ WORKSPACE_DIR="${WORKSPACE:?Jenkins \$WORKSPACE environment variable is not set}
 BUILD_TOOLS_DIR="${WORKSPACE_DIR}/build-tools"
 
 QUARK_INSTALL_URL="https://raw.githubusercontent.com/datawire/quark/master/install.sh"
-QUARK_BRANCH="rel/0.7.6"
+QUARK_BRANCH="v1.0.282"
 QUARK_INSTALL_DIR="${BUILD_TOOLS_DIR}/quark"
 QUARK_INSTALL_ARGS="-qqq -t ${QUARK_INSTALL_DIR} ${QUARK_BRANCH}"
 QUARK_EXEC="${QUARK_INSTALL_DIR}/bin/quark"
