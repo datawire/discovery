@@ -50,7 +50,7 @@ limitations under the License.
             <aws enabled="true">
                 <iam-role>cloud-simple</iam-role>
                 <region>us-east-1</region>
-                <security-group-name>discovery-test</security-group-name>
+                <security-group-name>discovery-backend</security-group-name>
             </aws>
         </join>
         <ssl enabled="false"/>
