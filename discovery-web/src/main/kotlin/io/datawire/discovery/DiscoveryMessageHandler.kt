@@ -1,6 +1,6 @@
 package io.datawire.discovery
 
-import discovery.protocol.*
+import mdk_discovery.protocol.*
 import io.datawire.discovery.model.ServiceKey
 import io.datawire.discovery.model.ServiceRecord
 import io.datawire.discovery.model.ServiceStore
@@ -8,9 +8,9 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.logging.LoggerFactory
-import mdk.protocol.Close
-import mdk.protocol.Open
-import mdk.protocol.ProtocolError
+import mdk_protocol.Close
+import mdk_protocol.Open
+import mdk_protocol.ProtocolError
 import java.util.*
 
 

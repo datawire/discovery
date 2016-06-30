@@ -2,7 +2,7 @@ package io.datawire.discovery
 
 import com.hazelcast.core.Hazelcast
 import com.hazelcast.core.HazelcastInstance
-import discovery.protocol.*
+import mdk_discovery.protocol.*
 import io.datawire.discovery.config.AuthHandlerConfig
 import io.datawire.discovery.config.CorsHandlerConfig
 import io.datawire.discovery.model.ServiceRecord
@@ -17,7 +17,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import mdk.protocol.Open
+import mdk_protocol.Open
 
 
 class Discovery : AbstractVerticle() {

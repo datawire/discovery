@@ -1,8 +1,8 @@
 package io.datawire.discovery.model
 
-import discovery.Node
-import discovery.protocol.Active
-import discovery.protocol.Expire
+import mdk_discovery.Node
+import mdk_discovery.protocol.Active
+import mdk_discovery.protocol.Expire
 import java.io.Serializable
 import java.util.*
 

@@ -1,6 +1,6 @@
 package io.datawire.discovery.model
 
-import discovery.Node
+import mdk_discovery.Node
 import java.io.Serializable
 
 
