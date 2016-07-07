@@ -148,10 +148,16 @@ class Discovery : AbstractVerticle() {
 
       socket.handler(DiscoveryMessageHandler(tenant, openMessage.version, socket, serviceStore))
 
+      socket.exceptionHandler {
+        logger.error("Error with client read stream (client: {})", tenant)
+      }
+
       socket.closeHandler {
         if (notificationsHandler.isRegistered) {
-          logger.debug("Unregistering client service store notification handler")
+          logger.debug("Unregistering client service store notification handler.")
           notificationsHandler.unregister()
+        } else {
+          logger.warn("Client does not have service store notification handler to unregister.")
         }
 
         vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
