@@ -11,15 +11,16 @@ class ForwardingServiceStore(private val delegate: ServiceStore) : ServiceStore 
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun addRecord(record: ServiceRecord) {
-    log.debug("Adding service record (tenant: {}, name: {}, addr: {}, ttl: {}s)",
-              record.tenant, record.serviceName, record.address, record.timeToLive)
-
+    log.debug("Adding service record (key: {}, ttl: {}s, count: {})", record.key, record.timeToLive, delegate.size)
     delegate.addRecord(record)
+    log.debug("Added service record (key: {}, count: {})", record.key, delegate.size)
   }
 
   override fun removeRecord(key: ServiceKey): Boolean {
-    log.debug("Removing service record (tenant: {}, name: {}, addr: {})", key.tenant, key.name, key.address)
+    log.debug("Removing service record (key: {}, count{})", key, delegate.size)
+    val removed = delegate.removeRecord(key)
+    log.debug("Removed service record (key: {}, count: {})", key, delegate.size)
 
-    return delegate.removeRecord(key)
+    return removed
   }
 }

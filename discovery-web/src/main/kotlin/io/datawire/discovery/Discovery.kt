@@ -7,9 +7,7 @@ import io.datawire.discovery.config.AuthHandlerConfig
 import io.datawire.discovery.config.CorsHandlerConfig
 import io.datawire.discovery.model.ServiceRecord
 import io.datawire.discovery.model.ServiceStore
-import io.datawire.discovery.service.ForwardingServiceStore
-import io.datawire.discovery.service.ReplicatedServiceStore
-import io.datawire.discovery.service.ServicesChangeListener
+import io.datawire.discovery.service.*
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
@@ -37,7 +35,8 @@ class Discovery : AbstractVerticle() {
   // 1. Expose config options to configure hazelcast properly.
   //
   private fun initializeHazelcast(): HazelcastInstance {
-    return Hazelcast.getAllHazelcastInstances().first()
+    // allows the -cluster param to be removed in development scenarios. There will be a HZ instance if clustering is enabled.
+    return if (Hazelcast.getAllHazelcastInstances().isNotEmpty()) Hazelcast.getAllHazelcastInstances().first() else Hazelcast.newHazelcastInstance()
   }
 
   private fun configureAuthHandler(router: Router) {
@@ -105,6 +104,10 @@ class Discovery : AbstractVerticle() {
       val replicatedMap = hazelcast.getReplicatedMap<String, ServiceRecord>("discovery.services.$tenant")
       serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap))
 
+      //val partitionedMap = hazelcast.getMap<String, ServiceRecord>("discovery.services.$tenant")
+      //serviceStore = ForwardingServiceStore(PartitionedServiceStore(partitionedMap))
+
+
       vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
         if (getCounter.succeeded()) {
           getCounter.result().incrementAndGet { increment ->
@@ -114,71 +117,88 @@ class Discovery : AbstractVerticle() {
                   "First connected client for tenant on this node. Registering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
 
               val entryListenerId = replicatedMap.addEntryListener(ServicesChangeListener(vertx.eventBus()))
+              //val entryListenerId = partitionedMap.addEntryListener(PartitionedServicesStoreListener(vertx.eventBus()), true)
 
               vertx
                   .sharedData()
                   .getLocalMap<String, String>("discovery.services.event-listeners")
                   .put(tenant, entryListenerId)
-
             } else if(increment.failed()) {
               logger.error("Could not increment tenant connection counter (tenant: $tenant)")
               socket.close()
             }
 
-          }
-        }
-      }
+            val notificationsAddress = "datawire.discovery.$tenant.services.notifications"
+            val notificationsHandler = vertx.eventBus().localConsumer<String>(notificationsAddress)
+            notificationsHandler.handler {
+              val msg = it.body()
+              logger.debug("""Sending Message (client: {})
 
-      val notificationsAddress = "datawire.discovery.$tenant.services.notifications"
-      val notificationsHandler = vertx.eventBus().localConsumer<String>(notificationsAddress)
-      notificationsHandler.handler {
-        socket.writeFinalTextFrame(it.body())
-      }
+              {}
+              """, socket.textHandlerID(), msg)
+              socket.writeFinalTextFrame(msg)
+            }
 
-      // A discovery.protocol.clear message is always sent upon a connection being established. The clear message is
-      // sent just before the server dumps all known Active services to the client.
-      val openMessage = Open()
-      socket.writeFinalTextFrame(openMessage.encode())
-      socket.writeFinalTextFrame(Clear().encode())
-      vertx.executeBlocking<Void>(
-          {
-            future -> serviceStore.getRecords().forEach { socket.writeFinalTextFrame(it.toActive().encode()) }
-            future.complete()
-          }, false, { })
+            // A discovery.protocol.clear message is always sent upon a connection being established. The clear message is
+            // sent just before the server dumps all known Active services to the client.
+            val openMessage = Open()
+            socket.writeFinalTextFrame(openMessage.encode())
+            socket.writeFinalTextFrame(Clear().encode())
+            vertx.executeBlocking<Void>(
+                { future ->
 
-      socket.handler(DiscoveryMessageHandler(tenant, openMessage.version, socket, serviceStore))
+                  logger.debug("Sending current registry state to client...")
+                  serviceStore.getRecords().forEach { socket.writeFinalTextFrame(it.toActive().encode()) }
+                  future.complete()
 
-      socket.exceptionHandler {
-        logger.error("Error with client read stream (client: {})", tenant)
-      }
+                }, false, {})
 
-      socket.closeHandler {
-        if (notificationsHandler.isRegistered) {
-          logger.debug("Unregistering client service store notification handler.")
-          notificationsHandler.unregister()
-        } else {
-          logger.warn("Client does not have service store notification handler to unregister.")
-        }
+            socket.handler(DiscoveryMessageHandler(tenant, openMessage.version, socket, serviceStore))
 
-        vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
-          if (getCounter.succeeded()) {
-            getCounter.result().decrementAndGet { decrement ->
-
-              if (decrement.succeeded() && decrement.result() == 0L) {
-                logger.info(
-                    "Last connected client for tenant on this node. Unregistering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
-
-                val entryListenerId = vertx.sharedData()
-                                           .getLocalMap<String, String>("discovery.services.event-listeners")
-                                           .get(tenant)
-
-                replicatedMap.removeEntryListener(entryListenerId)
-
-              } else if(decrement.failed()) {
-                logger.error("Could not decrement tenant connection counter (tenant: $tenant)")
+            socket.closeHandler {
+              if (notificationsHandler.isRegistered) {
+                logger.debug("Unregistering client service store notification handler.")
+                notificationsHandler.unregister()
+              } else {
+                logger.warn("Client does not have service store notification handler to unregister.")
               }
+
+              //
+              // @Note(Plombardi, 2016-07-08): This code below is probably unncessary.
+              //
+              // Code decrements and removes a tenant's listener on this node if the tenant count reaches none, but
+              // realistically there will likely always be at least one tenant connected to the server no matter what.
+              //
+              // Re-evaluate the necessity of this code sometime in 2016-08.
+              //
+
+//              vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
+//                if (getCounter.succeeded()) {
+//                  getCounter.result().decrementAndGet { decrement ->
+//
+//                    if (decrement.succeeded() && decrement.result() == 0L) {
+//                      logger.info(
+//                          "Last connected client for tenant on this node. Unregistering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
+//
+//                      val entryListenerId = vertx.sharedData()
+//                          .getLocalMap<String, String>("discovery.services.event-listeners")
+//                          .get(tenant)
+//
+//                      replicatedMap.removeEntryListener(entryListenerId)
+//                      //partitionedMap.removeEntryListener(entryListenerId)
+//
+//
+//                    } else if(decrement.failed()) {
+//                      logger.error("Could not decrement tenant connection counter (tenant: $tenant)")
+//                    }
+//                  }
+//                }
+//              }
             }
           }
+        } else {
+          logger.error("Failed to get tenant connection counter... possible clustering issue.")
+          socket.close()
         }
       }
     }

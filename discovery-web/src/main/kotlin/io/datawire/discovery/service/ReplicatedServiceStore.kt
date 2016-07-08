@@ -1,6 +1,5 @@
 package io.datawire.discovery.service
 
-import com.hazelcast.core.EntryListener
 import com.hazelcast.core.ReplicatedMap
 import io.datawire.discovery.model.ServiceKey
 import io.datawire.discovery.model.ServiceRecord
@@ -27,9 +26,5 @@ class ReplicatedServiceStore(private val backingMap: ReplicatedMap<String, Servi
 
   override fun getRecords(): Collection<ServiceRecord> {
     return backingMap.values
-  }
-
-  fun registerChangeListener(listener: EntryListener<String, ServiceRecord>) {
-    backingMap.addEntryListener(listener)
   }
 }
