@@ -74,7 +74,7 @@ class Discovery : AbstractVerticle() {
     configureAuthHandler(router)
     configureCorsHandler(router)
 
-    router.route("/").handler(DiscoveryConnection())
+    router.route("/ws/v1").handler(DiscoveryConnection())
 
     val server = vertx.createHttpServer()
     val requestHandler = server.requestHandler { router.accept(it) }
