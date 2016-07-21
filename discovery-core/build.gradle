@@ -4,22 +4,14 @@ ext {
 }
 
 repositories {
-  mavenCentral()
-  maven {
-    url "https://oss.sonatype.org/content/repositories/snapshots"
-  }
+  jcenter()
+}
+
+ext {
+  mixpanelVersion = '1.4.4'
 }
 
 dependencies {
-  compile(
-      "io.vertx:vertx-web:${parent.ext.vertxVersion}",
-
-      "org.jetbrains.kotlin:kotlin-stdlib:${parent.ext.kotlinVersion}",
-      "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
-  )
-
-  testCompile(
-      "org.assertj:assertj-core:${assertjVersion}",
-      "junit:junit:${junitVersion}",
-  )
+  compile group: 'io.vertx',     name: 'vertx-core',    version: parent.ext.vertxVersion
+  compile group: 'io.vertx',     name: 'vertx-web',     version: parent.ext.vertxVersion
 }

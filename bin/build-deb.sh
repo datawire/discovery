@@ -52,6 +52,7 @@ cp ${discovery_keystore}                                               ${DIST_AS
 # update the configuration file to reflect where the keystore is and the password it requires
 sed -i "s/\${DISCOVERY_KEYSTORE}/\/etc\/${ROOT_PROJECT_NAME}\/hmac.jceks/g" ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/${ROOT_PROJECT_NAME}.json
 sed -i "s/\${DISCOVERY_KEYSTORE_PASSWORD}/${DISCOVERY_KEYSTORE_PASSWORD}/g" ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/${ROOT_PROJECT_NAME}.json
+sed -i "s/\${MIXPANEL_TOKEN}/${MIXPANEL_TOKEN}/g"                           ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/${ROOT_PROJECT_NAME}.json
 
 cp ${PACKAGE_PROJECT_MODULE}/dist/systemd-${ROOT_PROJECT_NAME}.service ${DIST_ASSEMBLY_DIR}/${PACKAGE_NAME}.service
 cp ${PACKAGE_PROJECT_MODULE}/dist/nginx-${ROOT_PROJECT_NAME}.conf      ${DIST_ASSEMBLY_DIR}/etc/nginx/sites-available/${PACKAGE_NAME}.conf
