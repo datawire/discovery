@@ -65,7 +65,7 @@ data class TenantReference(val id: String, val user: String = TenantReference.NO
   val json: JsonObject
     get() = JsonObject().put("id", id).put("user", user)
 
-  private companion object {
+  internal companion object {
 
     /**
      * The value used to indicate a non-user scoped [TenantReference].
