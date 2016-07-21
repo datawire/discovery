@@ -53,7 +53,7 @@ limitations under the License.
         <appender-ref ref="STDOUT" />
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="ASYNC_FILE" />
         <appender-ref ref="ASYNC_STDOUT" />
     </root>

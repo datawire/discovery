@@ -4,6 +4,7 @@ import mdk_discovery.protocol.*
 import io.datawire.discovery.model.ServiceKey
 import io.datawire.discovery.model.ServiceRecord
 import io.datawire.discovery.model.ServiceStore
+import io.datawire.discovery.tenant.TenantReference
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
@@ -14,7 +15,7 @@ import mdk_protocol.ProtocolError
 import java.util.*
 
 
-class DiscoveryMessageHandler(private val tenant         : String,
+class DiscoveryMessageHandler(private val tenant         : TenantReference,
                               private val messageVersion : String,
                               private val socket         : ServerWebSocket,
                               private val serviceStore   : ServiceStore) : DiscoHandler, Handler<Buffer> {
@@ -64,18 +65,20 @@ class DiscoveryMessageHandler(private val tenant         : String,
   }
 
   override fun onActive(active: Active) {
-    val key = ServiceKey(tenant, active.node)
+    val key = ServiceKey(tenant.id, active.node)
+    active.node.properties.put("datawire_owner", tenant.user)
+
     val record = ServiceRecord(key,
                                active.node.version,
                                active.ttl.toLong(),
-                               active.node.properties?.mapValues { it.toString() } ?: hashMapOf<String,String>())
+                               active.node.properties?.mapValues { it.value?.toString() ?: "" } ?: hashMapOf<String,String>())
 
 
     serviceStore.addRecord(record)
   }
 
   override fun onExpire(expire: Expire) {
-    serviceStore.removeRecord(ServiceKey(tenant, expire.node))
+    serviceStore.removeRecord(ServiceKey(tenant.id, expire.node))
   }
 
   override fun onClear(reset: Clear?) {

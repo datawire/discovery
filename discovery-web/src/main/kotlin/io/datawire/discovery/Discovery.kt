@@ -5,20 +5,42 @@ import com.hazelcast.core.HazelcastInstance
 import mdk_discovery.protocol.*
 import io.datawire.discovery.config.AuthHandlerConfig
 import io.datawire.discovery.config.CorsHandlerConfig
+import io.datawire.discovery.mixpanel.MixpanelIntegration
 import io.datawire.discovery.model.ServiceRecord
 import io.datawire.discovery.model.ServiceStore
 import io.datawire.discovery.service.*
+import io.datawire.discovery.tenant.TenantReference
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Handler
+import io.vertx.core.eventbus.impl.codecs.JsonObjectMessageCodec
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import mdk_protocol.Open
+import java.util.*
 
 
 class Discovery : AbstractVerticle() {
+
+  companion object {
+    /**
+     * A unique identifier for this Discovery instance.
+     */
+    val ID: UUID = UUID.randomUUID()
+
+    /**
+     * The EventBus address used for events that should only be processed by consumers on this node.
+     */
+    val LOCAL_EVENT_ADDRESS = "discovery.${ID.toString()}.events"
+
+    /**
+     * The EventBus address used for events that should be processed by any consumer within the cluster.
+     */
+    val CLUSTER_EVENT_ADDRESS = "discovery.cluster.events"
+  }
 
   private val logger    = LoggerFactory.getLogger(Discovery::class.java)
   private val hazelcast = initializeHazelcast()
@@ -67,6 +89,22 @@ class Discovery : AbstractVerticle() {
       // all fail.
     }
 
+    // load the Mixpanel integration if the Mixpanel configuration object is present and it is enabled.
+    config().getJsonObject(MixpanelIntegration.CONFIG_KEY)?.let {
+      if (it.getBoolean("enabled", false)) {
+
+        it.put("eventBusAddress", LOCAL_EVENT_ADDRESS)
+
+        vertx.deployVerticle(MixpanelIntegration(), DeploymentOptions().setWorker(true).setConfig(it)) { res ->
+          if (res.succeeded()) {
+            logger.info("Mixpanel integration deploy succeeded")
+          } else {
+            logger.error("Mixpanel integration deploy failed")
+          }
+        }
+      }
+    }
+
     val router = Router.router(vertx)
 
     router.get("/health").handler { rc -> rc.response().setStatusCode(HttpResponseStatus.OK.code()).end() }
@@ -95,20 +133,16 @@ class Discovery : AbstractVerticle() {
       val socket  = request.upgrade()
 
       val tenant = if (config().getJsonObject("authHandler").getString("type", "none") == "none") {
-        "default"
+        TenantReference("default")
       } else {
-        ctx.user().principal().getString("aud")
+        TenantReference(ctx.user().principal().getString("aud"), ctx.user().principal().getString("email"))
       }
 
       // TODO: Abstract this bit a bit.
-      val replicatedMap = hazelcast.getReplicatedMap<String, ServiceRecord>("discovery.services.$tenant")
-      serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap))
+      val replicatedMap = hazelcast.getReplicatedMap<String, ServiceRecord>("discovery.services.${tenant.id}")
+      serviceStore = ForwardingServiceStore(ReplicatedServiceStore(replicatedMap), vertx.eventBus())
 
-      //val partitionedMap = hazelcast.getMap<String, ServiceRecord>("discovery.services.$tenant")
-      //serviceStore = ForwardingServiceStore(PartitionedServiceStore(partitionedMap))
-
-
-      vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
+      vertx.sharedData().getCounter("discovery[${deploymentID()}].${tenant.id}.connections") { getCounter ->
         if (getCounter.succeeded()) {
           getCounter.result().incrementAndGet { increment ->
 
@@ -116,19 +150,18 @@ class Discovery : AbstractVerticle() {
               logger.info(
                   "First connected client for tenant on this node. Registering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
 
-              val entryListenerId = replicatedMap.addEntryListener(ServicesChangeListener(vertx.eventBus()))
-              //val entryListenerId = partitionedMap.addEntryListener(PartitionedServicesStoreListener(vertx.eventBus()), true)
+              val entryListenerId = replicatedMap.addEntryListener(ServicesChangeListener(vertx.eventBus(), LOCAL_EVENT_ADDRESS))
 
               vertx
                   .sharedData()
                   .getLocalMap<String, String>("discovery.services.event-listeners")
-                  .put(tenant, entryListenerId)
+                  .put(tenant.id, entryListenerId)
             } else if(increment.failed()) {
-              logger.error("Could not increment tenant connection counter (tenant: $tenant)")
+              logger.error("Could not increment tenant connection counter (tenant: {})", tenant.id)
               socket.close()
             }
 
-            val notificationsAddress = "datawire.discovery.$tenant.services.notifications"
+            val notificationsAddress = "datawire.discovery.${tenant.id}.services.notifications"
             val notificationsHandler = vertx.eventBus().localConsumer<String>(notificationsAddress)
             notificationsHandler.handler {
               val msg = it.body()
@@ -162,38 +195,6 @@ class Discovery : AbstractVerticle() {
               } else {
                 logger.warn("Client does not have service store notification handler to unregister.")
               }
-
-              //
-              // @Note(Plombardi, 2016-07-08): This code below is probably unncessary.
-              //
-              // Code decrements and removes a tenant's listener on this node if the tenant count reaches none, but
-              // realistically there will likely always be at least one tenant connected to the server no matter what.
-              //
-              // Re-evaluate the necessity of this code sometime in 2016-08.
-              //
-
-//              vertx.sharedData().getCounter("discovery[${deploymentID()}].$tenant.connections") { getCounter ->
-//                if (getCounter.succeeded()) {
-//                  getCounter.result().decrementAndGet { decrement ->
-//
-//                    if (decrement.succeeded() && decrement.result() == 0L) {
-//                      logger.info(
-//                          "Last connected client for tenant on this node. Unregistering service store event listener (node: ${deploymentID()}, tenant: $tenant)")
-//
-//                      val entryListenerId = vertx.sharedData()
-//                          .getLocalMap<String, String>("discovery.services.event-listeners")
-//                          .get(tenant)
-//
-//                      replicatedMap.removeEntryListener(entryListenerId)
-//                      //partitionedMap.removeEntryListener(entryListenerId)
-//
-//
-//                    } else if(decrement.failed()) {
-//                      logger.error("Could not decrement tenant connection counter (tenant: $tenant)")
-//                    }
-//                  }
-//                }
-//              }
             }
           }
         } else {

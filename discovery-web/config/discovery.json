@@ -17,5 +17,11 @@
     "allowMethods": [],
     "allowHeaders": [],
     "path": "/*"
+  },
+
+  "mixpanelIntegration": {
+    "enabled": true,
+    "token": "${MIXPANEL_TOKEN}",
+    "publishFrequency": 120
   }
 }

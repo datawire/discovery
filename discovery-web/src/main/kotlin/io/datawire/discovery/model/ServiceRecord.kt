@@ -1,5 +1,6 @@
 package io.datawire.discovery.model
 
+import io.vertx.core.json.JsonObject
 import mdk_discovery.Node
 import mdk_discovery.protocol.Active
 import mdk_discovery.protocol.Expire
@@ -8,6 +9,14 @@ import java.util.*
 
 
 data class ServiceRecord(val key: ServiceKey, val version: String, val timeToLive: Long, val properties: Map<String, String>) : Serializable {
+
+  val json: JsonObject
+    get() = JsonObject(mapOf(
+      "address"    to key.address,
+      "name"       to key.name,
+      "version"    to version,
+      "properties" to JsonObject(properties)
+    ))
 
   val serviceName: String
     get() = key.name
