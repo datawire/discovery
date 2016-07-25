@@ -4,12 +4,13 @@
 Description=Datawire Discovery
 After=network.target
 AssertPathExists=/opt/discovery
-AssertFileIsExecutable=/opt/discovery/bin/discovery.sh
+AssertFileIsExecutable=/opt/discovery/discovery.sh
 
 [Service]
 Type=simple
 EnvironmentFile=/etc/discovery/discovery.env
-ExecStart=/opt/discovery/bin/discovery.sh
+ExecStart=discovery.sh
+WorkingDirectory=/opt/discovery
 
 [Install]
 WantedBy=multi-user.target
