@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 
 # Increase the maximum file descriptors.
 MAX_FD_LIMIT=`ulimit -H -n`

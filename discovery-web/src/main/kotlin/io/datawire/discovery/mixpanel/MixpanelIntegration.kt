@@ -63,7 +63,9 @@ class MixpanelIntegration(): AbstractVerticle() {
     val serviceInfo = json.getJsonObject("properties").getJsonObject("service")
 
     val eventProperties = JSONObject(mapOf(
+        "orgId"   to tenantReference.id,
         "email"   to tenantReference.user,
+        "nodeId"  to serviceInfo.getJsonObject("properties", JsonObject()).getString("datawire_nodeId", "none"),
         "service" to serviceInfo.getString("name"),
         "version" to serviceInfo.getString("version")
     ))
@@ -79,7 +81,9 @@ class MixpanelIntegration(): AbstractVerticle() {
     val serviceInfo = json.getJsonObject("properties").getJsonObject("service")
 
     val eventProperties = JSONObject(mapOf(
+        "orgId"   to tenantReference.id,
         "email"   to tenantReference.user,
+        "nodeId"  to serviceInfo.getJsonObject("properties", JsonObject()).getString("datawire_nodeId", "none"),
         "service" to serviceInfo.getString("name"),
         "version" to serviceInfo.getString("version")
     ))
