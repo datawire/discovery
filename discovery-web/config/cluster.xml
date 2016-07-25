@@ -21,11 +21,12 @@ limitations under the License.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <properties>
+        <property name="hazelcast.logging.type">slf4j</property>
         <property name="hazelcast.mancenter.enabled">false</property>
         <property name="hazelcast.memcache.enabled">false</property>
+        <property name="hazelcast.phone.home.enabled">false</property>
         <property name="hazelcast.rest.enabled">false</property>
         <property name="hazelcast.wait.seconds.before.join">0</property>
-        <property name="hazelcast.logging.type">slf4j</property>
     </properties>
 
     <group>
@@ -33,36 +34,10 @@ limitations under the License.
         <password>discovery</password>
     </group>
 
-    <network>
-        <port auto-increment="true" port-count="10000">5701</port>
-        <outbound-ports>
-            <!--
-            Allowed port range when connecting to other nodes.
-            0 or * means use system provided port.
-            -->
-            <ports>0</ports>
-        </outbound-ports>
-        <join>
-            <multicast enabled="false" />
-            <tcp-ip enabled="false" />
+    <import resource="config/cluster-${app.env}.xml" />
 
-            <!-- TODO(plombardi) AWS needs to be configured before deployment. -->
-            <aws enabled="true">
-                <iam-role>cloud-simple</iam-role>
-                <region>us-east-1</region>
-                <security-group-name>discovery-backend</security-group-name>
-            </aws>
-        </join>
-        <ssl enabled="false"/>
-        <socket-interceptor enabled="false"/>
-        <symmetric-encryption enabled="false">
-            <algorithm>PBEWithMD5AndDES</algorithm>
-            <salt>thesalt</salt>
-            <password>thepass</password>
-            <iteration-count>19</iteration-count>
-        </symmetric-encryption>
-    </network>
     <partition-group enabled="false"/>
+
     <executor-service name="default">
         <pool-size>16</pool-size>
         <queue-capacity>0</queue-capacity>

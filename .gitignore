@@ -16,6 +16,8 @@ quark/test/*/*.xml
 quark/output
 .cache
 
+*-develop.*
+
 **/src/generated
 quark/generated
 

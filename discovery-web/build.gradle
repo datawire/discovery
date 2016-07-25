@@ -6,6 +6,7 @@ ext {
   awaitilityVersion = '1.7.0'
   jacksonVersion = '2.7.1'
   jacksonKotlinVersion = "${jacksonVersion}-2"
+  mixpanelVersion = '1.4.4'
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -72,6 +73,8 @@ dependencies {
       "com.hazelcast:hazelcast-cloud:${parent.ext.hazelcastVersion}",
 
       "com.fasterxml.jackson.jr:jackson-jr-objects:$jacksonVersion",
+
+      "com.mixpanel:mixpanel-java:$mixpanelVersion",
 
       "io.vertx:vertx-auth-jwt:${parent.ext.vertxVersion}",
       "io.vertx:vertx-core:${parent.ext.vertxVersion}",
