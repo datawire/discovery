@@ -36,7 +36,7 @@ ln -s /etc/nginx/sites-available/${APP_NAME}.conf /etc/nginx/sites-enabled/${APP
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 
-chmod +x /opt/${APP_NAME}/bin/${APP_NAME}.sh
+chmod +x /opt/${APP_NAME}/${APP_NAME}.sh
 
 systemctl daemon-reload
 systemctl restart nginx
