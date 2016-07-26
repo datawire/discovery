@@ -1,20 +1,14 @@
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-
 buildscript {
-  ext.kotlinVersion = '1.0.2'
+  ext.kotlinVersion = '1.0.3'
   ext.shadowPluginVersion = '1.2.3'
-  ext.dockerPluginVersion = '1.2'
 
   repositories {
     jcenter()
   }
 
   dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
     classpath "com.github.jengelman.gradle.plugins:shadow:${shadowPluginVersion}"
-    classpath "se.transmode.gradle:gradle-docker:${dockerPluginVersion}"
   }
 }
 
@@ -26,19 +20,19 @@ if (!JavaVersion.current().java8Compatible) {
 }
 
 ext {
-  assertjVersion    = '3.3.0'
-  guavaVersion      = '19.0'
-  hazelcastVersion  = '3.6.2'
-  junitVersion      = '4.12'
-  logbackVersion    = '1.1.7'
-  vertxVersion      = '3.3.0'
+  assertjVersion = '3.5.1'
+  junitVersion   = '4.12'
+  logbackVersion = '1.1.7'
+  slf4jVersion   = '1.7.21'
+  vertxVersion   = '3.3.2'
 }
 
 allprojects {
   apply plugin: 'base'
 
-  version = version + "-${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuuMMddHHmmss"))}"
-
+  group   = projectGroup
+  version = projectVersion  
+  
   repositories {
     jcenter()
   }
@@ -49,14 +43,17 @@ subprojects {
 
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
-
+  
   repositories {
     jcenter()
+    mavenLocal()
   }
 
   dependencies {
-    compile     group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
 
+    compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+  
     testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
     testCompile group: 'junit',       name: 'junit',        version: junitVersion
   }
@@ -64,28 +61,6 @@ subprojects {
   tasks.withType(Tar) {
     compression = Compression.GZIP
   }
-}
-
-clean {
-  delete fileTree("${projectDir}/quark") {
-    include '**/*.qc'
-  }
-}
-
-task dockerize(type: Exec, dependsOn: [':discovery-web:clean', ':discovery-web:shadowJar']) {
-  description 'Creates a runnable Docker image containing Discovery'
-
-  workingDir project.projectDir
-  executable 'docker'
-  args "build", "-t", "datawire/discovery:${version}".toString(), "-t", "datawire/discovery:${version.split("-")[0]}", "."
-}
-
-task runDockerized(type: Exec) {
-  description 'Runs Discovery inside a Docker container'
-
-  workingDir project.projectDir
-  executable 'docker'
-  args "run --rm=true --name disco -p 52689:52689 -v ${projectDir}/discovery-web/config:/etc/discovery datawire/discovery:${version.split("-")[0]}".split(' ') as List
 }
 
 task version << {

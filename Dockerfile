@@ -1,23 +1,30 @@
-FROM alpine:3.4
-MAINTAINER Philip Lombardi <plombardi@datawire.io>
-EXPOSE 52689
-LABEL DESCRIPTION="Datawire Discovery"
-LABEL LICENSE="Apache 2.0"
-LABEL VENDOR="Datawire"
+FROM java:openjdk-8-jre-alpine
+MAINTAINER Datawire Inc, <dev@datawire.io>
 
-ENV JAVA_HOME=/usr/lib/jvm/default-jvm
+# Exposed Ports
+# ----------------------------------------------------------
+# 5000  : discovery
+# 5701  : Hazelcast Clustering
+EXPOSE 5000 5701
 
-RUN apk add --update bash && \
-    apk add --no-cache openjdk8 && \
-    ln -sf "${JAVA_HOME}/bin/"* "/usr/bin/" && \
-    rm -rf /var/cache/apk/*
+LABEL PROJECT_REPO_URL = "git@github.com:datawire/discovery.git" \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/discovery" \
+      PROJECT_LICENSE = "https://github.com/datawire/discovery/LICENSE" \
+      DESCRIPTION = "Datawire discovery" \
+      VENDOR = "Datawire" \
+      VENDOR_URL = "https://datawire.io/"
 
-COPY discovery-web/build/libs/discovery-web-*-fat.jar /opt/discovery/
-RUN  ln -s /opt/discovery/discovery-web-*-fat.jar /opt/discovery/discovery-web.jar
+RUN apk --no-cache add \
+    bash \
+  && ln -snf /bin/bash /bin/sh
 
-ENTRYPOINT ["java", \
-            "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory", \
-            "-Dvertx.hazelcast.config=/etc/discovery/cluster.xml", \
-            "-jar",     "/opt/discovery/discovery-web.jar", \
-            "-cluster", \
-            "-conf",    "/etc/discovery/discovery.json"]
+RUN mkdir /var/log/datawire
+
+WORKDIR /opt/discovery/
+
+COPY discovery/build/libs/flobber-web-*-fat.jar ./discovery.jar
+
+COPY discovery/src/docker/entrypoint.sh ./entrypoint.sh
+RUN  chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]

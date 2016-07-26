@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<configuration>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/log/datawire/discovery.log</file>
+        <append>true</append>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} %level [%thread] %logger{5} - %m%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>/var/log/datawire/discovery-%d{yyyy-MM-dd, UTC}.%i.log</fileNamePattern>
+            <maxFileSize>500MB</maxFileSize>
+            <maxHistory>2</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{"yyyy-MM-dd HH:mm:ss", UTC} %level [%thread] %logger{5} - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="STDOUT" />
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="ASYNC_FILE" />
+        <appender-ref ref="ASYNC_STDOUT" />
+    </root>
+
+    <logger name="io.netty" level="WARN" />
+    <logger name="com.hazelcast.cluster" level="INFO" />
+    <logger name="com.hazelcast.system" level="WARN" />
+    <logger name="com.hazelcast" level="WARN" />
+
+</configuration>

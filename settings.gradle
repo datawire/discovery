@@ -1,7 +1,6 @@
-rootProject.name = name
-
-include("${rootProject.name}-core")
-project(":${rootProject.name}-core").name = "${rootProject.name}-core"
+rootProject.name = 'discovery'
 
 include("${rootProject.name}-web")
 project(":${rootProject.name}-web").name = "${rootProject.name}-web"
+
+

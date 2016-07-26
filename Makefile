@@ -1,31 +1,54 @@
-all: quark
+# Makefile: discovery
 
-.ALWAYS:
+VERSION=$(shell cat VERSION)
 
-quark: .ALWAYS
-	quark install --python quark/discovery-2.0.0.q quark/datawire_introspection.q
+.PHONY: all
 
-test: test-common test-ec2
+all: clean build
 
-test-common: .ALWAYS
-	( cd quark && sh bin/run.sh )
+build:
+	# Produces a language build artifact (e.g.: .jar, .whl, .gem).
+	./gradlew build test shadowJar
+ 
+docker: build
+	# Produces a Docker image.
+	docker build -t datawire/discovery:$(VERSION) .
 
-test-ec2: .ALWAYS
-	( cd quark && sh bin/run.sh -i ec2 )
-
-discoball:
-	./gradlew clean build :discovery-web:buildDockerImage
-
-discostart:
-	docker run --name disco -p 52689:52689 \
-		-v $$(pwd)/discovery-web/config:/opt/discovery/config datawire/discovery:2.0.0
+docker-no-jar-build:
+	# Produces a Docker image but do not trigger recompilation and packaging of the source.
+	docker build -t datawire/discovery:$(VERSION) .
 
 clean:
+	# Clean previous build outputs (e.g. class files) and temporary files.
 	./gradlew clean
+ 
+compile:
+	# Compile code (may do nothing for interpreted languages).
+	./gradlew build
 
-clobber: clean
-	find . -name '*.qc' -print0 | xargs -0 rm -f
+run-docker: docker
+	# Run the service or application in docker.
+	( \
+		docker run -it --rm --name datawire-discovery \
+		-p 5000:5000 \
+		-v $$(pwd)/discovery-web/config:/opt/discovery/config \
+		datawire/discovery:$(VERSION) \
+	)
 
-discostop:
-	docker stop disco
-	docker rm disco
+run-docker-no-jar-rebuild:
+	# Run the service or application in docker.
+	( \
+		docker run -it --rm --name datawire-discovery \
+		-p 5000:5000 \
+		-v $$(pwd)/discovery-web/config:/opt/discovery/config \
+		datawire/discovery:$(VERSION) \
+	)
+ 
+test:
+	./gradlew test
+ 
+unit-test:
+	./gradlew test
+
+version:
+	@echo VERSION

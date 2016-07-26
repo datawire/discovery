@@ -2,97 +2,50 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 ext {
-  argparse4jVersion = '0.6.0'
-  awaitilityVersion = '1.7.0'
-  jacksonVersion = '2.7.1'
-  jacksonKotlinVersion = "${jacksonVersion}-2"
-  mixpanelVersion = '1.4.4'
+  guavaVersion = '19.0'
+
+  // Quark dependencies should be specified as below. The $group, $name, and $version are the values used to
+  // resolve from Maven. The $src is the URL or file path to a Quark source file.
+  quarkDependencies = [
+      [
+          group   : 'datawire_mdk',
+          name    : 'datawire_mdk',
+          version : '2.0.0',
+          src     : 'https://raw.githubusercontent.com/datawire/mdk/master/quark/mdk-2.0.q'
+      ],
+  ]
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Quark -> Java source code generation... this sucks; a lot.
-// ---------------------------------------------------------------------------------------------------------------------
+task quarkInstall() { }
 
-file("${buildDir}/generated/quark").mkdirs()
-file("${projectDir}/src/generated").mkdirs()
-
-task compileQuarkSources(type: Exec) {
-  executable  "quark"
-  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "https://raw.githubusercontent.com/datawire/mdk/master/quark/discovery-3.0.q".toString()
-  workingDir  "../quark"
-}
-
-task copyQuarkSources(type: Copy) {
-  from "${buildDir}/generated/quark"
-  into "${projectDir}/src/generated/java"
-  include '**/*.java'
-  eachFile { details ->
-    def targetPath = details.path.replaceFirst(/java\/[\w.-]*\/src\/main\/java/, "")
-    details.path = targetPath
+tasks.whenTaskAdded { t ->
+  if(t.name.equals('build')){
+    t.dependsOn quarkInstall
   }
 }
 
-task generateJavaFromQuark(dependsOn: [compileQuarkSources, copyQuarkSources]) {
-  delete "${parent.projectDir}/quark/generated"
-}
+ext.quarkDependencies.each { depInfo ->
+  def depName = "${depInfo.name}-${depInfo.version}".toString()
 
-compileKotlin {
-  dependsOn generateJavaFromQuark
-  //classpath = configurations.compile
-  source "${projectDir}/src/generated/java"
-}
-
-clean {
-  delete "src/generated"
-}
-
-sourceSets {
-  main {
-    java {
-      srcDir 'src/generated/java'
-    }
+  task "quarkInstall_${depName}"(type: Exec) {
+    executable 'quark'
+    args       'install', '--java', depInfo.src
   }
-}
 
-repositories {
-  mavenCentral()
-  maven {
-    url "https://oss.sonatype.org/content/repositories/snapshots"
-  }
-}
-
-configurations {
-  all*.exclude group: 'com.hazelcast:hazelcast'
+  quarkInstall.dependsOn "quarkInstall_${depName}"
+  project.dependencies.add('compile', "${depInfo.group}:${depInfo.name}:${depInfo.version}")
 }
 
 dependencies {
-  compile(
-      "ch.qos.logback:logback-classic:${parent.ext.logbackVersion}",
+  compile group: "ch.qos.logback", name: "logback-classic", version: parent.ext.logbackVersion
 
-      "com.hazelcast:hazelcast:${parent.ext.hazelcastVersion}",
-      "com.hazelcast:hazelcast-cloud:${parent.ext.hazelcastVersion}",
+  compile group: 'com.google.guava', name: 'guava', version: guavaVersion
 
-      "com.fasterxml.jackson.jr:jackson-jr-objects:$jacksonVersion",
-
-      "com.mixpanel:mixpanel-java:$mixpanelVersion",
-
-      "io.vertx:vertx-auth-jwt:${parent.ext.vertxVersion}",
-      "io.vertx:vertx-core:${parent.ext.vertxVersion}",
-      "io.vertx:vertx-dropwizard-metrics:${parent.ext.vertxVersion}",
-      "io.vertx:vertx-hazelcast:${parent.ext.vertxVersion}",
-      "io.vertx:vertx-web:${parent.ext.vertxVersion}",
-
-      "io.netty:netty-all:4.1.1.Final",
-
-      "org.jetbrains.kotlin:kotlin-reflect:${parent.ext.kotlinVersion}",
-
-      project(":discovery-core")
-  )
-
-  testCompile(
-      "io.vertx:vertx-unit:${parent.ext.vertxVersion}",
-      "com.jayway.awaitility:awaitility:${awaitilityVersion}"
-  )
+  compile group: "io.vertx", name: "vertx-auth-jwt", version: parent.ext.vertxVersion
+  compile group: "io.vertx", name: "vertx-core",     version: parent.ext.vertxVersion
+  compile group: "io.vertx", name: "vertx-web",      version: parent.ext.vertxVersion
+  
+  testCompile group: "io.vertx", name: "vertx-unit", version: parent.ext.vertxVersion
 }
 
 mainClassName = 'io.vertx.core.Launcher'
@@ -106,17 +59,12 @@ applicationDistribution.from(parent.projectDir) {
 
 shadowJar {
   classifier = 'fat'
+  
   manifest {
-    attributes 'Main-Verticle': 'io.datawire.discovery.Discovery'
+    attributes 'Main-Verticle': "${project.group}.ServiceVerticle"
   }
+  
   mergeServiceFiles {
     include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
   }
-}
-
-tasks.build.doLast {
-  def (String version, String revision) = version.toString().split('-').toList()
-
-  file(project.buildDir.toString() + "/version").write(version)
-  file(project.buildDir.toString() + "/release").write(revision)
 }
