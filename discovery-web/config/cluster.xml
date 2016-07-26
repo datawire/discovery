@@ -34,7 +34,7 @@ limitations under the License.
         <password>discovery</password>
     </group>
 
-    <import resource="config/cluster-${app.env}.xml" />
+    <import resource="config/cluster-${app.platform}.xml" />
 
     <partition-group enabled="false"/>
 

@@ -16,8 +16,12 @@ else
     warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
 fi
 
+# INSTANCE_ENVIRONMENT should be stored in /etc/datawire/environment which is populated by Enventurer.
+APP_ENV=${INSTANCE_ENVIRONMENT:?"Environment variable INSTANCE_ENVIRONMENT is not set."}
+
 rm -f /var/log/datawire/*.log
-java -Dapp.env=prod \
+java -Dapp.platform=aws \
+     -Dapp.env=${APP_ENV} \
      -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
      -Dvertx.hazelcast.config=config/cluster.xml \
      -Dlogback.configurationFile=config/logback.xml \

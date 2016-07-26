@@ -2,13 +2,13 @@
 
 [Unit]
 Description=Datawire Discovery
-After=network.target
+After=cloud-final.service enventurer.service
 AssertPathExists=/opt/discovery
 AssertFileIsExecutable=/opt/discovery/discovery.sh
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/discovery/discovery.env
+EnvironmentFile=/etc/datawire/environment
 ExecStart=/opt/discovery/discovery.sh
 WorkingDirectory=/opt/discovery
 

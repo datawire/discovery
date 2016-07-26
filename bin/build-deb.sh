@@ -50,7 +50,8 @@ mkdir -p ${DIST_ASSEMBLY_DIR}/var/awslogs/etc/config
 
 cp ${PACKAGE_PROJECT_MODULE}/config/${ROOT_PROJECT_NAME}-prod.json     ${DIST_ASSEMBLY_DIR}/${APP_CONFIG_ROOT}/
 cp ${PACKAGE_PROJECT_MODULE}/config/cluster.xml                        ${DIST_ASSEMBLY_DIR}/${APP_CONFIG_ROOT}/
-cp ${PACKAGE_PROJECT_MODULE}/config/cluster-prod.xml                   ${DIST_ASSEMBLY_DIR}/${APP_CONFIG_ROOT}/
+cp ${PACKAGE_PROJECT_MODULE}/config/cluster-aws.xml                    ${DIST_ASSEMBLY_DIR}/${APP_CONFIG_ROOT}/
+cp ${PACKAGE_PROJECT_MODULE}/config/cluster-local.xml                    ${DIST_ASSEMBLY_DIR}/${APP_CONFIG_ROOT}/
 
 # copy the keystore into place
 cp ${discovery_keystore}                                               ${DIST_ASSEMBLY_DIR}/etc/${ROOT_PROJECT_NAME}/hmac.jceks

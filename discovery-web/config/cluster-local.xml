@@ -19,6 +19,7 @@ limitations under the License.
 <hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.6.xsd"
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
     <network>
         <port auto-increment="true" port-count="10000">5701</port>
 
@@ -27,11 +28,7 @@ limitations under the License.
         </outbound-ports>
 
         <join>
-            <aws enabled="true">
-                <iam-role>cloud-simple</iam-role>
-                <region>us-east-1</region>
-                <security-group-name>discovery-backend</security-group-name>
-            </aws>
+            <multicast enabled="true" />
         </join>
 
         <ssl enabled="false" />

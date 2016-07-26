@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Copyright 2016 Datawire. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.6.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <network>
+        <port auto-increment="true" port-count="10000">5701</port>
+
+        <outbound-ports>
+            <ports>0</ports>
+        </outbound-ports>
+
+        <join>
+            <aws enabled="true">
+                <iam-role>cloud-simple</iam-role>
+                <region>us-east-1</region>
+                <security-group-name>discovery-backend</security-group-name>
+                <tag-key>Environment</tag-key>
+                <tag-value>${app.env}</tag-value>
+            </aws>
+        </join>
+
+        <ssl enabled="false" />
+
+        <socket-interceptor enabled="false" />
+
+        <symmetric-encryption enabled="false">
+            <algorithm>PBEWithMD5AndDES</algorithm>
+            <salt>notasecret</salt>
+            <password>notasecret</password>
+            <iteration-count>19</iteration-count>
+        </symmetric-encryption>
+    </network>
+</hazelcast>
