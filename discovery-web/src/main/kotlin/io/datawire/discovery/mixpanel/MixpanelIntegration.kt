@@ -70,7 +70,7 @@ class MixpanelIntegration(): AbstractVerticle() {
         "version" to serviceInfo.getString("version")
     ))
 
-    val message = MessageBuilder(config().getString("token"))
+    val message = MessageBuilder(System.getProperty("app.mixpanel-token", config().getString("token")))
         .event(tenantReference.id, "NodeRegistered", eventProperties)
 
     undelivered.addMessage(message)
@@ -88,7 +88,7 @@ class MixpanelIntegration(): AbstractVerticle() {
         "version" to serviceInfo.getString("version")
     ))
 
-    val message = MessageBuilder(config().getString("token"))
+    val message = MessageBuilder(System.getProperty("app.mixpanel-token", config().getString("token")))
         .event(tenantReference.id, "NodeExpired", eventProperties)
 
     undelivered.addMessage(message)
