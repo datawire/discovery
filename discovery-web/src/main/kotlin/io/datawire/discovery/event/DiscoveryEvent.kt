@@ -39,15 +39,15 @@ class DiscoveryEvent(val type: String,
 
     fun serviceRegistered(tenant: TenantReference, service: ServiceRecord): DiscoveryEvent {
       return DiscoveryEvent(NODE_REGISTERED, mapOf(
-          "tenant"  to tenant.json,
-          "service" to service.json
+          "tenant"  to tenant.toJson(),
+          "service" to service.toJson()
       ))
     }
 
     fun serviceExpired(tenant: TenantReference, service: ServiceRecord): DiscoveryEvent {
       return DiscoveryEvent(NODE_EXPIRED, mapOf(
-          "tenant"  to tenant.json,
-          "service" to service.json
+          "tenant"  to tenant.toJson(),
+          "service" to service.toJson()
       ))
     }
   }

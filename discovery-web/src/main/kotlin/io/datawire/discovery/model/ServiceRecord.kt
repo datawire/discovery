@@ -10,13 +10,14 @@ import java.util.*
 
 data class ServiceRecord(val key: ServiceKey, val version: String, val timeToLive: Long, val properties: Map<String, String>) : Serializable {
 
-  val json: JsonObject
-    get() = JsonObject(mapOf(
-      "address"    to key.address,
-      "name"       to key.name,
-      "version"    to version,
-      "properties" to JsonObject(properties)
+  fun toJson(): JsonObject {
+    return JsonObject(mapOf(
+        "address" to key.address,
+        "name" to key.name,
+        "version" to version,
+        "properties" to JsonObject(properties)
     ))
+  }
 
   val serviceName: String
     get() = key.name

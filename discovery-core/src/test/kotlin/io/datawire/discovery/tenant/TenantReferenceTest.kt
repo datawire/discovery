@@ -12,7 +12,7 @@ class TenantReferenceTest {
 
   @Test fun toJsonConstructsValidJsonObjectWhenUserIsNotSet() {
     val ref = TenantReference("ABC123XYZ")
-    val refJson = ref.json
+    val refJson = ref.toJson()
 
     assertThat(refJson.getString("id")).isEqualTo("ABC123XYZ")
     assertThat(refJson.getString("user")).isEqualTo(TenantReference.NONE_USER)
@@ -20,7 +20,7 @@ class TenantReferenceTest {
 
   @Test fun toJsonConstructsValidJsonObjectWhenUserIsSet() {
     val ref = TenantReference("ABC123XYZ", "dev@datawire.io")
-    val refJson = ref.json
+    val refJson = ref.toJson()
 
     assertThat(refJson.getString("id")).isEqualTo("ABC123XYZ")
     assertThat(refJson.getString("user")).isEqualTo("dev@datawire.io")

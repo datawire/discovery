@@ -62,8 +62,7 @@ data class TenantReference(val id: String, val user: String = TenantReference.NO
    * }
    * `
    */
-  val json: JsonObject
-    get() = JsonObject().put("id", id).put("user", user)
+  fun toJson(): JsonObject = JsonObject().put("id", id).put("user", user)
 
   internal companion object {
 
