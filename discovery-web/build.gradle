@@ -18,7 +18,7 @@ file("${projectDir}/src/generated").mkdirs()
 
 task compileQuarkSources(type: Exec) {
   executable  "quark"
-  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "https://raw.githubusercontent.com/datawire/mdk/master/quark/discovery-3.0.q".toString()
+  args        "compile", "-o", "${buildDir}/generated/quark".toString(), '--java', "https://raw.githubusercontent.com/datawire/mdk/v2.0.1/quark/discovery-3.0.q".toString()
   workingDir  "../quark"
 }
 
